@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@import "./site.css";
+
+/* Reset some Next.js defaults that might interfere with the original design */
+body {
+  margin: 0;
+  padding: 0;
+}

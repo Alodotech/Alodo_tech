@@ -1,0 +1,170 @@
+.products-hero {
+  padding: clamp(100px, 15vw, 180px) 0 80px;
+  background: var(--white);
+}
+
+.products-grid {
+  padding-bottom: var(--section-y);
+}
+
+.p-list {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.p-card {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  background: var(--grey-50);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  transition: transform .4s var(--ease-out), box-shadow .4s var(--ease-out);
+  min-height: 500px;
+}
+
+.p-card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--shadow-lg);
+}
+
+.p-content {
+  padding: 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.p-tag {
+  font-family: var(--font-tech);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  margin-bottom: 24px;
+}
+
+.p-features {
+  list-style: none;
+  padding: 0;
+  margin: 32px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.p-features li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 15px;
+  color: var(--grey-700);
+}
+
+.p-features li::before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.p-visual {
+  background: var(--black);
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.p-visual.alodo {
+  background: linear-gradient(135deg, #0A0A0A, #1A1A1A);
+}
+
+.p-visual.coinai {
+  background: linear-gradient(135deg, #050505, #111);
+}
+
+/* Mockups inside visual */
+.mockup-box {
+  width: 200px;
+  height: 140px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.box-header {
+  font-size: 10px;
+  color: var(--grey-500);
+  font-family: var(--font-tech);
+}
+
+.box-screen {
+  background: var(--black);
+  color: var(--white);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  text-align: center;
+}
+
+.mockup-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 120px;
+}
+
+.mockup-chart .bar {
+  width: 24px;
+  height: 40%;
+  background: var(--primary);
+  border-radius: 4px 4px 0 0;
+  animation: grow 2s infinite alternate ease-in-out;
+}
+
+@keyframes grow {
+  from {
+    height: 30%;
+  }
+
+  to {
+    height: 100%;
+  }
+}
+
+.cta-alt {
+  padding: var(--section-y) 0;
+  text-align: center;
+  background: var(--grey-50);
+}
+
+.cta-content h2 {
+  margin-bottom: 16px;
+}
+
+.cta-content p {
+  color: var(--grey-500);
+  margin-bottom: 32px;
+}
+
+@media (max-width: 1000px) {
+  .p-card {
+    grid-template-columns: 1fr;
+  }
+
+  .p-content {
+    padding: 40px;
+    order: 2;
+  }
+
+  .p-visual {
+    height: 300px;
+    order: 1;
+  }
+}

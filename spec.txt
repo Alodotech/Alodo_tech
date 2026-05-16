@@ -1,0 +1,478 @@
+© 2025 ALODO TECH — Tous droits réservés Page 1
+AT
+ALODO TECH
+Website
+Specification
+Architecture · Contenu · Features · Stack · Design
+v1.0 Juin 2025 Usage Interne Confidentiel
+Préparé par
+ALODO TECH Core Team
+Destinataires
+Équipe Développement
+
+-- 1 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 2
+Table des Matières
+01 Objectif & Philosophie du Site 3
+02 Architecture Globale — Sitemap 4
+03 Pages & Contenus Détaillés 5
+04 Fonctionnalités Techniques 9
+05 Stack Technologique 11
+06 Design System 12
+07 Structure du Repository GitHub 13
+08 Erreurs Critiques à Éviter 14
+09 Roadmap de Livraison 15
+
+-- 2 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 3
+01
+Objectif & Philosophie du Site
+Le site d'ALODO TECH n'est pas un simple site vitrine. C'est une machine de crédibilité, une porte d'entrée
+pour les investisseurs et partenaires, et la preuve publique que l'équipe est sérieuse, structurée et
+ambitieuse.
+La règle des 5 secondes
+Tout visiteur doit obtenir une réponse claire à ces 3 questions en moins de 5 secondes :
+01 Qui êtes-vous ? ALODO TECH — startup tech africaine
+02 Que construisez-vous ? Infrastructure financière & digitale pour marchés émergents
+03 Pourquoi ça compte ? Digitaliser l'économie informelle, inclure les MPME
+Positionnement de marque
+Le site doit transmettre l'ADN d'ALODO TECH : minimaliste, ambitieux, pan-africain. Les références
+visuelles sont Apple Inc. et OpenAI.com — pas de surcharge, pas de kitsch, pas de design 'africain
+classique'. Chaque pixel doit inspirer confiance.
+Trois audiences principales
+Audience Besoin
+Investisseurs & VCs Cherchent traction, vision, équipe, opportunité de marché
+Partenaires B2B Banques, IMF, gouvernements — cherchent fiabilité & solutions
+Talents Développeurs, designers, business — cherchent une aventure
+
+-- 3 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 4
+02
+Architecture Globale — Sitemap
+Le site est structuré comme une entreprise tech sérieuse et scalable. Chaque page a un objectif précis et
+une audience cible.
+Route Page Objectif
+/ Home Convaincre en 10 sec, funneler vers produits & contact
+/about About Vision, mission, histoire, équipe, gouvernance
+/products/alodo Products — ALODO Inclusion financière, boîtier, WhatsApp bot, MPME
+/products/coinai Products — COINAI IA investissement, automation trading
+/solutions Solutions B2B MPME / Institutions financières / Gouvernements
+/technology Technology IA, Data, Infrastructure, Mobile, IoT
+/impact Impact Inclusion, digitalisation, storytelling terrain
+/blog Blog / Insights Articles, analyses marché, innovations fintech
+/careers Careers Vision, offres, rejoindre l'aventure
+/partners Partners / Investors Opportunités, pourquoi investir, contact direct
+/contact Contact Formulaire, email pro, localisation
+
+-- 4 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 5
+03
+Pages & Contenus Détaillés
+n HOME — Page Critique
+Objectif : convaincre en 10 secondes. C'est la page la plus importante du site. Chaque section doit avoir un
+but précis et un CTA clair.
+Hero Section
+• Headline : "Building financial and digital infrastructure for emerging markets"
+• Sous-titre : 1 ligne max, impact immédiat
+• CTA Principal : [Discover ALODO] — bouton plein bleu
+• CTA Secondaire : [Partner with us] — bouton outline
+• Background : vidéo ou animation subtile (particules, carte Afrique)
+• Mobile first : hero visible entier sur 375px sans scroll
+Nos Produits
+• ALODO → carte produit avec icône + 1 ligne tagline → inclusion financière MPME
+• COINAI → carte produit → IA + investissement automatisé
+• Lien vers /products pour détail
+Notre Vision
+• Titre : "Digitaliser l'économie informelle"
+• Bloc texte 2-3 lignes max — pas de mur de texte
+• Éventuellement : courte animation ou illustration
+Chiffres Clés
+• MPME ciblées : 500 000+
+• Transactions digitalisées : 1M+
+• Pays cibles phase 1 : 5
+• Note : chiffres simulés pour prototype — à remplacer par données réelles
+• Animations compteur au scroll (CountUp.js ou Framer Motion)
+Section Partenaires
+• Logos partenaires / institutions en greyscale sur fond blanc
+• ULTRA IMPORTANT pour crédibilité investisseurs
+• Slider auto si beaucoup de logos
+• Texte : 'Ils nous font confiance' ou 'Nos partenaires'
+nnn ABOUT — L'Entreprise
+Raconter l'histoire d'ALODO TECH de façon humaine et ambitieuse.
+Vision
+
+-- 5 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 6
+• 'Un continent, une infrastructure digitale'
+• Formulation courte, mémorable, globale
+Mission
+• Digitaliser et inclure financièrement les MPME d'Afrique subsaharienne
+• Connecter l'économie informelle aux outils du 21e siècle
+Histoire
+• Naissance dans un hackathon → pivot startup
+• Timeline visuelle : date hackathon → création AT → premier produit → aujourd'hui
+• Authentique, pas sur-marketé
+Équipe
+• Photos professionnelles (fond neutre, cohérent)
+• Nom, rôle, 1 ligne bio
+• LinkedIn icon
+• Pas de photos de profil Instagram recyclées
+Gouvernance
+• Entité juridique, pays d'enregistrement
+• Éventuellement : Advisory board si disponible
+
+-- 6 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 7
+n PRODUCTS — Page Clé
+Page dédiée à chaque produit. C'est ici que les investisseurs, partenaires et clients comprennent ce que
+vous construisez concrètement.
+n ALODO — Inclusion Financière MPME
+Problème
+• 80% des MPME africaines n'ont pas accès au crédit formel
+• Absence d'historique financier numérique
+• Transactions cash non tracées = invisibilité financière
+Solution
+• Boîtier intelligent (hardware IoT) installé au point de vente
+• Enregistrement automatique des transactions
+• WhatsApp Bot : interface accessible sans smartphone haut de gamme
+• Score de crédit MPME basé sur les données collectées
+Démo Visuelle
+• Mockup du boîtier physique (rendu 3D ou photo)
+• Captures d'écran du WhatsApp Bot
+• Schéma du flux : vente → enregistrement → score → crédit
+Impact MPME
+• Accès au crédit formel pour la première fois
+• Visibilité financière numérique
+• Croissance du chiffre d'affaires mesurable
+n COINAI — IA pour Investisseurs
+Positionnement
+• Plateforme IA dédiée à l'investissement sur marchés africains & émergents
+• Automation trading basée sur modèles ML
+• Tableau de bord analytics en temps réel
+Features clés
+• Signaux d'achat/vente automatisés
+• Portfolio tracking multi-actifs
+• Rapports d'analyse IA hebdomadaires
+• API pour intégration brokers
+n SOLUTIONS B2B
+Page ciblant les partenaires institutionnels. C'est le pont entre les produits et les décideurs (banques, IMF,
+gouvernements).
+Pour les MPME
+• Digitalisation comptabilité et transactions
+
+-- 7 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 8
+• Accès à un score financier
+• Passerelle vers le crédit formel
+Pour les Institutions Financières
+• API de scoring MPME basé sur données terrain
+• Réduction du risque crédit sur le segment informel
+• Acquisition client via le réseau ALODO
+Pour les Gouvernements
+• Données macro sur l'économie informelle
+• Outil de politique d'inclusion financière
+• Partenariat programme nationale digitalisation
+
+-- 8 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 9
+nn TECHNOLOGY — Crédibilité Technique
+Cette page vous fait passer au niveau supérieur aux yeux des investisseurs tech. Elle montre que vous avez
+une vraie stack, une vraie vision technique.
+Intelligence Artificielle
+• LLM intégré (Gemini / OpenAI API) pour analyse et scoring
+• Modèles de classification pour détection d'anomalies
+• NLP pour WhatsApp Bot multilingue (FR/EN/Langues locales)
+Data & Analytics
+• Pipeline de collecte de données temps réel
+• Tableau de bord analytics pour partenaires B2B
+• Data lake structuré pour entraînement modèles
+Infrastructure
+• Architecture cloud-native (AWS / GCP)
+• API RESTful & webhooks pour partenaires
+• Haute disponibilité, SLA 99.9%
+Mobile & WhatsApp
+• WhatsApp Business API (Meta Cloud API)
+• Bot conversationnel intelligent
+• Accessible sur tout téléphone avec internet basique
+IoT — Boîtier ALODO
+• Hardware edge computing pour traitement local
+• Connectivité GSM / WiFi
+• Mise à jour firmware OTA
+• Autonomie batterie 24h+
+n IMPACT — Page Stratégique
+Très importante sur le marché africain. Les investisseurs impact, les ONG, les institutions de développement
+sont très sensibles à cette page.
+Storytelling — Exemple concret
+"Amara, vendeuse de tissu au marché de Cotonou, n'avait jamais eu de compte bancaire. Avec
+ALODO, ses ventes sont enregistrées automatiquement depuis 6 mois. Elle vient d'obtenir son premier
+microcrédit de 150 000 FCFA pour agrandir son stock."
+Axes d'Impact
+• Inclusion financière : accès au crédit pour les non-bancarisés
+• Digitalisation : transition de l'informel vers le formel
+• Accès au financement : scoring alternatif basé sur comportement réel
+
+-- 9 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 10
+• Emploi & croissance : MPME équipées = MPME qui recrutent
+• Objectifs ODD : alignement ODD 8 (Travail décent) et ODD 10 (Réduction inégalités)
+
+-- 10 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 11
+n BLOG / INSIGHTS
+Pour la crédibilité long terme et le SEO. Même 1 article/mois suffit au début.
+• Articles de fond : fintech africaine, inclusion financière, MPME
+• Analyses de marché : données macroéconomiques Afrique subsaharienne
+• Innovations : IA, IoT, paiements mobiles
+• Behind the scenes : vie d'équipe, hackathons, milestones
+• CMS headless (Sanity ou Strapi) pour publication sans dev
+n CAREERS
+Même avec une petite équipe, cette page signale ambition et sérieux.
+• Vision de l'entreprise dans 5 ans
+• Culture : pourquoi rejoindre ALODO TECH
+• Offres ouvertes (peut commencer vide avec 'Bientôt disponible')
+• Formulaire candidature spontanée
+• Photos ambiance équipe (authentiques)
+n PARTNERS / INVESTORS — Ultra Important
+C'est la page qui convertit un investisseur intéressé en investisseur engagé. Elle doit être irréprochable.
+• Titre : 'Rejoindre la révolution financière africaine'
+• Opportunité de marché : 44M+ MPME en Afrique subsaharienne sous-équipées
+• Pourquoi investir maintenant : early stage, timing marché, équipe
+• Types de partenariats : investissement equity, partenariat commercial, partenariat tech
+• Deck disponible sur demande (formulaire sécurisé)
+• Témoignages partenaires existants (si disponibles)
+• Contact direct : email dédié investors@alodo.tech + calendrier (Calendly)
+n CONTACT
+• Formulaire : Nom, Email, Société, Objet (dropdown), Message
+• Email pro : contact@alodo.tech / hello@alodo.tech
+• Localisation : ville / pays du siège
+• Réseaux sociaux : LinkedIn, Twitter/X (minimum)
+• Temps de réponse estimé : '< 48h'
+
+-- 11 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 12
+04
+Fonctionnalités Techniques
+Fonctionnalité Priorité Description
+Responsive Mobile First n Critique Design conçu pour mobile 375px+, testé iPhone SE
+Performance < 2s n Critique LCP < 2.5s, CLS < 0.1, Score Lighthouse > 90
+SEO Optimisé n Critique Meta tags, OG tags, sitemap.xml, robots.txt, structured data
+Multi-langue FR/EN n Critique i18n Next.js, switcher visible dans le header
+CMS Headless n Élevée Sanity.io ou Strapi — publication articles sans dev
+Formulaire Leads n Élevée Formulaire investisseurs avec qualification automatique
+Analytics n Élevée Google Analytics 4 + Hotjar (heatmaps)
+Démo Interactive ALODO n Moyenne Simulation du flux : vente → score → crédit
+Simulation Boîtier IoT n Moyenne Mockup interactif ou vidéo courte produit
+Chatbot Démo n Moyenne Widget WhatsApp Bot simplifié (Voiceflow ou custom)
+Dashboard Simple n Future Espace partenaires avec métriques basiques
+Newsletter n Future Intégration Mailchimp ou Resend pour blog
+Légende Priorités
+n Critique À livrer impérativement en V1
+n Élevée À livrer en V1 ou V1.1 rapide
+n Moyenne V1.2 ou itération suivante
+n Future Roadmap future, non bloquant
+
+-- 12 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 13
+05
+Stack Technologique Recommandée
+Stack choisie pour allier performance, scalabilité, rapidité de développement et crédibilité aux yeux des
+investisseurs tech.
+Couche Technologie Justification
+Frontend Framework Next.js 14 (App Router) SSR/SSG, SEO natif, performances, ecosystem React
+UI & Styling Tailwind CSS + Framer Motion Minimalisme, animations propres, pas de CSS custom spaghetti
+Composants shadcn/ui Composants accessibles, customisables, design-system ready
+CMS Sanity.io (recommandé) ou Strapi CMS headless moderne, preview en temps réel, gratuit en starter
+Backend / API Node.js + Express ou Next.js API RoutesLégèreté, ecosystème JS unifié, déploiement facile
+Base de données PostgreSQL (Supabase) Relationnel robuste, Supabase = BaaS pratique
+Auth NextAuth.js Auth simplifiée, multi-providers, sessions sécurisées
+Emails Resend + React Email Emails transactionnels modernes, templates React
+Analytics Google Analytics 4 + Hotjar Gratuit, standard industrie, heatmaps Hotjar
+Hosting Vercel Déploiement Git push, CDN global, preview branches
+DNS & Domaine Cloudflare DNS + CDN + protection DDoS gratuite
+Formulaires React Hook Form + Zod Validation typesafe, UX formulaires optimale
+Internationalisation next-intl i18n First-class dans Next.js App Router
+Note : Ne pas dévier de cette stack sans validation de l'équipe lead. La cohérence de la stack est critique pour la
+maintenance et le recrutement.
+
+-- 13 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 14
+06
+Design System
+Le design est ce qui sépare un site de startup sérieuse d'un site amateur. Référence absolue : Apple.com et
+OpenAI.com. Minimalisme, espace, typographie.
+Palette de Couleurs
+Rôle Couleur Usage
+Primary Black #0A0A0A Textes principaux, headers, fond dark sections
+Primary White #FFFFFF Fonds, cartes, espace négatif
+Brand Blue #0057FF CTAs, liens, accents, icônes actives
+Teal Accent #00C2A8 Impact, success states, data viz
+Light Grey #F5F5F7 Fonds de sections alternées (style Apple)
+Medium Grey #6E6E73 Textes secondaires, metadata, captions
+Divider Grey #D1D1D6 Bordures, séparateurs
+Typographie
+• Display / Hero : Inter 700 ou Geist Sans Bold — tailles 48px–72px
+• Titres H2/H3 : Inter 600 — 28px / 22px
+• Body text : Inter 400 — 16px, line-height 1.6
+• Captions / Labels : Inter 400 — 12px–14px, color #6E6E73
+• Code / Mono (si besoin) : JetBrains Mono
+• Fonte de fallback : system-ui pour performance
+Règles de Design
+n À FAIRE
+• Espacement généreux (padding 80px+ entre sections)
+• Animations légères au scroll (Framer Motion)
+• Images haute résolution ou illustrations SVG
+• Boutons avec états hover / focus clairs
+• Icônes cohérentes (Lucide React)
+• Grid 12 colonnes, max-width 1280px
+• Sections alternées blanc / gris clair
+n À ÉVITER
+• Gradients multicolores criards
+• Animations excessives qui distraient
+• Trop de polices différentes (2 max)
+• Textes longs sans respiration
+• Images de stock génériques
+• Fonds noirs partout (sauf hero)
+• Boutons sans contraste suffisant
+
+-- 14 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 15
+07
+Structure du Repository GitHub
+Organisation GitHub de l'organisation alodo-tech. Un repo par domaine fonctionnel. Cette structure signale
+maturité organisationnelle aux recruteurs et investisseurs tech.
+Repository Stack Description
+alodo-tech-website Next.js Site institutionnel public (ce document)
+alodo-product Next.js / React Native Application ALODO (frontend + app mobile)
+coinai-product Next.js / Python Plateforme COINAI trading & analytics
+backend-core Node.js / Express API core : auth, users, scoring, webhooks
+docs Markdown / Notion sync Documentation technique & specs produit
+Structure interne — alodo-tech-website
+alodo-tech-website/
+nnn app/ ← Pages Next.js (App Router)
+n nnn [locale]/ ← i18n routing (fr / en)
+n nnn about/
+n nnn products/
+n nnn solutions/
+n nnn technology/
+n nnn impact/
+n nnn blog/
+n nnn careers/
+n nnn partners/
+n nnn contact/
+nnn components/ ← Composants réutilisables
+nnn lib/ ← Utilitaires, helpers
+nnn messages/ ← Fichiers i18n (fr.json, en.json)
+nnn public/ ← Assets statiques
+nnn sanity/ ← Schémas CMS
+nnn styles/ ← Globals CSS
+
+-- 15 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 16
+08
+Erreurs Critiques à Éviter
+Ces erreurs transforment un site pro en site amateur. Chaque membre de l'équipe doit les connaître.
+n Tout sur une seule page Un one-pager interminable est illisible sur mobile et tue le SEO. Structure
+multi-pages obligatoire.
+n Design cheap ou surchargé Gradients agressifs, trop de couleurs, icônes dépareillées. Référez-vous
+systématiquement à Apple.com et OpenAI.com.
+n Murs de texte Aucun paragraphe de plus de 3 lignes. Si c'est plus long, c'est un article
+de blog — pas une homepage.
+n Vision floue Le visiteur doit comprendre ce que vous faites en 5 secondes. Si vous
+devez expliquer 5 minutes, reécrivez.
+n Pas de CTA clairs Chaque section doit amener quelque part. Boutons visibles, labels
+d'action ('Découvrir', 'Contacter', 'Investir').
+n Coder sans maquette Ne jamais ouvrir VS Code avant d'avoir des maquettes Figma validées.
+Le design en browser = perte de temps garantie.
+n Ignorer le mobile 60-70% du trafic africain est mobile. Mobile-first est non-négociable, pas
+optionnel.
+n Faux chiffres sans
+disclaimer
+Chiffres simulés pour prototype = OK avec mention 'Projections'. Chiffres
+inventés présentés comme réels = problème de crédibilité.
+n Emails non-pro contact@gmail.com détruit la crédibilité instantanément.
+contact@alodo.tech depuis le jour 1.
+n Pas de HTTPS / domaine
+propre
+Un site en http:// ou sur un sous-domaine Vercel par défaut en production
+est inacceptable pour une startup sérieuse.
+
+-- 16 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 17
+09
+Roadmap de Livraison
+Processus en 3 phases. Ne pas sauter les étapes. La qualité du site dépend de la rigueur du processus.
+Phase 1 — Fondations Semaines 1–2
+3 Définir le contenu exact de chaque page (copywriting)
+3 Choisir le domaine + configurer les emails pro
+3 Créer les maquettes Figma (desktop + mobile) pour toutes les pages
+3 Faire valider les maquettes par l'équipe entière
+3 Initialiser le repo GitHub alodo-tech-website
+3 Setup Next.js 14 + Tailwind + shadcn/ui + next-intl
+Phase 2 — Développement V1 Semaines 3–6
+3 Intégration Figma → code (composants réutilisables d'abord)
+3 Pages : Home, About, Products (ALODO + COINAI), Contact
+3 Multi-langue FR/EN
+3 Responsive mobile first — tests sur vrai device
+3 SEO : meta tags, OG, sitemap, robots
+3 Formulaire contact + leads investisseurs
+3 Déploiement preview sur Vercel
+Phase 3 — Enrichissement Semaines 7–10
+3 Pages : Solutions, Technology, Impact, Blog, Careers, Partners
+3 CMS Sanity.io branché sur Blog
+3 Analytics GA4 + Hotjar
+3 Démo interactive ALODO (simulateur basique)
+3 Performance audit : Lighthouse > 90 sur toutes les pages
+3 Lancement domaine production + annonce LinkedIn
+n Conseil Final
+
+-- 17 of 18 --
+
+ALODO TECH · Website Specification CONFIDENTIEL
+© 2025 ALODO TECH — Tous droits réservés Page 18
+Ne codez PAS directement. Faites d'abord :
+1. Maquettes Figma — chaque page, desktop + mobile
+2. Contenu clair — textes finaux, pas de Lorem ipsum
+3. Structure validée — feedback équipe avant code
+Un bon site se construit du contenu vers le code, jamais dans l'autre sens.
+Ce document est la référence unique pour le développement du site ALODO TECH. Toute décision d'architecture ou de
+design qui s'en écarte doit être documentée et validée par le lead technique avant implémentation.
+
+-- 18 of 18 --
+
+
+
+------------
+je pense qu'il des page qu'on va fermet d'abord example solution et tecnology on va couperles lien on va pas suprimmer les ficher cas apres on n'aura beoit de ça mais actuelement on veut
+pas eux

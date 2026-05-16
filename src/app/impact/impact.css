@@ -1,0 +1,144 @@
+/* Story */
+.story {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+}
+@media (max-width: 900px) { .story { grid-template-columns: 1fr; gap: 40px; } }
+.story-card {
+  background: var(--white);
+  border-radius: var(--r-xl);
+  border: 1px solid var(--grey-100);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+.story-photo {
+  aspect-ratio: 5/4;
+  background: linear-gradient(135deg, #FFE9D6, #FFB48A);
+  position: relative;
+  display: grid; place-items: center;
+  color: #7a3915;
+  overflow: hidden;
+}
+.story-photo .placeholder {
+  text-align: center;
+  font-size: 13px;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: rgba(122,57,21,.5);
+}
+/* Stylized portrait — abstract avatar */
+.story-photo svg { width: 60%; height: 60%; }
+.story-meta {
+  padding: 24px 28px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-top: 1px solid var(--grey-100);
+  font-size: 14px;
+}
+.story-meta .name { font-weight: 600; }
+.story-meta .place { color: var(--grey-500); }
+.story-meta .verified {
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--primary); font-size: 13px;
+}
+.quote {
+  font-size: clamp(22px, 2.4vw, 30px);
+  font-weight: 500;
+  letter-spacing: -0.018em;
+  line-height: 1.35;
+  text-wrap: balance;
+  margin: 0;
+}
+.quote::before {
+  content: "“";
+  display: block;
+  font-size: 88px;
+  line-height: 0.8;
+  color: var(--primary);
+  font-family: Georgia, serif;
+  margin-bottom: 16px;
+}
+.quote-meta { margin-top: 24px; font-size: 14px; color: var(--grey-500); }
+
+/* Axes */
+.axes-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+@media (max-width: 760px) { .axes-grid { grid-template-columns: 1fr; } }
+.axis {
+  padding: 36px;
+  background: var(--white);
+  border: 1px solid var(--grey-100);
+  border-radius: var(--r-lg);
+  display: grid; grid-template-columns: 56px 1fr; gap: 22px;
+  transition: transform .3s, border-color .3s;
+}
+.axis:hover { transform: translateY(-3px); border-color: var(--grey-300); }
+.axis .ic {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--primary-50);
+  color: var(--primary);
+  display: grid; place-items: center;
+}
+.axis.teal .ic { background: var(--teal-50); color: var(--teal); }
+.axis h3 { font-size: 20px; margin-bottom: 8px; }
+.axis p { color: var(--grey-500); font-size: 14px; line-height: 1.55; margin: 0; }
+.axis .stat-line {
+  margin-top: 18px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--black);
+}
+
+/* SDG */
+.sdgs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+@media (max-width: 760px) { .sdgs { grid-template-columns: 1fr; } }
+.sdg {
+  padding: 32px;
+  color: white;
+  border-radius: var(--r-lg);
+  display: grid; grid-template-columns: 88px 1fr; gap: 24px;
+  align-items: center;
+}
+.sdg.sdg8 { background: #A21942; }
+.sdg.sdg10 { background: #DD1367; }
+.sdg .num {
+  width: 88px; height: 88px;
+  background: rgba(255,255,255,.15);
+  border-radius: 16px;
+  display: grid; place-items: center;
+  font-size: 36px; font-weight: 800;
+  letter-spacing: -0.04em;
+}
+.sdg h3 { color: white; font-size: 17px; margin-bottom: 6px; }
+.sdg p { margin: 0; color: rgba(255,255,255,.85); font-size: 14px; line-height: 1.5; }
+.sdg .tag {
+  display: inline-block; margin-bottom: 8px;
+  font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+  color: rgba(255,255,255,.8);
+}
+
+/* Map */
+.impact-map {
+  background: var(--black);
+  border-radius: var(--r-xl);
+  padding: 48px;
+  color: white;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+@media (max-width: 900px) { .impact-map { grid-template-columns: 1fr; } }
+.impact-map h2 { color: white; }
+.map-stats { display: grid; gap: 16px; }
+.map-stat {
+  display: grid; grid-template-columns: auto 1fr; align-items: baseline;
+  gap: 18px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.map-stat:last-child { border-bottom: 0; }
+.map-stat .v { font-family: var(--font-mono); font-weight: 700; font-size: 28px; letter-spacing: -0.02em; color: var(--teal); }
+.map-stat .l { color: rgba(255,255,255,.7); font-size: 14px; }
+.map-svg { aspect-ratio: 1/1; }
