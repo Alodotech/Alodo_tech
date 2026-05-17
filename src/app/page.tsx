@@ -4,41 +4,13 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import dynamic from "next/dynamic";
 import "./home.css";
+
+const Hero3DMap = dynamic(() => import("@/components/Hero3DMap"), { ssr: false });
 
 export default function Home() {
   useEffect(() => {
-    // 1. Africa constellation logic
-    const g = document.getElementById("dots");
-    if (g) {
-      const inAfrica = (x: number, y: number) => {
-        const ellipses = [
-          { cx: 320, cy: 220, rx: 130, ry: 100 },
-          { cx: 310, cy: 350, rx: 150, ry: 120 },
-          { cx: 330, cy: 480, rx: 110, ry: 110 },
-          { cx: 410, cy: 250, rx: 80, ry: 70 },
-        ];
-        for (const e of ellipses) {
-          const dx = (x - e.cx) / e.rx;
-          const dy = (y - e.cy) / e.ry;
-          if (dx * dx + dy * dy <= 1) return true;
-        }
-        return false;
-      };
-
-      const dots = [];
-      for (let y = 100; y < 620; y += 14) {
-        for (let x = 150; x < 520; x += 14) {
-          if (inAfrica(x, y)) {
-            const jx = (Math.random() - 0.5) * 3;
-            const jy = (Math.random() - 0.5) * 3;
-            dots.push(`<circle cx="${x + jx}" cy="${y + jy}" r="1.4" opacity="${0.15 + Math.random() * 0.25}"/>`);
-          }
-        }
-      }
-      g.innerHTML = dots.join("");
-    }
-
     // 2. Reveal logic
     const revealEls = document.querySelectorAll(".reveal");
     const revealIo = new IntersectionObserver((entries) => {
@@ -96,44 +68,8 @@ export default function Home() {
       <main data-screen-label="01 Home">
         {/* ============ HERO ============ */}
         <section className="hero">
-          <div className="hero-art" aria-hidden="true">
-            <svg viewBox="0 0 600 700" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <radialGradient id="hg" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#0057FF" stopOpacity="0.15" />
-                  <stop offset="100%" stopColor="#0057FF" stopOpacity="0" />
-                </radialGradient>
-              </defs>
-              <circle cx="320" cy="340" r="260" fill="url(#hg)" />
-              <g id="dots" fill="#0A0A0A"></g>
-              <g id="nodes">
-                <circle cx="290" cy="200" r="5" fill="#0057FF">
-                  <animate attributeName="opacity" values="1;.3;1" dur="2.4s" repeatCount="indefinite" />
-                </circle>
-                <circle cx="330" cy="290" r="5" fill="#00C2A8">
-                  <animate attributeName="opacity" values="1;.3;1" dur="3.1s" repeatCount="indefinite" begin="0.3s" />
-                </circle>
-                <circle cx="270" cy="380" r="5" fill="#0057FF">
-                  <animate attributeName="opacity" values="1;.3;1" dur="2.7s" repeatCount="indefinite" begin="0.6s" />
-                </circle>
-                <circle cx="370" cy="430" r="5" fill="#00C2A8">
-                  <animate attributeName="opacity" values="1;.3;1" dur="2.9s" repeatCount="indefinite" begin="0.9s" />
-                </circle>
-                <circle cx="320" cy="540" r="5" fill="#0057FF">
-                  <animate attributeName="opacity" values="1;.3;1" dur="3.3s" repeatCount="indefinite" begin="1.2s" />
-                </circle>
-                <circle cx="240" cy="250" r="5" fill="#00C2A8">
-                  <animate attributeName="opacity" values="1;.3;1" dur="2.5s" repeatCount="indefinite" begin="1.5s" />
-                </circle>
-              </g>
-              <g stroke="#0A0A0A" strokeOpacity="0.08" strokeWidth="1">
-                <line x1="290" y1="200" x2="330" y2="290" />
-                <line x1="330" y1="290" x2="270" y2="380" />
-                <line x1="270" y1="380" x2="370" y2="430" />
-                <line x1="370" y1="430" x2="320" y2="540" />
-                <line x1="240" y1="250" x2="330" y2="290" />
-              </g>
-            </svg>
+          <div className="hero-art" aria-hidden="true" style={{ pointerEvents: "none" }}>
+            <Hero3DMap />
           </div>
           <div className="container">
             <div className="reveal">
