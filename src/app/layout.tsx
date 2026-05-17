@@ -13,8 +13,36 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "ALODO TECH",
+    metadataBase: new URL("https://alodotech.com"),
+    title: {
+        default: "ALODO TECH",
+        template: "%s | ALODO TECH",
+    },
     description: "ALODO TECH builds financial and digital infrastructure for emerging markets — financial inclusion for MSMEs and AI-driven investing.",
+    openGraph: {
+        title: "ALODO TECH",
+        description: "ALODO TECH builds financial and digital infrastructure for emerging markets.",
+        url: "https://alodotech.com",
+        siteName: "ALODO TECH",
+        locale: "fr_FR",
+        type: "website",
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "ALODO TECH",
+        description: "ALODO TECH builds financial and digital infrastructure for emerging markets.",
+    },
+    robots: {
+        index: true,
+        follow: true,
+        googleBot: {
+            index: true,
+            follow: true,
+            "max-video-preview": -1,
+            "max-image-preview": "large",
+            "max-snippet": -1,
+        },
+    },
 };
 
 export default function RootLayout({
