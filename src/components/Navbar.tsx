@@ -36,8 +36,11 @@ export default function Navbar({ activeKey }: { activeKey: string }) {
     <nav className={`nav ${isMobileOpen ? "nav-mobile-open" : ""}`} id="siteNav">
       <div className="nav-inner">
         <Link className="brand" href="/">
-          <span className="mark">AT</span>
-          <span>ALODO TECH</span>
+          <img src="/logo/logo.png" alt="Alodo Tech Logo" style={{ height: "28px", width: "auto" }} />
+          <span>
+            <span style={{ color: "var(--primary)" }}>ALODO</span>{" "}
+            <span style={{ color: "var(--black)" }}>TECH</span>
+          </span>
         </Link>
         <div className="nav-links">
           {NAV_LINKS.map((l) => (

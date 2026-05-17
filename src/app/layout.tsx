@@ -13,7 +13,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "ALODO TECH — Building financial & digital infrastructure for emerging markets",
+    title: "ALODO TECH",
     description: "ALODO TECH builds financial and digital infrastructure for emerging markets — financial inclusion for MSMEs and AI-driven investing.",
 };
 
