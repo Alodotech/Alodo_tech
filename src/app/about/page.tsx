@@ -58,7 +58,9 @@ export default function About() {
 
             <div className="team-grid">
               <div className="member reveal">
-                <div className="avatar v2">ME</div>
+                <div className="avatar v2" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src="/assets/equipe/evra.png" alt="MAHUSSI EVRA DJIGBEGNONHOU" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 <div className="member-info">
                   <div className="name">MAHUSSI EVRA DJIGBEGNONHOU</div>
                   <div className="role">Co-fondateur · CEO</div>
@@ -67,7 +69,9 @@ export default function About() {
                 </div>
               </div>
               <div className="member reveal" data-delay="1">
-                <div className="avatar v1">MC</div>
+                <div className="avatar v1" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src="/assets/equipe/carine.jpeg" alt="MAHUTON CARINE DJIGBEGNONHOU" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 <div className="member-info">
                   <div className="name">MAHUTON CARINE DJIGBEGNONHOU</div>
                   <div className="role">Co-fondatrice · COO</div>
@@ -76,7 +80,9 @@ export default function About() {
                 </div>
               </div>
               <div className="member reveal" data-delay="2">
-                <div className="avatar v4">GD</div>
+                <div className="avatar v4" style={{ padding: 0, overflow: 'hidden' }}>
+                  <img src="/assets/equipe/germain.jpeg" alt="GERMAIN DANDJI" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 <div className="member-info">
                   <div className="name">GERMAIN DANDJI</div>
                   <div className="role">Co-fondateur · CTO</div>
