@@ -4,21 +4,21 @@
 /* Values */
 .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 @media (max-width: 900px) { .values-grid { grid-template-columns: 1fr; } }
-.value {
+.culture-value {
   padding: 32px;
   border-radius: var(--r-lg);
   background: var(--white);
   border: 1px solid var(--grey-100);
 }
-.value .ix {
+.culture-value .ix {
   font-family: var(--font-mono);
   font-size: 12px;
   color: var(--primary);
   letter-spacing: .08em;
   margin-bottom: 16px;
 }
-.value h3 { font-size: 22px; margin-bottom: 10px; }
-.value p { color: var(--grey-500); margin: 0; font-size: 15px; line-height: 1.55; }
+.culture-value h3 { font-size: 22px; margin-bottom: 10px; }
+.culture-value p { color: var(--grey-500); margin: 0; font-size: 15px; line-height: 1.55; }
 
 /* Roles */
 .role-list {
