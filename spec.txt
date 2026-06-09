@@ -1,10 +1,10 @@
-© 2025 ALODO TECH — Tous droits réservés Page 1
+© 2026 ALODO TECH — Tous droits réservés Page 1
 AT
 ALODO TECH
 Website
 Specification
 Architecture · Contenu · Features · Stack · Design
-v1.0 Juin 2025 Usage Interne Confidentiel
+v1.0 Juin 2026 Usage Interne Confidentiel
 Préparé par
 ALODO TECH Core Team
 Destinataires
@@ -13,7 +13,7 @@ Destinataires
 -- 1 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 2
+© 2026 ALODO TECH — Tous droits réservés Page 2
 Table des Matières
 01 Objectif & Philosophie du Site 3
 02 Architecture Globale — Sitemap 4
@@ -28,7 +28,7 @@ Table des Matières
 -- 2 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 3
+© 2026 ALODO TECH — Tous droits réservés Page 3
 01
 Objectif & Philosophie du Site
 Le site d'ALODO TECH n'est pas un simple site vitrine. C'est une machine de crédibilité, une porte d'entrée
@@ -52,7 +52,7 @@ Talents Développeurs, designers, business — cherchent une aventure
 -- 3 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 4
+© 2026 ALODO TECH — Tous droits réservés Page 4
 02
 Architecture Globale — Sitemap
 Le site est structuré comme une entreprise tech sérieuse et scalable. Chaque page a un objectif précis et
@@ -73,7 +73,7 @@ Route Page Objectif
 -- 4 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 5
+© 2026 ALODO TECH — Tous droits réservés Page 5
 03
 Pages & Contenus Détaillés
 n HOME — Page Critique
@@ -112,7 +112,7 @@ Vision
 -- 5 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 6
+© 2026 ALODO TECH — Tous droits réservés Page 6
 • 'Un continent, une infrastructure digitale'
 • Formulation courte, mémorable, globale
 Mission
@@ -134,7 +134,7 @@ Gouvernance
 -- 6 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 7
+© 2026 ALODO TECH — Tous droits réservés Page 7
 n PRODUCTS — Page Clé
 Page dédiée à chaque produit. C'est ici que les investisseurs, partenaires et clients comprennent ce que
 vous construisez concrètement.
@@ -175,7 +175,7 @@ Pour les MPME
 -- 7 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 8
+© 2026 ALODO TECH — Tous droits réservés Page 8
 • Accès à un score financier
 • Passerelle vers le crédit formel
 Pour les Institutions Financières
@@ -190,7 +190,7 @@ Pour les Gouvernements
 -- 8 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 9
+© 2026 ALODO TECH — Tous droits réservés Page 9
 nn TECHNOLOGY — Crédibilité Technique
 Cette page vous fait passer au niveau supérieur aux yeux des investisseurs tech. Elle montre que vous avez
 une vraie stack, une vraie vision technique.
@@ -230,14 +230,14 @@ Axes d'Impact
 -- 9 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 10
+© 2026 ALODO TECH — Tous droits réservés Page 10
 • Emploi & croissance : MPME équipées = MPME qui recrutent
 • Objectifs ODD : alignement ODD 8 (Travail décent) et ODD 10 (Réduction inégalités)
 
 -- 10 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 11
+© 2026 ALODO TECH — Tous droits réservés Page 11
 n BLOG / INSIGHTS
 Pour la crédibilité long terme et le SEO. Même 1 article/mois suffit au début.
 • Articles de fond : fintech africaine, inclusion financière, MPME
@@ -271,7 +271,7 @@ n CONTACT
 -- 11 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 12
+© 2026 ALODO TECH — Tous droits réservés Page 12
 04
 Fonctionnalités Techniques
 Fonctionnalité Priorité Description
@@ -296,7 +296,7 @@ n Future Roadmap future, non bloquant
 -- 12 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 13
+© 2026 ALODO TECH — Tous droits réservés Page 13
 05
 Stack Technologique Recommandée
 Stack choisie pour allier performance, scalabilité, rapidité de développement et crédibilité aux yeux des
@@ -321,7 +321,7 @@ maintenance et le recrutement.
 -- 13 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 14
+© 2026 ALODO TECH — Tous droits réservés Page 14
 06
 Design System
 Le design est ce qui sépare un site de startup sérieuse d'un site amateur. Référence absolue : Apple.com et
@@ -363,7 +363,7 @@ n À ÉVITER
 -- 14 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 15
+© 2026 ALODO TECH — Tous droits réservés Page 15
 07
 Structure du Repository GitHub
 Organisation GitHub de l'organisation alodo-tech. Un repo par domaine fonctionnel. Cette structure signale
@@ -397,7 +397,7 @@ nnn styles/ ← Globals CSS
 -- 15 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 16
+© 2026 ALODO TECH — Tous droits réservés Page 16
 08
 Erreurs Critiques à Éviter
 Ces erreurs transforment un site pro en site amateur. Chaque membre de l'équipe doit les connaître.
@@ -429,7 +429,7 @@ est inacceptable pour une startup sérieuse.
 -- 16 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 17
+© 2026 ALODO TECH — Tous droits réservés Page 17
 09
 Roadmap de Livraison
 Processus en 3 phases. Ne pas sauter les étapes. La qualité du site dépend de la rigueur du processus.
@@ -460,7 +460,7 @@ n Conseil Final
 -- 17 of 18 --
 
 ALODO TECH · Website Specification CONFIDENTIEL
-© 2025 ALODO TECH — Tous droits réservés Page 18
+© 2026 ALODO TECH — Tous droits réservés Page 18
 Ne codez PAS directement. Faites d'abord :
 1. Maquettes Figma — chaque page, desktop + mobile
 2. Contenu clair — textes finaux, pas de Lorem ipsum

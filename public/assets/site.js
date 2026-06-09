@@ -133,7 +133,7 @@
             </div>
           </div>
           <div class="footer-bottom">
-            <div>© 2025 ALODO TECH — ${T.rights}.</div>
+            <div>© 2026 ALODO TECH — ${T.rights}.</div>
             <div style="display:flex; gap:24px;">
               <a href="#">${T.legal}</a>
               <a href="#">${T.privacy}</a>

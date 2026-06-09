@@ -69,7 +69,7 @@ export default function Footer() {
               <li><Link href="/about">{lang === "fr" ? "À propos" : "About"}</Link></li>
               {/* <li><Link href="/impact">Impact</Link></li> */}
               <li><Link href="/careers">{lang === "fr" ? "Carrières" : "Careers"}</Link></li>
-              <li><Link href="/partners">{lang === "fr" ? "Investir" : "Invest"}</Link></li>
+              {/* <li><Link href="/partners">{lang === "fr" ? "Investir" : "Invest"}</Link></li> */}
             </ul>
           </div>
           <div>
@@ -91,7 +91,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="footer-bottom">
-          <div>© 2025 ALODO TECH — {T.rights}.</div>
+          <div>© 2026 ALODO TECH — {T.rights}.</div>
           <div style={{ display: "flex", gap: "24px" }}>
             <a href="#">{T.legal}</a>
             <a href="#">{T.privacy}</a>

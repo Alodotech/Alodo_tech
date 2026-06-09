@@ -1,5 +1,5 @@
 /* Hero */
-.careers-hero h1 { max-width: 16ch; }
+.careers-hero h1 { }
 
 /* Values */
 .values-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }

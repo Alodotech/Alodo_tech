@@ -65,7 +65,7 @@ export default function Partners() {
                   d'inclusion financière non adressés au monde. Et il s'ouvre maintenant.
                 </p>
                 <p className="muted reveal" data-delay="3" style={{ marginTop: "18px", fontSize: "14px", maxWidth: "44ch" }}>
-                  Sources : Banque Mondiale, IFC, BCEAO. Données 2024–2025.
+                  Sources : Banque Mondiale, IFC, BCEAO. Données 2024–2026.
                 </p>
               </div>
               <div className="funnel reveal" data-delay="2">
@@ -183,7 +183,7 @@ export default function Partners() {
             <div className="deck-box reveal">
               <div className="deck-side">
                 <span className="eyebrow" style={{ color: "rgba(255,255,255,0.6)" }}>Deck investisseur</span>
-                <h2 className="h1" style={{ marginTop: "14px", maxWidth: "16ch" }}>Recevez le deck<br />en moins de 24h.</h2>
+                <h2 className="h1" style={{ marginTop: "14px", whiteSpace: "nowrap", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Recevez le deck en moins de 24h.</h2>
                 <ul>
                   <li><span className="num">1</span><div><b>Vous remplissez le formulaire</b><p>Quelques informations qualifiantes — pas plus.</p></div></li>
                   <li><span className="num">2</span><div><b>Nous validons</b><p>Notre équipe revoit la demande pour garantir un échange utile des deux côtés.</p></div></li>

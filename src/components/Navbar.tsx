@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: "/products", label: { fr: "Nos produits", en: "Our products" }, key: "products" },
   { href: "/blog", label: { fr: "Blog", en: "Blog" }, key: "blog" },
   { href: "/careers", label: { fr: "Carrières", en: "Careers" }, key: "careers" },
-  { href: "/partners", label: { fr: "Investir", en: "Invest" }, key: "partners" },
+  // { href: "/partners", label: { fr: "Investir", en: "Invest" }, key: "partners" },
   // { href: "/solutions", label: { fr: "Solutions", en: "Solutions" }, key: "solutions" },
   // { href: "/technology", label: { fr: "Technologie", en: "Technology" }, key: "technology" },
   // { href: "/impact", label: { fr: "Impact", en: "Impact" }, key: "impact" },

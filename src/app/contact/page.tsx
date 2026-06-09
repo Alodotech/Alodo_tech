@@ -207,7 +207,7 @@ export default function Contact() {
               </div>
               <div className="actions">
                 <a href="#" className="btn primary">Ouvrir le calendrier</a>
-                <Link href="/partners" className="btn outline">Voir le deck</Link>
+                {/* <Link href="/partners" className="btn outline">Voir le deck</Link> */}
               </div>
             </div>
           </div>
