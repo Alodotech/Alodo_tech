@@ -6,16 +6,16 @@
 
 (function () {
   const NAV_LINKS = [
-    { href: "index.html",            label: { fr: "Accueil",     en: "Home" },        key: "home" },
-    { href: "about.html",            label: { fr: "À propos",    en: "About" },       key: "about" },
-    { href: "products-alodo.html",   label: { fr: "ALODO",       en: "ALODO" },       key: "products" },
-    { href: "products-coinai.html",  label: { fr: "COINAI",      en: "COINAI" },      key: "products" },
-    { href: "solutions.html",        label: { fr: "Solutions",   en: "Solutions" },   key: "solutions" },
-    { href: "technology.html",       label: { fr: "Technologie", en: "Technology" },  key: "technology" },
-    { href: "impact.html",           label: { fr: "Impact",      en: "Impact" },      key: "impact" },
-    { href: "blog.html",             label: { fr: "Blog",        en: "Blog" },        key: "blog" },
-    { href: "careers.html",          label: { fr: "Carrières",   en: "Careers" },     key: "careers" },
-    { href: "partners.html",         label: { fr: "Investir",    en: "Invest" },      key: "partners" },
+    { href: "index.html", label: { fr: "Accueil", en: "Home" }, key: "home" },
+    { href: "about.html", label: { fr: "À propos", en: "About" }, key: "about" },
+    { href: "products-alodo.html", label: { fr: "ALODO", en: "ALODO" }, key: "products" },
+    { href: "products-coinai.html", label: { fr: "COINAI", en: "COINAI" }, key: "products" },
+    { href: "solutions.html", label: { fr: "Solutions", en: "Solutions" }, key: "solutions" },
+    { href: "technology.html", label: { fr: "Technologie", en: "Technology" }, key: "technology" },
+    { href: "impact.html", label: { fr: "Impact", en: "Impact" }, key: "impact" },
+    { href: "blog.html", label: { fr: "Blog", en: "Blog" }, key: "blog" },
+    { href: "careers.html", label: { fr: "Carrières", en: "Careers" }, key: "careers" },
+    { href: "partners.html", label: { fr: "Investir", en: "Invest" }, key: "partners" },
   ];
 
   const lang = localStorage.getItem("alodo-lang") || "fr";
@@ -127,7 +127,7 @@
               <h5>${T.contact}</h5>
               <ul>
                 <li><a href="mailto:hello@alodo.tech">hello@alodo.tech</a></li>
-                <li><a href="mailto:investors@alodo.tech">investors@alodo.tech</a></li>
+                <li><a href="mailto:partnership@alodotech.com">partnership@alodotech.com</a></li>
                 <li><span>${T.based}</span></li>
               </ul>
             </div>

@@ -41,7 +41,7 @@ export default function Partners() {
             </p>
             <div className="actions reveal" data-delay="3" style={{ marginTop: "36px", display: "flex", gap: "12px" }}>
               <a href="#deck" className="btn primary">Recevoir le deck</a>
-              <a href="mailto:investors@alodo.tech" className="btn outline">investors@alodo.tech</a>
+              <a href="mailto:partnership@alodotech.com" className="btn outline">partnership@alodotech.com</a>
             </div>
 
             <div className="opener-meta reveal" data-delay="4">
@@ -240,7 +240,7 @@ export default function Partners() {
               <div className="direct-card reveal">
                 <div className="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M4 6h16v12H4z" /><path d="M4 6l8 7 8-7" /></svg></div>
                 <h4>Email dédié</h4>
-                <p>Réponse co-fondateur sous 48h.<br /><a href="mailto:investors@alodo.tech">investors@alodo.tech</a></p>
+                <p>Réponse co-fondateur sous 48h.<br /><a href="mailto:partnership@alodotech.com">partnership@alodotech.com</a></p>
               </div>
               <div className="direct-card reveal" data-delay="1">
                 <div className="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></svg></div>

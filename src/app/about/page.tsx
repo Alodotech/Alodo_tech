@@ -40,10 +40,7 @@ export default function About() {
 
             <div className="about-content reveal" data-delay="1" style={{ marginTop: "48px" }}>
               <p className="lead" style={{ maxWidth: "100%" }}>
-                ALODO TECH est un bâtisseur d'infrastructures digitales qui connecte l'économie informelle 
-                africaine au système financier mondial. Nous concevons les outils technologiques 
-                nécessaires pour transformer chaque transaction en donnée exploitable, garantissant 
-                une croissance inclusive et une visibilité financière totale sur tout le continent.
+                ALODO TECH est un pionnier de la transformation digitale globale, alliant expertise Fintech et Intelligence Artificielle. Née d'une volonté d'accélérer la modernisation des infrastructures africaines, notre entreprise se positionne comme le partenaire technologique incontournable pour bâtir l'avenir numérique du continent, avec une vision englobant tous les aspects de la donnée et de la finance.
               </p>
             </div>
           </div>
@@ -55,63 +52,36 @@ export default function About() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Équipe</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap" }}>Une équipe pluridisciplinaire.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap" }}>Nos fondateurs.</h2>
               </div>
             </div>
 
             <div className="team-grid">
               <div className="member reveal">
-                <div className="avatar v2">AA</div>
+                <div className="avatar v2">ME</div>
                 <div className="member-info">
-                  <div className="name">Alodo Adékunlé</div>
+                  <div className="name">MAHUSSI EVRA DJIGBEGNONHOU</div>
                   <div className="role">Co-fondateur · CEO</div>
-                  <div className="bio">Ex-stratégie BOAD. Obsédé par l'inclusion financière depuis ses années d'études à Dakar.</div>
-                  <a href="https://www.linkedin.com/company/alodo-tech/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
+                  <div className="bio">Porte la vision stratégique à long terme d'ALODO TECH et pilote notre ambition de transformation digitale à l'échelle continentale.</div>
+                  <a href="https://www.linkedin.com/in/evra-djigbegnonhou/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
                 </div>
               </div>
               <div className="member reveal" data-delay="1">
-                <div className="avatar v1">IK</div>
+                <div className="avatar v1">MC</div>
                 <div className="member-info">
-                  <div className="name">Inès Koffi</div>
-                  <div className="role">Co-fondatrice · CTO</div>
-                  <div className="bio">Ex-Spotify NYC. Architecture cloud, IA appliquée, IoT. Construit ce que d'autres pensent impossible.</div>
-                  <a href="https://www.linkedin.com/company/alodo-tech/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
+                  <div className="name">MAHUTON CARINE DJIGBEGNONHOU</div>
+                  <div className="role">Co-fondatrice · COO</div>
+                  <div className="bio">Garante de l'excellence opérationnelle. Elle orchestre l'exécution de la stratégie et le déploiement de nos solutions sur le terrain.</div>
+                  <a href="https://www.linkedin.com/in/carine-djigbegnonhou-078082331/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
                 </div>
               </div>
               <div className="member reveal" data-delay="2">
-                <div className="avatar v4">MO</div>
+                <div className="avatar v4">GD</div>
                 <div className="member-info">
-                  <div className="name">Moussa Ouédraogo</div>
-                  <div className="role">Co-fondateur · COO</div>
-                  <div className="bio">Opérations terrain UEMOA. A monté 3 réseaux d'agents bancaires entre Ouaga et Bamako.</div>
-                  <a href="https://www.linkedin.com/company/alodo-tech/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
-                </div>
-              </div>
-              <div className="member reveal" data-delay="3">
-                <div className="avatar v5">FN</div>
-                <div className="member-info">
-                  <div className="name">Fatou N'Diaye</div>
-                  <div className="role">Co-fondatrice · Product</div>
-                  <div className="bio">Design produit, recherche utilisateur. Forme l'équipe à parler 'marché', pas 'tech'.</div>
-                  <a href="https://www.linkedin.com/company/alodo-tech/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
-                </div>
-              </div>
-              <div className="member reveal">
-                <div className="avatar v7">KB</div>
-                <div className="member-info">
-                  <div className="name">Kwame Bonsu</div>
-                  <div className="role">Co-fondateur · AI</div>
-                  <div className="bio">PhD ML, ex-fonds quantitatif. Spécialiste signaux marchés émergents et NLP multilingue.</div>
-                  <a href="https://www.linkedin.com/company/alodo-tech/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
-                </div>
-              </div>
-              <div className="member reveal" data-delay="1">
-                <div className="avatar v6">SD</div>
-                <div className="member-info">
-                  <div className="name">Sira Diallo</div>
-                  <div className="role">Co-fondatrice · Partners</div>
-                  <div className="bio">Banques, IMF, régulateurs. Parle leur langue, débloque les portes des décideurs.</div>
-                  <a href="https://www.linkedin.com/company/alodo-tech/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
+                  <div className="name">GERMAIN DANDJI</div>
+                  <div className="role">Co-fondateur · CTO</div>
+                  <div className="bio">Architecte de l'innovation. Dirige la stratégie technologique, de la conception des infrastructures aux modèles d'IA avancés.</div>
+                  <a href="https://www.linkedin.com/in/germain-dandji-5279a331b/" target="_blank" rel="noopener noreferrer" className="li">LinkedIn →</a>
                 </div>
               </div>
             </div>

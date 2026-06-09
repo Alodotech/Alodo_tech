@@ -75,12 +75,10 @@ export default function Home() {
             <div className="reveal">
             </div>
             <h1 className="display reveal" data-delay="1">
-              L'infrastructure <span className="accent">digitale</span> de l'économie réelle.
+              L'infrastructure <span className="accent">digitale</span> et IA de l'économie réelle.
             </h1>
-            <p className="lead reveal" data-delay="2" style={{ maxWidth: "720px", marginTop: "24px" }}>
-              ALODO TECH conçoit les socles technologiques qui connectent l'économie informelle
-              au système financier mondial. Nous transformons chaque transaction terrain en donnée
-              de confiance pour une inclusion financière radicale.
+            <p className="lead reveal" data-delay="2" style={{ maxWidth: "760px", marginTop: "24px" }}>
+              ALODO TECH est une entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle. Nous concevons des solutions de pointe pour moderniser les écosystèmes financiers et propulser le continent dans l'ère de la donnée.
             </p>
             <div className="actions reveal" data-delay="3" style={{ marginTop: "36px" }}>
               <Link href="/products" className="btn primary">Découvrir Nos produits <span className="arrow">→</span></Link>
@@ -90,13 +88,13 @@ export default function Home() {
             {/* Statistiques Dynamiques */}
             <div className="hero-meta reveal" data-delay="4" style={{ marginTop: "56px", display: "flex", gap: "40px", flexWrap: "wrap", color: "var(--grey-700)", fontSize: "14px", fontWeight: "500" }}>
               <div className="meta-item">
-                Plus de <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>5</span> pays cibles
+                <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Fintech</span> & <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>IA</span>
               </div>
               <div className="meta-item">
-                <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>500k</span> MPME ciblée
+                <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>2</span> Produits Phares
               </div>
               <div className="meta-item">
-                <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>2</span> produits
+                Présence <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Panafricaine</span>
               </div>
             </div>
           </div>
@@ -110,10 +108,10 @@ export default function Home() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Expertises</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px" }}>Nos Domaines<br />d'Intervention.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px" }}>Nos Projets &<br />Solutions Phares.</h2>
               </div>
               <Link href="/products" className="link-arrow reveal" data-delay="2">
-                Voir tous les produits
+                Voir tous les projets
                 <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M3 7h8M7 3l4 4-4 4" />
                 </svg>
@@ -123,7 +121,7 @@ export default function Home() {
             <div className="product-cards">
               {/* ALODO card */}
               <Link href="/products/alodo" className="product-card reveal">
-                <div className="label">Inclusion & Paiements</div>
+                <div className="label">Projet ALODO · Fintech</div>
                 <h3>Digitalisation des flux<br />financiers hybrides</h3>
                 <p className="muted" style={{ margin: 0, maxWidth: "36ch" }}>
                   Déploiement d'écosystèmes IoT et mobiles pour capter, sécuriser et
@@ -152,12 +150,12 @@ export default function Home() {
                   <span className="tag">WhatsApp API</span>
                   <span className="tag blue">Crédit MPME</span>
                 </div>
-                <span className="read">En savoir plus <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h8M7 3l4 4-4 4" /></svg></span>
+                <span className="read">Découvrir le projet ALODO <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h8M7 3l4 4-4 4" /></svg></span>
               </Link>
 
               {/* COINAI card */}
               <Link href="/products/coinai" className="product-card dark reveal" data-delay="1">
-                <div className="label">IA & Analytics</div>
+                <div className="label">Projet COINAI · Intelligence Artificielle</div>
                 <h3>Ingénierie de la donnée<br />& Scoring propriétaire</h3>
                 <p className="muted" style={{ margin: 0, maxWidth: "36ch" }}>
                   Conception de moteurs d'analyse prédictive pour offrir une visibilité
@@ -185,7 +183,7 @@ export default function Home() {
                   <span className="tag dark">Trading API</span>
                   <span className="tag dark" style={{ background: "rgba(0,194,168,.18)", color: "var(--teal)" }}>Marchés africains</span>
                 </div>
-                <span className="read">En savoir plus <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h8M7 3l4 4-4 4" /></svg></span>
+                <span className="read">Découvrir le projet COINAI <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h8M7 3l4 4-4 4" /></svg></span>
               </Link>
             </div>
           </div>
@@ -197,11 +195,9 @@ export default function Home() {
             <div className="vision-block">
               <div>
                 <span className="eyebrow teal reveal">Notre vision</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px" }}>Donner une identité<br />financière à l'informel.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px" }}>Catalyser la transformation<br />digitale par l'innovation.</h2>
                 <p className="lead reveal" data-delay="2" style={{ marginTop: "24px", maxWidth: "480px" }}>
-                  44 millions de MPME en Afrique subsaharienne sont aujourd'hui invisibles.
-                  Nous construisons le pont numérique qui leur permet d'être comprises,
-                  accompagnées et financées par les institutions.
+                  Au carrefour de la finance et de l'intelligence artificielle, notre vision est de bâtir des infrastructures robustes. De l'inclusion des MPME avec notre solution ALODO, à l'analyse prédictive avancée avec COINAI, nous redéfinissons les standards technologiques.
                 </p>
                 <div className="actions reveal" data-delay="3" style={{ marginTop: "32px" }}>
                   <Link href="/about" className="btn dark">Notre mission</Link>
@@ -252,19 +248,19 @@ export default function Home() {
             <div className="stats-row">
               <div className="stat reveal">
                 <div className="value blue" data-count="500000" data-suffix="+" data-final="500K+">0</div>
-                <div className="label">MPME ciblées</div>
+                <div className="label">MPME & Utilisateurs ciblés</div>
               </div>
               <div className="stat reveal" data-delay="1">
                 <div className="value" data-count="1000000" data-suffix="+" data-final="1M+">0</div>
-                <div className="label">Transactions / mois</div>
+                <div className="label">Points de données / mois</div>
               </div>
               <div className="stat reveal" data-delay="2">
                 <div className="value teal" data-count="5" data-final="5">0</div>
-                <div className="label">Pays cibles</div>
+                <div className="label">Pays d'opération</div>
               </div>
               <div className="stat reveal" data-delay="3">
-                <div className="value" data-count="44" data-suffix="M" data-final="44M">0</div>
-                <div className="label">MPME en Afrique (TAM)</div>
+                <div className="value" data-count="3" data-suffix="+" data-final="3+">0</div>
+                <div className="label">Modèles IA propriétaires</div>
               </div>
             </div>
           </div>
@@ -304,7 +300,7 @@ export default function Home() {
               </div>
               <div className="actions">
                 <Link href="/partners" className="btn primary">Voir le deck</Link>
-                <a href="mailto:investors@alodo.tech" className="btn outline">investors@alodo.tech</a>
+                <a href="mailto:partnership@alodotech.com" className="btn outline">partnership@alodotech.com</a>
               </div>
             </div>
           </div>

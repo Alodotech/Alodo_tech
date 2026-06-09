@@ -260,7 +260,7 @@ C'est la page qui convertit un investisseur intéressé en investisseur engagé.
 • Types de partenariats : investissement equity, partenariat commercial, partenariat tech
 • Deck disponible sur demande (formulaire sécurisé)
 • Témoignages partenaires existants (si disponibles)
-• Contact direct : email dédié investors@alodo.tech + calendrier (Calendly)
+• Contact direct : email dédié partnership@alodotech.com + calendrier (Calendly)
 n CONTACT
 • Formulaire : Nom, Email, Société, Objet (dropdown), Message
 • Email pro : contact@alodo.tech / hello@alodo.tech

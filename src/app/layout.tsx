@@ -18,10 +18,10 @@ export const metadata: Metadata = {
         default: "ALODO TECH",
         template: "%s | ALODO TECH",
     },
-    description: "ALODO TECH builds financial and digital infrastructure for emerging markets — financial inclusion for MSMEs and AI-driven investing.",
+    description: "ALODO TECH est une entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle.",
     openGraph: {
         title: "ALODO TECH",
-        description: "ALODO TECH builds financial and digital infrastructure for emerging markets.",
+        description: "Entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle en Afrique.",
         url: "https://alodotech.com",
         siteName: "ALODO TECH",
         locale: "fr_FR",
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "ALODO TECH",
-        description: "ALODO TECH builds financial and digital infrastructure for emerging markets.",
+        description: "Entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle en Afrique.",
     },
     robots: {
         index: true,

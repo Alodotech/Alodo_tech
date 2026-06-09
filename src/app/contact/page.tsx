@@ -62,7 +62,7 @@ export default function Contact() {
                       <div className="ic blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg></div>
                       <div>
                         <div className="l">Investisseurs</div>
-                        <a href="mailto:investors@alodo.tech">investors@alodo.tech</a>
+                        <a href="mailto:partnership@alodotech.com">partnership@alodotech.com</a>
                       </div>
                     </div>
                     <div className="email-item">

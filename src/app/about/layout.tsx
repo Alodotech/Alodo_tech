@@ -2,10 +2,10 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'À propos',
-  description: "Découvrez la mission d’ALODO TECH : transformer les transactions de l’économie informelle en données de confiance.",
+  description: "Découvrez ALODO TECH, pionnier de la transformation digitale en Afrique, combinant expertise Fintech et Intelligence Artificielle.",
   openGraph: {
     title: 'À propos | ALODO TECH',
-    description: "Découvrez la mission d’ALODO TECH : transformer les transactions de l’économie informelle en données de confiance.",
+    description: "Découvrez ALODO TECH, pionnier de la transformation digitale en Afrique, combinant expertise Fintech et Intelligence Artificielle.",
     url: 'https://alodotech.com/about',
   }
 };

@@ -85,7 +85,7 @@ export default function Footer() {
             <h5>{T.contact}</h5>
             <ul>
               <li><a href="mailto:hello@alodo.tech">hello@alodo.tech</a></li>
-              <li><a href="mailto:investors@alodo.tech">investors@alodo.tech</a></li>
+              <li><a href="mailto:partnership@alodotech.com">partnership@alodotech.com</a></li>
               <li><span>{T.based}</span></li>
             </ul>
           </div>
