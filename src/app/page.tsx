@@ -108,7 +108,7 @@ export default function Home() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Expertises</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(24px, 4vw, 44px)" }}>Nos Projets & Solutions Phares.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(24px, 4vw, 44px)" }}>Nos Projets & Solutions Phares.</h2>
               </div>
               <Link href="/products" className="link-arrow reveal" data-delay="2">
                 Voir tous les projets
@@ -195,7 +195,7 @@ export default function Home() {
             <div className="vision-block">
               <div>
                 <span className="eyebrow teal reveal">Notre vision</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Catalyser la transformation digitale par l'innovation.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Catalyser la transformation digitale par l'innovation.</h2>
                 <p className="lead reveal" data-delay="2" style={{ marginTop: "24px", maxWidth: "480px" }}>
                   Au carrefour de la finance et de l'intelligence artificielle, notre vision est de bâtir des infrastructures robustes. De l'inclusion des MPME avec notre solution ALODO, à l'analyse prédictive avancée avec COINAI, nous redéfinissons les standards technologiques.
                 </p>

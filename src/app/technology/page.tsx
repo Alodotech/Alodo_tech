@@ -129,7 +129,7 @@ export default function Technology() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Architecture</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Du marché au data center, en une seule pipeline.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Du marché au data center, en une seule pipeline.</h2>
               </div>
               <p className="muted reveal" data-delay="2" style={{ maxWidth: "360px", margin: 0 }}>Schéma simplifié — la stack complète est documentée pour nos partenaires techniques.</p>
             </div>

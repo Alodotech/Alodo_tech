@@ -34,7 +34,7 @@ export default function About() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Notre histoire</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(24px, 4vw, 44px)" }}>D'un hackathon à une startup d'infrastructure.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(24px, 4vw, 44px)" }}>D'un hackathon à une startup d'infrastructure.</h2>
               </div>
             </div>
 
@@ -52,14 +52,14 @@ export default function About() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Équipe</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap" }}>Nos fondateurs.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px" }}>Nos fondateurs.</h2>
               </div>
             </div>
 
             <div className="team-grid">
               <div className="member reveal">
                 <div className="avatar v2" style={{ padding: 0, overflow: 'hidden' }}>
-                  <img src="/assets/equipe/evra.png" alt="MAHUSSI EVRA DJIGBEGNONHOU" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src="/assets/equipe/evra.jpeg" alt="MAHUSSI EVRA DJIGBEGNONHOU" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <div className="member-info">
                   <div className="name">MAHUSSI EVRA DJIGBEGNONHOU</div>

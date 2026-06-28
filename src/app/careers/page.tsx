@@ -32,7 +32,7 @@ export default function Careers() {
         <section className="page-hero careers-hero">
           <div className="container">
             <span className="eyebrow reveal">Carrières</span>
-            <h1 className="display reveal" data-delay="1" style={{ marginTop: "18px", whiteSpace: "nowrap", fontSize: "clamp(24px, 4vw, 56px)" }}>Bâtir l'infrastructure digitale.</h1>
+            <h1 className="display reveal" data-delay="1" style={{ marginTop: "18px", fontSize: "clamp(24px, 4vw, 56px)" }}>Bâtir l'infrastructure digitale.</h1>
             <p className="lead reveal" data-delay="2">
               Un collectif résolvant des défis technologiques complexes. Nous restons à l'écoute de talents exceptionnels.
             </p>
@@ -114,7 +114,7 @@ export default function Careers() {
                 </p>
               </div>
               <div className="actions">
-                <a href="mailto:join@alodo.tech" className="btn primary">join@alodo.tech</a>
+                <a href="mailto:partnership@alodotech.com" className="btn primary">partnership@alodotech.com</a>
                 <Link href="/contact" className="btn outline">Nous contacter</Link>
               </div>
             </div>

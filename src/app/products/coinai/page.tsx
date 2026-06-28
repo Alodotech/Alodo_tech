@@ -125,7 +125,7 @@ export default function CoinaiProduct() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Positionnement</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(20px, 3vw, 44px)" }}>Un Bloomberg Terminal pensé pour l'Afrique émergente.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(20px, 3vw, 44px)" }}>Un Bloomberg Terminal pensé pour l'Afrique émergente.</h2>
               </div>
               <p className="muted reveal" data-delay="2" style={{ maxWidth: "360px", margin: 0 }}>
                 Les plateformes globales ignorent la BRVM, JSE, NGX, EGX. COINAI les met au centre.

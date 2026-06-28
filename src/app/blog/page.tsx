@@ -34,7 +34,7 @@ export default function Blog() {
             <div className="blog-head">
               <div>
                 <span className="eyebrow reveal">Blog · Insights</span>
-                <h1 className="display reveal" data-delay="1" style={{ marginTop: "18px", whiteSpace: "nowrap", fontSize: "clamp(24px, 4vw, 56px)" }}>
+                <h1 className="display reveal" data-delay="1" style={{ marginTop: "18px", fontSize: "clamp(24px, 4vw, 56px)" }}>
                   Notes de terrain sur l'innovation africaine.
                 </h1>
                 <p className="lead reveal" data-delay="2" style={{ marginTop: "18px" }}>

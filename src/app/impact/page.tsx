@@ -93,7 +93,7 @@ export default function Impact() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Quatre axes d'impact</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Inclusion. Digitalisation. Financement. Emploi.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(20px, 3.5vw, 44px)" }}>Inclusion. Digitalisation. Financement. Emploi.</h2>
               </div>
             </div>
 

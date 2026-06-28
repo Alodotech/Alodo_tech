@@ -129,7 +129,7 @@ export default function AlodoProduct() {
             <div className="section-head">
               <div>
                 <span className="eyebrow reveal">Comment ça marche</span>
-                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", whiteSpace: "nowrap", fontSize: "clamp(20px, 3.5vw, 44px)" }}>De la vente cash au crédit formel.</h2>
+                <h2 className="h1 reveal" data-delay="1" style={{ marginTop: "16px", fontSize: "clamp(20px, 3.5vw, 44px)" }}>De la vente cash au crédit formel.</h2>
               </div>
               <p className="muted reveal" data-delay="2" style={{ maxWidth: "360px", margin: 0 }}>
                 Quatre étapes, automatisées. La MPME ne change rien à sa façon de travailler.

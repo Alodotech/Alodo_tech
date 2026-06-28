@@ -47,7 +47,7 @@
 }
 
 *, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; }
+html, body { margin: 0; padding: 0; overflow-x: hidden; width: 100%; }
 
 html {
   -webkit-font-smoothing: antialiased;
@@ -428,7 +428,7 @@ section.tight { padding: calc(var(--section-y) * 0.6) 0; }
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr repeat(4, 1fr);
+  grid-template-columns: 1.4fr repeat(3, 1fr);
   gap: 48px;
   margin-bottom: 56px;
 }
@@ -466,6 +466,9 @@ section.tight { padding: calc(var(--section-y) * 0.6) 0; }
 
 @media (max-width: 900px) {
   .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+}
+@media (max-width: 600px) {
+  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
 }
 
 /* ---------- Cards ---------- */
