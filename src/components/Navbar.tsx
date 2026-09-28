@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/", label: { fr: "Accueil", en: "Home" }, key: "home" },
+  { href: "/mpme", label: { fr: "Programme MPME", en: "MSME Program" }, key: "mpme" },
   { href: "/about", label: { fr: "À propos", en: "About" }, key: "about" },
   { href: "/products", label: { fr: "Nos produits", en: "Our products" }, key: "products" },
   { href: "/blog", label: { fr: "Blog", en: "Blog" }, key: "blog" },
@@ -16,15 +17,22 @@ const NAV_LINKS = [
   // { href: "/impact", label: { fr: "Impact", en: "Impact" }, key: "impact" },
 ];
 
-export default function Navbar({ activeKey }: { activeKey: string }) {
+export default function Navbar({ activeKey }: { activeKey?: string }) {
   const [lang, setLang] = useState("fr");
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     const savedLang = localStorage.getItem("alodo-lang") || "fr";
     setLang(savedLang);
-  }, []);
+    if (typeof window !== "undefined") {
+      const user = localStorage.getItem("alodo_mpme_user");
+      if (user) {
+        try { setCurrentUser(JSON.parse(user)); } catch {}
+      }
+    }
+  }, [pathname]);
 
   const toggleLang = (newLang: string) => {
     localStorage.setItem("alodo-lang", newLang);
@@ -43,15 +51,20 @@ export default function Navbar({ activeKey }: { activeKey: string }) {
           </span>
         </Link>
         <div className="nav-links">
-          {NAV_LINKS.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href as string}
-              className={l.key === activeKey ? "active" : ""}
-            >
-              {l.label[lang as keyof typeof l.label]}
-            </Link>
-          ))}
+          {NAV_LINKS.map((l) => {
+            const isActive =
+              l.key === activeKey ||
+              (l.href === "/mpme" && pathname?.startsWith("/mpme"));
+            return (
+              <Link
+                key={l.href}
+                href={l.href as string}
+                className={isActive ? "active" : ""}
+              >
+                {l.label[lang as keyof typeof l.label]}
+              </Link>
+            );
+          })}
           
           <div className="mobile-only" style={{ marginTop: "auto", paddingTop: "32px" }}>
             <div className="lang" style={{ marginBottom: "16px", display: "flex", width: "fit-content" }}>

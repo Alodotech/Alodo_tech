@@ -70,6 +70,7 @@ export default function Footer() {
           <div>
             <h5>{T.resources}</h5>
             <ul>
+              <li><Link href="/mpme">{lang === "fr" ? "Programme MPME" : "MSME Program"}</Link></li>
               <li><Link href="/blog">Blog</Link></li>
               <li><a href="#">{lang === "fr" ? "Sécurité" : "Security"}</a></li>
             </ul>

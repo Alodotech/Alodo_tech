@@ -8,3 +8,12 @@ body {
   margin: 0;
   padding: 0;
 }
+
+/* Hide Next.js dev overlay badge so it doesn't obstruct bottom-left sidebar buttons */
+nextjs-portal,
+[data-nextjs-dev-tools-button],
+[data-nextjs-toast-wrapper],
+#__next-build-watcher {
+  display: none !important;
+}
+
