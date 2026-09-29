@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoogleAuthModal from "@/components/GoogleAuthModal";
 import { MpmeStorage } from "@/lib/mpme/storage";
+import { createClient } from "@/utils/supabase/client";
 
 const SECTORS = [
   "Commerce & Distribution",
@@ -66,34 +67,42 @@ export default function CandidaturePage() {
     mainDifficulties: [] as string[],
     singleBiggestProblem: "",
     motivation: "",
+    leaderAvailability: "Temps plein",
   });
 
   useEffect(() => {
-    const user = MpmeStorage.getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-      setFormData((prev) => ({
-        ...prev,
-        email: user.email || prev.email,
-        leaderName: user.name || prev.leaderName,
-      }));
-    } else {
-      // If not logged in, prompt Google Modal to facilitate pre-fill
-      setShowGoogleModal(true);
-    }
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Check if admin
+        const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
+        if (admin) {
+          router.push('/admin/candidatures');
+          return;
+        }
+
+        const u = {
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email?.split("@")[0],
+          provider: "google",
+          role: "MPME"
+        };
+        setCurrentUser(u);
+        setFormData((prev) => ({
+          ...prev,
+          email: u.email || prev.email,
+          leaderName: u.name || prev.leaderName,
+        }));
+      } else {
+        // If not logged in, prompt Google Modal to facilitate pre-fill
+        setShowGoogleModal(true);
+      }
+    };
+    fetchUser();
   }, []);
 
-  const handleGoogleSuccess = (selectedEmail: string, selectedName: string) => {
-    const res = MpmeStorage.loginWithGoogle(selectedEmail, selectedName);
-    if (res.user) {
-      setCurrentUser(res.user);
-      setFormData((prev) => ({
-        ...prev,
-        email: res.user.email,
-        leaderName: res.user.name,
-      }));
-    }
-  };
+  const handleGoogleSuccess = () => {};
 
   const toggleDifficulty = (diff: string) => {
     setFormData((prev) => {
@@ -145,54 +154,63 @@ export default function CandidaturePage() {
 
     setSubmitting(true);
 
-    const cohort = MpmeStorage.getCohort();
-    const newApplication = {
-      id: `app_${Date.now()}`,
-      companyId: `comp_${Date.now()}`,
-      cohortId: cohort.id,
-      status: "submitted" as const,
-      submittedAt: new Date().toISOString(),
-      company: {
-        id: `comp_${Date.now()}`,
-        name: formData.name,
-        leaderName: formData.leaderName,
-        phone: formData.phone,
-        whatsapp: formData.whatsapp || formData.phone,
-        email: formData.email,
-        city: formData.city,
-        sector: formData.sector,
-        yearCreated: Number(formData.yearCreated),
-        employeesCount: formData.employeesCount,
-        monthlyRevenue: formData.monthlyRevenue,
-        isFormalized: formData.isFormalized,
-        hasProBankAccount: formData.hasProBankAccount,
-        mainDifficulties: formData.mainDifficulties,
-        singleBiggestProblem: formData.singleBiggestProblem,
-        motivation: formData.motivation,
-      },
-    };
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
-    const res = MpmeStorage.saveApplication(newApplication);
-
-    if (!res.success) {
-      setErrorMsg(res.message || "Une erreur est survenue lors de l'enregistrement.");
+    if (!user) {
+      setErrorMsg("Vous devez être connecté pour soumettre une candidature.");
       setSubmitting(false);
       return;
     }
 
-    // Link/register user with Google account automatically
-    let user = currentUser;
-    if (!user) {
-      user = MpmeStorage.loginWithGoogle(formData.email, formData.leaderName).user;
+    // 1. Fetch active cohort
+    const { data: cohortData } = await supabase.from('cohorts').select('id').eq('status', 'open').single();
+    const cohortId = cohortData?.id || 'c4464c20-7214-41d3-92f7-7b24cfeb631a';
+
+    // 2. Insert into companies
+    const { data: companyData, error: companyError } = await supabase.from('companies').insert({
+      user_id: user.id,
+      name: formData.name,
+      leader_name: formData.leaderName,
+      email: formData.email,
+      phone: formData.phone,
+      whatsapp: formData.whatsapp || formData.phone,
+      city: formData.city,
+      sector: formData.sector,
+      year_created: Number(formData.yearCreated),
+      employees_count: formData.employeesCount,
+      monthly_revenue: formData.monthlyRevenue,
+      is_formalized: formData.isFormalized,
+      has_pro_bank_account: formData.hasProBankAccount,
+      main_difficulties: formData.mainDifficulties,
+      single_biggest_problem: formData.singleBiggestProblem,
+      motivation: formData.motivation,
+      leader_availability: formData.leaderAvailability
+    }).select('id').single();
+
+    if (companyError || !companyData) {
+      console.error(companyError);
+      setErrorMsg("Une erreur est survenue lors de l'enregistrement de l'entreprise.");
+      setSubmitting(false);
+      return;
     }
-    user.companyId = newApplication.companyId;
-    MpmeStorage.setCurrentUser(user);
 
-    sessionStorage.setItem("alodo_last_app_id", newApplication.id);
-    sessionStorage.setItem("alodo_last_company_name", newApplication.company.name);
+    // 3. Insert into applications
+    const { error: appError } = await supabase.from('applications').insert({
+      company_id: companyData.id,
+      cohort_id: cohortId,
+      status: 'submitted'
+    });
 
-    // Redirect to MPME Dashboard immediately!
-    router.push("/mpme/dashboard");
+    if (appError) {
+      console.error(appError);
+      setErrorMsg("Une erreur est survenue lors de la soumission de la candidature.");
+      setSubmitting(false);
+      return;
+    }
+
+    // Redirect directly to Diagnostic!
+    router.push("/mpme/diagnostic");
   };
 
   const stepProgress = Math.round((currentStep / 3) * 100);
@@ -388,6 +406,21 @@ export default function CandidaturePage() {
                     ))}
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#3A3A3C] mb-1 mt-4">
+                  Disponibilité du dirigeant pour le programme <span className="text-[#EC663B]">*</span>
+                </label>
+                <select
+                  value={formData.leaderAvailability}
+                  onChange={(e) => setFormData({ ...formData, leaderAvailability: e.target.value })}
+                  className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white transition-all"
+                >
+                  <option value="Temps plein">À temps plein sur mon entreprise</option>
+                  <option value="Temps partiel">À temps partiel (j'ai une autre activité)</option>
+                  <option value="Occasionnel">Occasionnel (projet parallèle)</option>
+                </select>
               </div>
 
               <div className="pt-4 border-t border-[#F2F2F2]">

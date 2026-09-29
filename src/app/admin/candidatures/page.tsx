@@ -6,6 +6,7 @@ import DashboardLayout from "@/components/mpme/DashboardLayout";
 import DossierPdfDocument from "@/components/mpme/DossierPdfDocument";
 import { MpmeStorage } from "@/lib/mpme/storage";
 import { Application, Cohort } from "@/lib/mpme/types";
+import { createClient } from "@/utils/supabase/client";
 
 // ============================================================================
 // CLEAN PROFESSIONAL VECTOR SVG ICONS (STRICTLY ZERO EMOJIS)
@@ -147,6 +148,17 @@ function BarChartIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+function UsersIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
 function LayersIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -183,9 +195,10 @@ export default function AdminCandidaturesPage() {
   const [cohort, setCohort] = useState<Cohort | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string>("Console Gouverneur ALODO TECH");
 
   // Governor tabs: Light theme, harmonized with Dirigeant MPME Dashboard
-  const [adminTab, setAdminTab] = useState<"registry" | "top20" | "diagnostics" | "settings">("registry");
+  const [adminTab, setAdminTab] = useState<"registry" | "top20" | "diagnostics" | "settings" | "leaders">("registry");
   const [viewMode, setViewMode] = useState<"split" | "table">("split");
 
   // Filters & Search
@@ -227,28 +240,107 @@ export default function AdminCandidaturesPage() {
     financabilite: 10,
   });
 
-  const refreshData = () => {
-    const c = MpmeStorage.getCohort();
-    const apps = MpmeStorage.getApplications();
-    setCohort(c);
-    setApplications(apps);
+  const refreshData = async () => {
+    const supabase = createClient();
+    
+    // 0. Fetch Admin Email
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.email) {
+      setAdminEmail(user.email);
+    }
 
-    // Sync settings form
-    setEditMaxCapacity(c.maxCapacity || 20);
-    setEditStatus(c.status || "open");
-    setEditMinScore(c.minScoreThreshold || 60);
-    setEditCohortName(c.name || "Cohorte 1 — Bénin 2026");
-    setEditOpeningDate(c.openedAt || "2026-09-01");
-    setEditClosingDate(c.closingDate || "2026-10-31");
-    setEditAnnouncementDate(c.announcementDate || "2026-11-15");
-    setEditAnnouncement(c.announcementBanner || "Sélection officielle en cours : 20 MPME d'excellence seront retenues pour un accompagnement intensif.");
-    setEditCriteriaNotes(c.selectionCriteriaNotes || "Critères prioritaires du comité : Formalisation RCCM/IFU, compte bancaire pro actif, score de maturité >= 60/100, potentiel de création d'emplois au Bénin.");
+    // 1. Fetch cohort
+    const { data: cohortData } = await supabase.from('cohorts').select('*').eq('status', 'open').single();
+    if (cohortData) {
+      setCohort({
+        id: cohortData.id,
+        name: cohortData.name,
+        maxCapacity: cohortData.max_capacity,
+        openedAt: cohortData.opened_at,
+        closingDate: cohortData.closing_date,
+        status: cohortData.status,
+      } as any);
 
-    if (selectedApp) {
-      const refreshed = apps.find((a) => a.id === selectedApp.id) || null;
-      setSelectedApp(refreshed);
-    } else if (apps.length > 0) {
-      setSelectedApp(apps[0]);
+      setEditMaxCapacity(cohortData.max_capacity || 20);
+      setEditStatus(cohortData.status || "open");
+      setEditCohortName(cohortData.name || "Cohorte 1 — Bénin 2026");
+    }
+
+    // 2. Fetch applications
+    const { data: appsData, error } = await supabase
+      .from('applications')
+      .select(`
+        id,
+        status,
+        submitted_at,
+        companies (
+          id,
+          name,
+          leader_name,
+          email,
+          phone,
+          whatsapp,
+          city,
+          sector,
+          year_created,
+          employees_count,
+          monthly_revenue,
+          is_formalized,
+          has_pro_bank_account,
+          main_difficulties,
+          single_biggest_problem,
+          motivation,
+          leader_availability
+        ),
+        diagnostics (
+          global_score,
+          diagnostic_level,
+          report_data
+        )
+      `);
+
+    if (appsData) {
+      const apps = appsData.map((row: any) => {
+        const diag = row.diagnostics?.[0] || row.diagnostics;
+        const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
+
+        return {
+          id: row.id,
+          companyId: company?.id,
+          cohortId: cohortData?.id || "cohort-1",
+          status: row.status,
+          submittedAt: row.submitted_at,
+          diagnosticScore: diag?.global_score,
+          diagnosticLevel: diag?.diagnostic_level,
+          diagnosticReport: diag?.report_data,
+          company: {
+            id: company?.id,
+            name: company?.name,
+            leaderName: company?.leader_name,
+            phone: company?.phone,
+            whatsapp: company?.whatsapp,
+            email: company?.email,
+            city: company?.city,
+            sector: company?.sector,
+            yearCreated: company?.year_created,
+            employeesCount: company?.employees_count,
+            monthlyRevenue: company?.monthly_revenue,
+            isFormalized: company?.is_formalized,
+            hasProBankAccount: company?.has_pro_bank_account,
+            mainDifficulties: company?.main_difficulties,
+            singleBiggestProblem: company?.single_biggest_problem,
+            motivation: company?.motivation
+          }
+        } as Application;
+      });
+      setApplications(apps);
+
+      if (selectedApp) {
+        const refreshed = apps.find((a: any) => a.id === selectedApp.id) || null;
+        setSelectedApp(refreshed);
+      } else if (apps.length > 0) {
+        setSelectedApp(apps[0]);
+      }
     }
   };
 
@@ -257,16 +349,17 @@ export default function AdminCandidaturesPage() {
     refreshData();
   }, []);
 
-  // Update Status Handler (Select in Top 20, Under Review, Reject)
-  const handleUpdateStatus = (appId: string, status: Application["status"]) => {
+  const handleUpdateStatus = async (appId: string, status: Application["status"]) => {
     setStatusFeedback(null);
-    const res = MpmeStorage.updateApplicationStatus(appId, status);
-    if (!res.success) {
-      setStatusFeedback({ msg: res.message || "Erreur lors de la mise à jour.", type: "error" });
+    const supabase = createClient();
+    const { error } = await supabase.from('applications').update({ status }).eq('id', appId);
+    
+    if (error) {
+      setStatusFeedback({ msg: "Erreur lors de la mise à jour.", type: "error" });
     } else {
       const label =
         status === "selected"
-          ? "Entreprise admise avec succès dans le Top 20 !"
+          ? "Entreprise admise dans le Top 20 !"
           : status === "rejected"
           ? "Candidature classée sans suite (rejetée)."
           : status === "under_review"
@@ -277,43 +370,46 @@ export default function AdminCandidaturesPage() {
     }
   };
 
-  // Add Internal Jury Note
+  // Add Internal Jury Note (Disabled for DB migration)
   const handleAddNote = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedApp || !newNote.trim()) return;
-    MpmeStorage.addInternalNote(selectedApp.id, newNote, "Germain DANDJI (CTO)");
+    // For V1, notes are disabled unless added to DB schema
+    setStatusFeedback({ msg: "Les notes internes seront disponibles dans la prochaine mise à jour.", type: "error" });
     setNewNote("");
-    refreshData();
   };
 
   // Save Governor Settings
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    MpmeStorage.updateCohort({
+    if (!cohort) return;
+    
+    const supabase = createClient();
+    const { error } = await supabase.from('cohorts').update({
       name: editCohortName,
-      maxCapacity: Number(editMaxCapacity),
+      max_capacity: Number(editMaxCapacity),
       status: editStatus,
-      minScoreThreshold: Number(editMinScore),
-      openedAt: editOpeningDate,
-      closingDate: editClosingDate,
-      announcementDate: editAnnouncementDate,
-      announcementBanner: editAnnouncement,
-      selectionCriteriaNotes: editCriteriaNotes,
-    });
-    setStatusFeedback({
-      msg: "Tous les paramètres de gouvernance ont été appliqués en direct sur la plateforme !",
-      type: "success",
-    });
-    refreshData();
+      opened_at: editOpeningDate,
+      closing_date: editClosingDate,
+    }).eq('id', cohort.id);
+
+    if (error) {
+      setStatusFeedback({
+        msg: "Erreur lors de la sauvegarde des paramètres.",
+        type: "error",
+      });
+    } else {
+      setStatusFeedback({
+        msg: "Tous les paramètres de gouvernance ont été appliqués en direct !",
+        type: "success",
+      });
+      refreshData();
+    }
   };
 
-  // Reset Demo Data
+  // Reset Demo Data (Disabled for DB)
   const handleResetDemo = () => {
-    if (confirm("Réinitialiser l'ensemble des données de test du programme ALODO MPME ?")) {
-      MpmeStorage.resetDemoData();
-      refreshData();
-      setStatusFeedback({ msg: "Données de démonstration réinitialisées avec succès.", type: "success" });
-    }
+    setStatusFeedback({ msg: "La réinitialisation est désactivée en mode base de données.", type: "error" });
   };
 
   // CSV Export for Evaluation Committee
@@ -344,26 +440,29 @@ export default function AdminCandidaturesPage() {
       (a, b) => (b.diagnosticScore || 0) - (a.diagnosticScore || 0)
     );
 
-    const rows = sortedForExport.map((a, index) => [
-      a.id,
-      index + 1,
-      `"${a.company.name.replace(/"/g, '""')}"`,
-      `"${a.company.leaderName.replace(/"/g, '""')}"`,
-      a.company.email,
-      a.company.phone,
-      a.company.whatsapp || a.company.phone,
-      `"${a.company.city.replace(/"/g, '""')}"`,
-      `"${a.company.sector.replace(/"/g, '""')}"`,
-      a.status === "selected" ? "RETENUE_TOP_20" : a.status,
+    const rows = sortedForExport.map((a, index) => {
+      const escapeCsv = (str: string | undefined) => `"${(str || '').replace(new RegExp('"', 'g'), '""')}"`;
+      return [
+        a.id,
+        index + 1,
+        escapeCsv(a.company.name),
+        escapeCsv(a.company.leaderName),
+        a.company.email,
+        a.company.phone,
+        a.company.whatsapp || a.company.phone,
+        escapeCsv(a.company.city),
+        escapeCsv(a.company.sector),
+        a.status === "selected" ? "RETENUE_TOP_20" : a.status,
       a.diagnosticScore || "N/A",
       a.diagnosticLevel || "N/A",
       a.company.isFormalized ? "OUI" : "NON",
       a.company.hasProBankAccount ? "OUI" : "NON",
-      `"${a.company.employeesCount}"`,
-      `"${a.company.monthlyRevenue}"`,
+      escapeCsv(String(a.company.employeesCount)),
+      escapeCsv(String(a.company.monthlyRevenue)),
       new Date(a.submittedAt).toLocaleDateString("fr-FR"),
-      `"${(a.company.singleBiggestProblem || "").replace(/"/g, '""')}"`,
-    ]);
+      escapeCsv(a.company.singleBiggestProblem),
+    ];
+  });
 
     const csvContent =
       "data:text/csv;charset=utf-8,\uFEFF" +
@@ -456,7 +555,11 @@ export default function AdminCandidaturesPage() {
   if (!isClient) return null;
 
   return (
-    <DashboardLayout activeTab="admin">
+    <DashboardLayout 
+      activeTab="admin" 
+      adminSubTab={adminTab} 
+      onSelectAdminTab={(tab) => setAdminTab(tab)}
+    >
       <div className="space-y-6 animate-in fade-in duration-150">
 
         {/* =========================================================================
@@ -464,47 +567,35 @@ export default function AdminCandidaturesPage() {
             Harmonized palette: Clean white card, subtle borders, orange & teal accents
             Strictly NO "+ Nouvelle Candidature" button (Admin is Governor, not applicant)
             ========================================================================= */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#F2F2F2]">
-            <div>
-              <div className="flex items-center gap-2.5 mb-2 flex-wrap">
-                <span className="px-3 py-1 rounded-full bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 text-[10px] font-mono font-bold tracking-wider uppercase flex items-center gap-1.5">
-                  <ShieldIcon className="w-3.5 h-3.5 text-[#EC663B]" />
-                  Console Gouverneur ALODO TECH
-                </span>
-                <span className="text-xs text-[#8E8E93]">•</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Cohorte 1 Active (Quota : {maxCapacity} Places)
-                </span>
-                <span className="text-xs text-[#8E8E93]">•</span>
-                <span className="text-xs text-[#6E6E73] font-medium">
-                  Arbitrage : Germain DANDJI (CTO)
-                </span>
+        {adminTab !== "leaders" && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#F2F2F2]">
+              <div>
+                <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+                  <span className="px-3 py-1 rounded-full bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 text-[10px] font-mono font-bold tracking-wider uppercase flex items-center gap-1.5">
+                    <ShieldIcon className="w-3.5 h-3.5 text-[#EC663B]" />
+                    {adminEmail}
+                  </span>
+                  <span className="text-xs text-[#8E8E93]">•</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Cohorte 1 Active (Quota : {maxCapacity} Places)
+                  </span>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0A] tracking-tight font-tech">
+                  Pilotage National du Programme ALODO MPME
+                </h1>
+                <p className="text-xs sm:text-sm text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
+                  Supervision souveraine des candidatures, examen approfondi des diagnostics de maturité (8 dimensions stratégiques) et arbitrage des 20 entreprises retenues.
+                </p>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0A] tracking-tight font-tech">
-                Pilotage National du Programme ALODO MPME
-              </h1>
-              <p className="text-xs sm:text-sm text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
-                Supervision souveraine des candidatures, examen approfondi des diagnostics de maturité (8 dimensions stratégiques) et arbitrage des 20 entreprises retenues.
-              </p>
+              {/* Governor Action Suite */}
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* Empty for now */}
+              </div>
             </div>
-
-            {/* Governor Action Suite (Clean Light Buttons) */}
-            <div className="flex items-center gap-3 flex-wrap">
-
-              <button
-                type="button"
-                onClick={() => setAdminTab("settings")}
-                className="px-4 py-2.5 bg-[#EC663B] hover:bg-[#d4562e] rounded-full text-xs font-bold text-white transition-all shadow-md shadow-[#EC663B]/20 flex items-center gap-2 cursor-pointer"
-                title="Accéder aux paramètres complets du programme"
-              >
-                <SettingsIcon className="w-4 h-4" />
-                <span>Paramètres Gouverneur</span>
-              </button>
-            </div>
-          </div>
 
           {/* Quota Gauge & Interactive 20-slot visualization */}
           <div className="pt-6">
@@ -553,6 +644,7 @@ export default function AdminCandidaturesPage() {
             </div>
           </div>
         </div>
+        )}
 
         {/* FEEDBACK TOAST */}
         {statusFeedback && (
@@ -583,7 +675,8 @@ export default function AdminCandidaturesPage() {
         {/* =========================================================================
             2. EXECUTIVE KPI CARDS (LIGHT THEME)
             ========================================================================= */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {adminTab !== "leaders" && (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-6 rounded-3xl bg-white border border-[#EBEBEB] shadow-sm">
             <div className="flex items-center justify-between text-[#8E8E93] mb-2">
               <span className="text-xs font-bold uppercase tracking-wider">Candidatures</span>
@@ -636,93 +729,83 @@ export default function AdminCandidaturesPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#EC663B]" />
               <span>Seuil de sélection : {cohort?.minScoreThreshold || 60}/100</span>
             </div>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* =========================================================================
             3. GOVERNOR COMMAND TABS (LIGHT PALETTE, HARMONIZED WITH MPME)
             ========================================================================= */}
-        <div className="flex items-center justify-between border-b border-[#EBEBEB] pb-1 flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => setAdminTab("registry")}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                adminTab === "registry"
-                  ? "bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 shadow-xs"
-                  : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-              }`}
-            >
-              <LayersIcon className="w-4 h-4" />
-              <span>Registre & Instruction ({totalCount})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAdminTab("top20")}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                adminTab === "top20"
-                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs"
-                  : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-              }`}
-            >
-              <AwardIcon className="w-4 h-4" />
-              <span>Les 20 Retenus ({selectedCount}/{maxCapacity})</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAdminTab("diagnostics")}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                adminTab === "diagnostics"
-                  ? "bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 shadow-xs"
-                  : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-              }`}
-            >
-              <BarChartIcon className="w-4 h-4" />
-              <span>Matrice Diagnostics 8D</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setAdminTab("settings")}
-              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                adminTab === "settings"
-                  ? "bg-[#EC663B] text-white shadow-md shadow-[#EC663B]/20"
-                  : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-              }`}
-            >
-              <SettingsIcon className="w-4 h-4" />
-              <span>Paramètres Gouverneur</span>
-            </button>
-          </div>
-
-          {/* Toggle View Mode for Registry (Split vs Table) */}
-          {adminTab === "registry" && (
-            <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-[#EBEBEB] text-xs shadow-xs">
+        {adminTab !== "leaders" && (
+          <div className="flex items-center justify-between border-b border-[#EBEBEB] pb-1 flex-wrap gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setViewMode("split")}
-                className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  viewMode === "split" ? "bg-[#0A0A0A] text-white" : "text-[#6E6E73] hover:text-[#0A0A0A]"
+                onClick={() => setAdminTab("registry")}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  adminTab === "registry"
+                    ? "bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 shadow-xs"
+                    : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
                 }`}
               >
-                <LayersIcon className="w-3.5 h-3.5" />
-                <span>Vue Fiches (Cockpit)</span>
+                <LayersIcon className="w-4 h-4" />
+                <span>Registre & Instruction ({totalCount})</span>
               </button>
+
               <button
                 type="button"
-                onClick={() => setViewMode("table")}
-                className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  viewMode === "table" ? "bg-[#0A0A0A] text-white" : "text-[#6E6E73] hover:text-[#0A0A0A]"
+                onClick={() => setAdminTab("top20")}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  adminTab === "top20"
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs"
+                    : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
                 }`}
               >
-                <TableIcon className="w-3.5 h-3.5" />
-                <span>Vue Grand Tableau</span>
+                <AwardIcon className="w-4 h-4" />
+                <span>Les 20 Retenus ({selectedCount}/{maxCapacity})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setAdminTab("diagnostics")}
+                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                  adminTab === "diagnostics"
+                    ? "bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 shadow-xs"
+                    : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
+                }`}
+              >
+                <BarChartIcon className="w-4 h-4" />
+                <span>Matrice Diagnostics 8D</span>
               </button>
             </div>
-          )}
-        </div>
+
+            {/* Toggle View Mode for Registry (Split vs Table) */}
+            {adminTab === "registry" && (
+              <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-[#EBEBEB] text-xs shadow-xs">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("split")}
+                  className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    viewMode === "split" ? "bg-[#0A0A0A] text-white" : "text-[#6E6E73] hover:text-[#0A0A0A]"
+                  }`}
+                >
+                  <LayersIcon className="w-3.5 h-3.5" />
+                  <span>Vue Fiches (Cockpit)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("table")}
+                  className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    viewMode === "table" ? "bg-[#0A0A0A] text-white" : "text-[#6E6E73] hover:text-[#0A0A0A]"
+                  }`}
+                >
+                  <TableIcon className="w-3.5 h-3.5" />
+                  <span>Vue Grand Tableau</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* =========================================================================
             TAB 1: REGISTRE DES CANDIDATURES
@@ -1503,316 +1586,87 @@ export default function AdminCandidaturesPage() {
         )}
 
         {/* =========================================================================
-            TAB 4: PARAMÈTRES DU GOUVERNEUR (COMPRÉHENSIF AVEC BEAUCOUP DE PARAMÈTRES)
-            "c'est eux le gouverneur de tout le site"
+            5. CANDIDATS (LEADERS) TAB
             ========================================================================= */}
-        {adminTab === "settings" && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
-              <div className="flex items-center justify-between flex-wrap gap-4">
-                <div>
-                  <span className="text-xs uppercase tracking-widest font-bold text-[#EC663B] block mb-1">
-                    Centre de Contrôle Souverain
-                  </span>
-                  <h2 className="text-2xl font-extrabold text-[#0A0A0A] font-tech">
-                    Paramètres de Gouvernance du Programme ALODO MPME
-                  </h2>
-                  <p className="text-xs text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
-                    Régulez l'ensemble du cycle de vie du programme : quotas d'admission, dates du calendrier national, pondérations des 8 dimensions, bannières du site et directives d'arbitrage.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold">
-                    Mode Gouverneur Actif
-                  </span>
-                </div>
+        {adminTab === "leaders" && (
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm animate-in fade-in duration-150 mt-6">
+            <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-6 mb-6">
+              <div>
+                <h2 className="text-xl font-extrabold text-[#0A0A0A] font-tech flex items-center gap-3">
+                  <UsersIcon className="w-6 h-6 text-[#EC663B]" />
+                  Annuaire des Candidats
+                </h2>
+                <p className="text-xs text-[#6E6E73] mt-1">
+                  Liste des {applications.length} chefs d'entreprise ayant soumis une candidature
+                </p>
               </div>
             </div>
 
-            <form onSubmit={handleSaveSettings} className="space-y-6">
-              {/* Box 1: Quotas & Capacité de la Cohorte */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-5">
-                <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-3">
-                  <h3 className="font-extrabold text-sm text-[#0A0A0A] flex items-center gap-2">
-                    <AwardIcon className="w-4 h-4 text-emerald-600" />
-                    <span>1. Quotas d'Admission & Statut Opérationnel de la Cohorte</span>
-                  </h3>
-                  <span className="text-xs text-[#8E8E93]">Cohorte active : {cohort?.id || "cohort-1"}</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Nom Officiel de la Promotion
-                    </label>
-                    <input
-                      type="text"
-                      value={editCohortName}
-                      onChange={(e) => setEditCohortName(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                    <span className="text-[11px] text-[#8E8E93] mt-1 block">
-                      Affiché sur les certificats et les rapports
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Capacité Maximale de Sélection (Places)
-                    </label>
-                    <input
-                      type="number"
-                      min={5}
-                      max={100}
-                      value={editMaxCapacity}
-                      onChange={(e) => setEditMaxCapacity(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                    <span className="text-[11px] text-[#8E8E93] mt-1 block">
-                      Défaut officiel : 20 places retenues
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Statut Opérationnel du Programme
-                    </label>
-                    <select
-                      value={editStatus}
-                      onChange={(e) => setEditStatus(e.target.value as any)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    >
-                      <option value="open">Candidatures Ouvertes (Actif)</option>
-                      <option value="deliberation">En Délibération du Jury</option>
-                      <option value="closed">Clôturé / Sélection Finalisée</option>
-                      <option value="archived">Archivé</option>
-                    </select>
-                    <span className="text-[11px] text-[#8E8E93] mt-1 block">
-                      Pilote le comportement du formulaire candidat
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Seuil Minimal de Maturité (Score /100)
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={editMinScore}
-                      onChange={(e) => setEditMinScore(Number(e.target.value))}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                    <span className="text-[11px] text-[#8E8E93] mt-1 block">
-                      Score minimum requis pour être admissible au Top 20
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Mode d'Arbitrage du Comité
-                    </label>
-                    <select
-                      value={editArbitrationMode}
-                      onChange={(e) => setEditArbitrationMode(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    >
-                      <option value="collegial">Décision Collégiale (Comité ALODO)</option>
-                      <option value="cto_validation">Validation Finale par le CTO</option>
-                      <option value="auto_score">Pré-qualification par Score</option>
-                    </select>
-                    <span className="text-[11px] text-[#8E8E93] mt-1 block">
-                      Processus décisionnel du jury
-                    </span>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Notification Automatique des Lauréats
-                    </label>
-                    <select
-                      value={editAutoNotify ? "yes" : "no"}
-                      onChange={(e) => setEditAutoNotify(e.target.value === "yes")}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    >
-                      <option value="yes">Activée (Email & WhatsApp direct)</option>
-                      <option value="no">Désactivée (Notification manuelle)</option>
-                    </select>
-                    <span className="text-[11px] text-[#8E8E93] mt-1 block">
-                      Envoi d'un message lors du passage dans le Top 20
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Box 2: Calendrier National & Échéances Clés */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-5">
-                <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-3">
-                  <h3 className="font-extrabold text-sm text-[#0A0A0A] flex items-center gap-2">
-                    <ClockIcon className="w-4 h-4 text-[#EC663B]" />
-                    <span>2. Calendrier National & Jalons du Programme</span>
-                  </h3>
-                  <span className="text-xs text-[#8E8E93]">Calendrier officiel Bénin 2026</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Date d'Ouverture des Dépôts
-                    </label>
-                    <input
-                      type="date"
-                      value={editOpeningDate}
-                      onChange={(e) => setEditOpeningDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Date Limite de Clôture
-                    </label>
-                    <input
-                      type="date"
-                      value={editClosingDate}
-                      onChange={(e) => setEditClosingDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Date Proclamation Top 20
-                    </label>
-                    <input
-                      type="date"
-                      value={editAnnouncementDate}
-                      onChange={(e) => setEditAnnouncementDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                      Démarrage Accompagnement
-                    </label>
-                    <input
-                      type="date"
-                      value={editBootcampDate}
-                      onChange={(e) => setEditBootcampDate(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Box 3: Pondération Stratégique des 8 Dimensions */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-5">
-                <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-3">
-                  <h3 className="font-extrabold text-sm text-[#0A0A0A] flex items-center gap-2">
-                    <BarChartIcon className="w-4 h-4 text-indigo-600" />
-                    <span>3. Pondérations Stratégiques des 8 Dimensions (Total = 100%)</span>
-                  </h3>
-                  <span className="text-xs font-mono font-bold text-emerald-600">
-                    Total : {Object.values(weights).reduce((a, b) => a + b, 0)}%
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  {[
-                    { key: "formalisation", label: "Formalisation & RCCM", value: weights.formalisation },
-                    { key: "finance", label: "Structure Financière", value: weights.finance },
-                    { key: "comptabilite", label: "Comptabilité & Trésorerie", value: weights.comptabilite },
-                    { key: "commercial", label: "Efficacité Commerciale", value: weights.commercial },
-                    { key: "digitalisation", label: "Digitalisation & Tech", value: weights.digitalisation },
-                    { key: "operations", label: "Process & Opérations", value: weights.operations },
-                    { key: "rh", label: "Ressources Humaines", value: weights.rh },
-                    { key: "financabilite", label: "Bancarisation & Financement", value: weights.financabilite },
-                  ].map((item) => (
-                    <div key={item.key} className="p-3.5 bg-[#FAFAFA] rounded-2xl border border-[#EBEBEB] space-y-1.5">
-                      <div className="flex justify-between text-xs">
-                        <span className="font-semibold text-[#0A0A0A] text-[11px] truncate">{item.label}</span>
-                        <span className="font-mono font-bold text-[#EC663B]">{item.value}%</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={5}
-                        max={30}
-                        step={1}
-                        value={item.value}
-                        onChange={(e) =>
-                          setWeights({ ...weights, [item.key]: Number(e.target.value) })
-                        }
-                        className="w-full accent-[#EC663B] cursor-pointer"
-                      />
-                    </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm text-[#6E6E73]">
+                <thead className="bg-[#FAFAFA] border-y border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] uppercase tracking-wider">
+                  <tr>
+                    <th className="px-4 sm:px-6 py-4">Nom & Prénom</th>
+                    <th className="px-4 sm:px-6 py-4">Email</th>
+                    <th className="px-4 sm:px-6 py-4">Téléphone</th>
+                    <th className="px-4 sm:px-6 py-4">Entreprise</th>
+                    <th className="px-4 sm:px-6 py-4 text-center">Statut</th>
+                    <th className="px-4 sm:px-6 py-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#EBEBEB]">
+                  {applications.map((app) => (
+                    <tr key={app.id} className="hover:bg-[#FAFAFA] transition-colors group">
+                      <td className="px-4 sm:px-6 py-4 font-bold text-[#0A0A0A] whitespace-nowrap">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-[#EC663B]/10 flex items-center justify-center border border-[#EC663B]/20 shrink-0">
+                            <span className="text-[#EC663B] font-bold text-xs uppercase">
+                              {app.company?.leaderName?.charAt(0) || "?"}
+                            </span>
+                          </div>
+                          <span>{app.company?.leaderName || "Candidat Inconnu"}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">{app.company?.email || "-"}</td>
+                      <td className="px-4 sm:px-6 py-4 font-mono whitespace-nowrap">{app.company?.phone || "-"}</td>
+                      <td className="px-4 sm:px-6 py-4 font-medium text-[#EC663B] whitespace-nowrap">{app.company?.name || "-"}</td>
+                      <td className="px-4 sm:px-6 py-4 text-center whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider inline-block ${
+                          app.status === 'selected' ? 'bg-emerald-100 text-emerald-700' :
+                          app.status === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {app.status === 'selected' ? 'Admis Top 20' : app.status === 'rejected' ? 'Non Retenu' : 'En Attente'}
+                        </span>
+                      </td>
+                      <td className="px-4 sm:px-6 py-4 text-right whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedApp(app);
+                            setViewMode("split");
+                            setAdminTab("registry");
+                          }}
+                          className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#0A0A0A] text-white hover:bg-[#EC663B] transition-colors cursor-pointer shadow-xs"
+                        >
+                          Examiner →
+                        </button>
+                      </td>
+                    </tr>
                   ))}
+                </tbody>
+              </table>
+              {applications.length === 0 && (
+                <div className="text-center py-12">
+                  <UsersIcon className="w-8 h-8 text-[#D1D1D6] mx-auto mb-3" />
+                  <p className="text-sm text-[#8E8E93] font-medium">Aucun dirigeant inscrit pour le moment</p>
                 </div>
-              </div>
-
-              {/* Box 4: Communication Officielle & Bannières du Portail */}
-              <div className="bg-white p-6 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-5">
-                <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-3">
-                  <h3 className="font-extrabold text-sm text-[#0A0A0A] flex items-center gap-2">
-                    <ShieldIcon className="w-4 h-4 text-[#EC663B]" />
-                    <span>4. Communication Officielle & Consignes du Jury</span>
-                  </h3>
-                  <span className="text-xs text-[#8E8E93]">Diffusion en direct</span>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                    Bannière d'Annonce Officielle (Diffusée aux candidats sur la plateforme)
-                  </label>
-                  <input
-                    type="text"
-                    value={editAnnouncement}
-                    onChange={(e) => setEditAnnouncement(e.target.value)}
-                    placeholder="Ex: Délibération en cours pour la Cohorte 1 : 20 MPME seront retenues..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-[#0A0A0A] block mb-1">
-                    Consignes & Critères d'Arbitrage pour les Membres du Jury
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={editCriteriaNotes}
-                    onChange={(e) => setEditCriteriaNotes(e.target.value)}
-                    placeholder="Instructions internes pour l'évaluation des dossiers..."
-                    className="w-full p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                  />
-                </div>
-              </div>
-
-              {/* Submit Buttons */}
-              <div className="flex items-center justify-between flex-wrap gap-4 pt-2">
-                <button
-                  type="submit"
-                  className="px-6 py-3.5 rounded-full bg-[#EC663B] hover:bg-[#d4562e] text-white text-xs font-bold transition-all shadow-md shadow-[#EC663B]/20 flex items-center gap-2 cursor-pointer"
-                >
-                  <CheckIcon className="w-4 h-4 text-white" />
-                  <span>Enregistrer Tous les Paramètres de Gouvernance</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleResetDemo}
-                  className="px-4 py-2.5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition-colors flex items-center gap-2 cursor-pointer"
-                >
-                  <RefreshIcon className="w-3.5 h-3.5" />
-                  <span>Réinitialiser les données de démo</span>
-                </button>
-              </div>
-            </form>
+              )}
+            </div>
           </div>
         )}
+
+
 
       </div>
 

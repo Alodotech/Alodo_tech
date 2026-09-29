@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import DashboardLayout from "@/components/mpme/DashboardLayout";
 import DossierPdfDocument from "@/components/mpme/DossierPdfDocument";
 import GoogleAuthModal from "@/components/GoogleAuthModal";
-import { MpmeStorage } from "@/lib/mpme/storage";
-import { Application, Cohort, DiagnosticReport, User } from "@/lib/mpme/types";
+import { Application, Cohort, DiagnosticReport } from "@/lib/mpme/types";
+import { createClient } from "@/utils/supabase/client";
 
 // ============================================================================
 // CLEAN PROFESSIONAL VECTOR SVG ICONS (NO EMOJIS)
@@ -106,7 +106,7 @@ function DownloadIcon({ className = "w-4 h-4" }: { className?: string }) {
 
 export default function MpmeDashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ email?: string; name?: string; provider?: string; role?: string } | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
   const [cohort, setCohort] = useState<Cohort | null>(null);
   const [report, setReport] = useState<DiagnosticReport | null>(null);
@@ -114,17 +114,110 @@ export default function MpmeDashboardPage() {
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [showPdfModal, setShowPdfModal] = useState(false);
   const [currentView, setCurrentView] = useState<"dashboard" | "candidature">("dashboard");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const refreshData = () => {
-    const currentUser = MpmeStorage.getCurrentUser();
-    setUser(currentUser);
+  const refreshData = async () => {
+    const supabase = createClient();
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+
+    if (currentUser) {
+      // Check if admin
+      const { data: admin } = await supabase.from('admins').select('id').eq('email', currentUser.email).single();
+      if (admin) {
+        router.push('/admin/candidatures');
+        return;
+      }
+
+      setUser({
+        email: currentUser.email,
+        name: currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0],
+        provider: "google",
+        role: "MPME"
+      });
+    } else {
+      setUser(null);
+    }
+
+    // Temporarily relying on MpmeStorage just for cohort/application/report data
+    // because that part wasn't migrated to Supabase DB yet.
+    // If it is, this part should also be rewritten to fetch from Supabase.
+    // NOTE: To fix the build, we just use a mock or any approach you have.
+    // Assuming MpmeStorage is still imported somewhere else? Let's re-import it just for this.
+    const { MpmeStorage } = await import("@/lib/mpme/storage");
 
     const c = MpmeStorage.getCohort();
     setCohort(c);
 
-    let app: Application | null = null;
+    let app = null;
+
     if (currentUser) {
-      app = MpmeStorage.getUserApplication(currentUser.email || currentUser.companyId);
+      const { data, error } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          status,
+          submitted_at,
+          companies (
+            id,
+            name,
+            leader_name,
+            phone,
+            whatsapp,
+            email,
+            city,
+            sector,
+            year_created,
+            employees_count,
+            monthly_revenue,
+            is_formalized,
+            has_pro_bank_account,
+            main_difficulties,
+            single_biggest_problem,
+            motivation
+          ),
+          diagnostics (
+            global_score,
+            diagnostic_level,
+            report_data
+          )
+        `)
+        .eq('companies.user_id', currentUser.id)
+        .limit(1);
+      
+      if (!error && data && data.length > 0) {
+        const row = data[0];
+        const diagnostic = row.diagnostics?.[0] || row.diagnostics;
+        const company = Array.isArray(row.companies) ? row.companies[0] : row.companies;
+
+        app = {
+          id: row.id,
+          companyId: company?.id,
+          cohortId: "cohort-1",
+          status: row.status,
+          submittedAt: row.submitted_at,
+          diagnosticScore: diagnostic?.global_score,
+          diagnosticLevel: diagnostic?.diagnostic_level,
+          diagnosticReport: diagnostic?.report_data,
+          company: {
+            id: company?.id,
+            name: company?.name,
+            leaderName: company?.leader_name,
+            phone: company?.phone,
+            whatsapp: company?.whatsapp,
+            email: company?.email,
+            city: company?.city,
+            sector: company?.sector,
+            yearCreated: company?.year_created,
+            employeesCount: company?.employees_count,
+            monthlyRevenue: company?.monthly_revenue,
+            isFormalized: company?.is_formalized,
+            hasProBankAccount: company?.has_pro_bank_account,
+            mainDifficulties: company?.main_difficulties,
+            singleBiggestProblem: company?.single_biggest_problem,
+            motivation: company?.motivation
+          }
+        };
+      }
     }
     if (!app && typeof window !== "undefined") {
       const lastAppId = sessionStorage.getItem("alodo_last_app_id");
@@ -132,21 +225,29 @@ export default function MpmeDashboardPage() {
         app = MpmeStorage.getUserApplication(lastAppId);
       }
     }
+
+    if (currentUser && !app) {
+      router.push("/mpme/candidature");
+      return;
+    }
+
+    // NEW LOGIC: Restrict dashboard to selected users only!
+    if (app && app.status !== "selected") {
+      router.push("/mpme/candidature/confirmation");
+      return;
+    }
+
     setApplication(app);
 
-    // If app has a saved report, use it, else get latest report
+    // We no longer rely on MpmeStorage to save reports here either.
+    // Assuming reports are also stored in DB if app exists.
     if (app?.diagnosticReport) {
       setReport(app.diagnosticReport);
     } else {
-      const rep = MpmeStorage.getLatestReport();
-      if (app && (app.diagnosticScore || app.status === "diagnostic_completed" || app.status === "selected")) {
-        setReport(rep);
-      } else if (!app) {
-        setReport(rep);
-      } else {
-        setReport(null);
-      }
+      setReport(null);
     }
+    
+    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -160,16 +261,15 @@ export default function MpmeDashboardPage() {
     }
   }, []);
 
-  const handleGoogleSuccess = (selectedEmail: string, selectedName: string) => {
-    const res = MpmeStorage.loginWithGoogle(selectedEmail, selectedName);
-    if (res.user.role === "Admin") {
-      router.push("/admin/candidatures");
-    } else {
-      refreshData();
-    }
-  };
+  const handleGoogleSuccess = () => {};
 
-  if (!isClient) return null;
+  if (!isClient || isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-[#EC663B] border-t-transparent animate-spin"></div>
+      </div>
+    );
+  }
 
   // ==========================================
   // CASE 0 : GUEST / NOT LOGGED IN
@@ -235,41 +335,7 @@ export default function MpmeDashboardPage() {
   }
 
   // ==========================================
-  // CASE 1 : LOGGED IN BUT NO APPLICATION YET
-  // ==========================================
-  if (user && !application) {
-    return (
-      <DashboardLayout
-        currentView={currentView}
-        onSelectView={setCurrentView}
-      >
-        <div className="bg-white p-8 sm:p-12 rounded-3xl border border-[#EBEBEB] shadow-sm text-center max-w-xl mx-auto my-8">
-          <div className="inline-block px-3 py-1 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-xs font-bold mb-4">
-            Cohorte 1 — 20 Places
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0A]">
-            Bienvenue, {user.name} !
-          </h1>
-          <p className="text-xs sm:text-sm text-[#6E6E73] mt-3 leading-relaxed">
-            Votre compte Google est connecté avec <strong>{user.email}</strong>. Déposez dès maintenant votre dossier de candidature pour rejoindre la Cohorte 1 ALODO MPME.
-          </p>
-
-          <div className="mt-8">
-            <Link
-              href="/mpme/candidature"
-              className="inline-block px-8 py-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm shadow-xl shadow-[#EC663B]/25 transition-all"
-            >
-              Remplir ma candidature (3 étapes) →
-            </Link>
-          </div>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // ==========================================
-  // CASE 2 : APPLICATION EXISTS (SaaS DASHBOARD)
+  // CASE 1 : APPLICATION EXISTS (SaaS DASHBOARD)
   // ==========================================
   const appStatus = application?.status || "submitted";
   const isCohortSelected = appStatus === "selected";

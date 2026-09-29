@@ -3,20 +3,33 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MpmeStorage } from "@/lib/mpme/storage";
-import { User } from "@/lib/mpme/types";
+import { createClient } from "@/utils/supabase/client";
 
 export default function MpmeHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ email?: string; name?: string; provider?: string } | null>(null);
 
   useEffect(() => {
-    setUser(MpmeStorage.getCurrentUser());
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser({
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email?.split("@")[0],
+          provider: "google",
+        });
+      } else {
+        setUser(null);
+      }
+    };
+    fetchUser();
   }, [pathname]);
 
-  const handleLogout = () => {
-    MpmeStorage.logout();
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     setUser(null);
     router.push("/mpme");
   };

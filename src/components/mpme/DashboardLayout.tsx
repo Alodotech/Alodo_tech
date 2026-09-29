@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MpmeStorage } from "@/lib/mpme/storage";
-import { Application, User } from "@/lib/mpme/types";
+import { Application } from "@/lib/mpme/types";
+import { createClient } from "@/utils/supabase/client";
 
 // ============================================================================
 // CLEAN PROFESSIONAL VECTOR SVG ICONS (NO EMOJIS)
@@ -88,8 +88,8 @@ interface DashboardLayoutProps {
   currentView?: "dashboard" | "candidature";
   onSelectView?: (view: "dashboard" | "candidature") => void;
   onDownloadPdf?: () => void;
-  adminSubTab?: "registry" | "top20" | "diagnostics" | "settings";
-  onSelectAdminTab?: (tab: "registry" | "top20" | "diagnostics" | "settings") => void;
+  adminSubTab?: "registry" | "top20" | "diagnostics" | "settings" | "leaders";
+  onSelectAdminTab?: (tab: "registry" | "top20" | "diagnostics" | "settings" | "leaders") => void;
 }
 
 export default function DashboardLayout({
@@ -103,34 +103,43 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<{ email?: string; name?: string; provider?: string; role?: string } | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const currentUser = MpmeStorage.getCurrentUser();
-    setUser(currentUser);
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-    if (currentUser) {
-      const app = MpmeStorage.getUserApplication(currentUser.email || currentUser.companyId);
-      setApplication(app);
-    } else {
-      const lastAppId = sessionStorage.getItem("alodo_last_app_id");
-      if (lastAppId) {
-        setApplication(MpmeStorage.getUserApplication(lastAppId));
+      if (user) {
+        setUser({
+          email: user.email,
+          name: user.user_metadata?.full_name || user.email?.split("@")[0],
+          provider: "google",
+          role: user.email === "techalodo@gmail.com" ? "Admin" : "MPME"
+        });
+        
+        // Temporarily keeping application logic but removing MpmeStorage dependency for user.
+        // We will need to adapt Application fetching as well later if it's connected to Supabase DB.
+      } else {
+        setUser(null);
       }
-    }
+    };
+    fetchUser();
   }, [pathname]);
 
-  const handleConfirmLogout = () => {
-    MpmeStorage.logout();
+  const handleConfirmLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     setShowLogoutModal(false);
     router.push("/");
   };
 
-  const handleReturnToSite = () => {
-    MpmeStorage.logout();
+  const handleReturnToSite = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
     router.push("/");
   };
 
@@ -190,56 +199,60 @@ export default function DashboardLayout({
                       router.push("/admin/candidatures");
                     }
                   }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-semibold transition-all text-left cursor-pointer ${
-                    activeTab === "admin" && adminSubTab !== "settings"
+                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
+                    activeTab === "admin" && adminSubTab !== "settings" && adminSubTab !== "leaders"
                       ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                       : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
                   }`}
                 >
-                  <UsersIcon
-                    className={`w-4 h-4 shrink-0 ${
-                      activeTab === "admin" && adminSubTab !== "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                  <DashboardIcon
+                    className={`w-5 h-5 shrink-0 ${
+                      activeTab === "admin" && adminSubTab !== "settings" && adminSubTab !== "leaders" ? "text-[#EC663B]" : "text-[#6E6E73]"
                     }`}
                   />
                   <span>Console Gouverneur</span>
                 </button>
 
-                {/* 2. APERÇU ESPACE CANDIDAT */}
-                <Link
-                  href="/mpme/dashboard"
-                  className={`flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-semibold transition-all ${
-                    activeTab !== "admin"
-                      ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
-                      : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
-                  }`}
-                >
-                  <DashboardIcon className="w-4 h-4 shrink-0" />
-                  <span>Aperçu Espace Candidat</span>
-                </Link>
-
-                {/* 3. PARAMÈTRES GOUVERNEUR (DIRECTEMENT EN BAS D'APERÇU ESPACE CANDIDAT) */}
+                {/* 2. CANDIDATS */}
                 <button
                   type="button"
                   onClick={() => {
                     if (onSelectAdminTab) {
-                      onSelectAdminTab("settings");
+                      onSelectAdminTab("leaders");
                     } else {
-                      router.push("/admin/candidatures?tab=settings");
+                      router.push("/admin/candidatures?tab=leaders");
                     }
                   }}
-                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
+                    activeTab === "admin" && adminSubTab === "leaders"
+                      ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                      : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
+                  }`}
+                >
+                  <UsersIcon
+                    className={`w-5 h-5 shrink-0 ${
+                      activeTab === "admin" && adminSubTab === "leaders" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                    }`}
+                  />
+                  <span>Candidats</span>
+                </button>
+
+                {/* 3. PARAMÈTRES GOUVERNEUR */}
+                <Link
+                  href="/admin/settings"
+                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
                     activeTab === "admin" && adminSubTab === "settings"
                       ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                       : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
                   }`}
                 >
                   <SettingsIcon
-                    className={`w-4 h-4 shrink-0 ${
+                    className={`w-5 h-5 shrink-0 ${
                       activeTab === "admin" && adminSubTab === "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
                     }`}
                   />
                   <span>Paramètres Gouverneur</span>
-                </button>
+                </Link>
               </>
             ) : (
               <>
@@ -329,7 +342,7 @@ export default function DashboardLayout({
               </span>
               <div className="text-xs sm:text-sm font-bold text-[#0A0A0A]">
                 {activeTab === "admin"
-                  ? "Console Administration — Cohorte 1"
+                  ? (user?.email || "Console Administration — Cohorte 1")
                   : "Cohorte 1 — Bénin 2026 (20 Places)"}
               </div>
             </div>
@@ -387,58 +400,62 @@ export default function DashboardLayout({
                             router.push("/admin/candidatures");
                           }
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-semibold text-left ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
                           activeTab === "admin" && adminSubTab !== "settings"
                             ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                             : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
                         }`}
                       >
-                        <UsersIcon
-                          className={`w-4 h-4 shrink-0 ${
+                        <DashboardIcon
+                          className={`w-5 h-5 shrink-0 ${
                             activeTab === "admin" && adminSubTab !== "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
                           }`}
                         />
                         <span>Console Gouverneur</span>
                       </button>
 
-                      {/* 2. APERÇU ESPACE CANDIDAT */}
-                      <Link
-                        href="/mpme/dashboard"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-semibold ${
-                          activeTab !== "admin"
-                            ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
-                            : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
-                        }`}
-                      >
-                        <DashboardIcon className="w-4 h-4 shrink-0" />
-                        <span>Aperçu Espace Candidat</span>
-                      </Link>
-
-                      {/* 3. PARAMÈTRES GOUVERNEUR (DIRECTEMENT EN BAS D'APERÇU ESPACE CANDIDAT) */}
+                      {/* 2. CANDIDATS */}
                       <button
                         type="button"
                         onClick={() => {
                           setIsMobileMenuOpen(false);
                           if (onSelectAdminTab) {
-                            onSelectAdminTab("settings");
+                            onSelectAdminTab("leaders");
                           } else {
-                            router.push("/admin/candidatures?tab=settings");
+                            router.push("/admin/candidatures?tab=leaders");
                           }
                         }}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-semibold text-left ${
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
+                          activeTab === "admin" && adminSubTab === "leaders"
+                            ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                            : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
+                        }`}
+                      >
+                        <UsersIcon
+                          className={`w-5 h-5 shrink-0 ${
+                            activeTab === "admin" && adminSubTab === "leaders" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                          }`}
+                        />
+                        <span>Candidats</span>
+                      </button>
+
+                      {/* 3. PARAMÈTRES GOUVERNEUR */}
+                      <Link
+                        href="/admin/settings"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
                           activeTab === "admin" && adminSubTab === "settings"
                             ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                             : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
                         }`}
                       >
                         <SettingsIcon
-                          className={`w-4 h-4 shrink-0 ${
+                          className={`w-5 h-5 shrink-0 ${
                             activeTab === "admin" && adminSubTab === "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
                           }`}
                         />
                         <span>Paramètres Gouverneur</span>
-                      </button>
+                      </Link>
                     </>
                   ) : (
                     <>

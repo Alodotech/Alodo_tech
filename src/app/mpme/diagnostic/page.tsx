@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import DashboardLayout from "@/components/mpme/DashboardLayout";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import { QUESTIONS_V1, DIMENSIONS } from "@/lib/mpme/questions";
 import { DiagnosticAnswer } from "@/lib/mpme/types";
 import { MpmeStorage } from "@/lib/mpme/storage";
+import { createClient } from "@/utils/supabase/client";
 
 export default function DiagnosticPage() {
   const router = useRouter();
@@ -15,6 +17,7 @@ export default function DiagnosticPage() {
   const [companyName, setCompanyName] = useState("BioAgro Bénin");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -26,24 +29,60 @@ export default function DiagnosticPage() {
         setCurrentIndex(lastAnsweredIdx);
       }
     }
-    const user = MpmeStorage.getCurrentUser();
-    let app = user ? MpmeStorage.getUserApplication(user.email || user.companyId) : null;
-    if (!app && typeof window !== "undefined") {
-      const lastAppId = sessionStorage.getItem("alodo_last_app_id");
-      if (lastAppId) app = MpmeStorage.getUserApplication(lastAppId);
-    }
 
-    if (app && (app.diagnosticScore || app.status === "diagnostic_completed" || app.status === "selected")) {
-      router.push("/mpme/dashboard");
-      return;
-    }
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      let app = null;
+      if (user) {
+        setCurrentUser(user);
+        const { data, error } = await supabase
+          .from('applications')
+          .select(`
+            id,
+            status,
+            companies (
+              name,
+              user_id
+            )
+          `)
+          .single(); // Actually we should filter by user_id but RLS ensures we only get ours. Since we might have multiple, let's just get the first one.
 
-    if (app) {
-      setCompanyName(app.company.name);
-    } else {
-      const name = sessionStorage.getItem("alodo_last_company_name");
-      if (name) setCompanyName(name);
-    }
+        // Fix to filter properly
+        const { data: appsData } = await supabase
+          .from('applications')
+          .select(`id, status, companies!inner(name, user_id)`)
+          .eq('companies.user_id', user.id)
+          .limit(1);
+
+        if (appsData && appsData.length > 0) {
+          const appData = appsData[0];
+          app = {
+            id: appData.id,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            company: { name: (Array.isArray(appData.companies) ? (appData.companies as any[])[0]?.name : (appData.companies as any)?.name) || '' },
+            status: appData.status
+          };
+        }
+      }
+      if (!app && typeof window !== "undefined") {
+        const lastAppId = sessionStorage.getItem("alodo_last_app_id");
+        if (lastAppId) app = MpmeStorage.getUserApplication(lastAppId);
+      }
+
+      if (app && (app.status === "diagnostic_completed" || app.status === "selected")) {
+        router.push("/mpme/candidature/confirmation");
+        return;
+      }
+
+      if (app) {
+        setCompanyName(app.company.name);
+      } else {
+        const name = sessionStorage.getItem("alodo_last_company_name");
+        if (name) setCompanyName(name);
+      }
+    };
+    fetchUser();
   }, []);
 
   const currentQuestion = QUESTIONS_V1[currentIndex];
@@ -75,21 +114,59 @@ export default function DiagnosticPage() {
     }
   };
 
-  const handleSubmitFinal = () => {
+  const handleSubmitFinal = async () => {
     setIsSubmitting(true);
-    const user = MpmeStorage.getCurrentUser();
-    let app = user ? MpmeStorage.getUserApplication(user.email || user.companyId) : null;
+    let app = null;
+    
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: appsData } = await supabase
+        .from('applications')
+        .select(`id, status, companies!inner(name, user_id)`)
+        .eq('companies.user_id', user.id)
+        .limit(1);
+
+      if (appsData && appsData.length > 0) {
+        app = appsData[0];
+      }
+    }
+
     if (!app && typeof window !== "undefined") {
       const lastAppId = sessionStorage.getItem("alodo_last_app_id");
-      if (lastAppId) app = MpmeStorage.getUserApplication(lastAppId);
+      if (lastAppId) app = { id: lastAppId, companies: { name: sessionStorage.getItem("alodo_last_company_name") || "" } };
     }
-    const targetName = app?.company.name || companyName || "Mon Entreprise";
-    MpmeStorage.submitDiagnostic(targetName, answers, app?.id || app?.companyId);
+    
+    const targetName = (Array.isArray(app?.companies) ? app?.companies[0]?.name : app?.companies?.name) || companyName || "Mon Entreprise";
+    const report = MpmeStorage.submitDiagnostic(targetName, answers, app?.id);
+    
+    if (user && app) {
+      // Save diagnostic report to diagnostics table
+      await supabase
+        .from('diagnostics')
+        .insert({
+          application_id: app.id,
+          status: 'completed',
+          answers: answers,
+          global_score: report.globalScore,
+          diagnostic_level: report.level,
+          report_data: report,
+          completed_at: new Date().toISOString()
+        });
+
+      // Update application status
+      await supabase
+        .from('applications')
+        .update({ status: 'diagnostic_completed' })
+        .eq('id', app.id);
+    }
+
     MpmeStorage.saveDiagnosticProgress([]);
     if (typeof window !== "undefined") {
       sessionStorage.setItem("alodo_diagnostic_done", "true");
     }
-    router.push("/mpme/dashboard");
+    router.push("/mpme/candidature/confirmation");
   };
 
   const progressPercent = Math.round(((currentIndex + 1) / QUESTIONS_V1.length) * 100);
@@ -99,8 +176,9 @@ export default function DiagnosticPage() {
   if (!isClient) return null;
 
   return (
-    <DashboardLayout activeTab="diagnostic">
-      <div className="max-w-3xl mx-auto w-full py-4 flex flex-col justify-between min-h-[calc(100vh-140px)]">
+    <div className="min-h-screen bg-[#FAFAFA] text-[#0A0A0A] flex flex-col font-sans">
+      <Navbar activeKey="mpme" />
+      <main className="flex-1 py-12 px-4 sm:px-6 lg:px-8 max-w-3xl mx-auto w-full">
         <div>
           {/* Header Progress */}
           <div className="mb-6">
@@ -196,11 +274,12 @@ export default function DiagnosticPage() {
               disabled={!isComplete || isSubmitting}
               className="px-8 py-3.5 rounded-full bg-gradient-to-r from-[#EC663B] to-[#00C2A8] text-white font-extrabold text-sm sm:text-base shadow-xl disabled:opacity-50 transition-all transform hover:scale-105"
             >
-              {isSubmitting ? "Génération du rapport..." : "Finaliser & Voir Mon Rapport d'Audit →"}
+              {isSubmitting ? "Envoi du diagnostic..." : "Finaliser mon diagnostic →"}
             </button>
           )}
         </div>
-      </div>
-    </DashboardLayout>
+      </main>
+      <Footer />
+    </div>
   );
 }

@@ -6,7 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import GoogleAuthModal from "@/components/GoogleAuthModal";
-import { MpmeStorage } from "@/lib/mpme/storage";
+import { createClient } from "@/utils/supabase/client";
 import { DIMENSIONS } from "@/lib/mpme/questions";
 import "./mpme.css";
 
@@ -15,13 +15,16 @@ export default function MpmeLandingPage() {
   const [showGoogleModal, setShowGoogleModal] = useState(false);
   const [authDestination, setAuthDestination] = useState<"candidature" | "dashboard">("candidature");
 
-  const handleHeroApply = () => {
+  const handleHeroApply = async () => {
     setAuthDestination("candidature");
-    const user = MpmeStorage.getCurrentUser();
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
     if (user) {
-      const existingApp = MpmeStorage.getUserApplication(user.email || user.companyId);
-      if (existingApp) {
-        router.push("/mpme/dashboard");
+      // Check if admin
+      const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
+      if (admin) {
+        router.push("/admin/candidatures");
       } else {
         router.push("/mpme/candidature");
       }
@@ -30,11 +33,14 @@ export default function MpmeLandingPage() {
     }
   };
 
-  const handleHeroLogin = () => {
+  const handleHeroLogin = async () => {
     setAuthDestination("dashboard");
-    const user = MpmeStorage.getCurrentUser();
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
     if (user) {
-      if (user.role === "Admin") {
+      const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
+      if (admin) {
         router.push("/admin/candidatures");
       } else {
         router.push("/mpme/dashboard");
@@ -44,23 +50,9 @@ export default function MpmeLandingPage() {
     }
   };
 
-  const handleGoogleSuccess = (email: string, name: string) => {
-    const res = MpmeStorage.loginWithGoogle(email, name);
-    if (authDestination === "dashboard" || res.user.role === "Admin") {
-      if (res.user.role === "Admin") {
-        router.push("/admin/candidatures");
-      } else {
-        router.push("/mpme/dashboard");
-      }
-    } else {
-      const existingApp = MpmeStorage.getUserApplication(email);
-      if (existingApp) {
-        router.push("/mpme/dashboard");
-      } else {
-        router.push("/mpme/candidature");
-      }
-    }
-  };
+  // Google Modal is now using real Supabase OAuth, so onSuccess isn't called with fake data anymore.
+  // We can leave this empty or remove it. The redirect is handled by the callback route.
+  const handleGoogleSuccess = () => {};
 
   return (
     <>
@@ -386,6 +378,7 @@ export default function MpmeLandingPage() {
             ? "Connectez-vous pour retrouver votre candidature et vos diagnostics"
             : "Connectez-vous pour candidater au programme ALODO MPME"
         }
+        nextUrl={authDestination === "candidature" ? "/mpme/candidature" : "/mpme/dashboard"}
       />
 
       {/* FOOTER OFFICIEL ALODO TECH */}

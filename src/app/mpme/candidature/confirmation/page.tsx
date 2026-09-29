@@ -34,11 +34,7 @@ export default function CandidatureConfirmationPage() {
             Merci pour votre confiance, {companyName} !
           </h1>
 
-          {appId && (
-            <div className="inline-block px-3 py-1 bg-[#FAFAFA] border border-[#EBEBEB] rounded-full text-xs font-mono text-[#6E6E73] mb-6">
-              Réf : {appId}
-            </div>
-          )}
+
 
           <div className="text-left bg-[#FAFAFA] p-6 rounded-2xl border border-[#EBEBEB] space-y-3 mb-8 text-xs sm:text-sm text-[#3A3A3C]">
             <div className="flex gap-3">
@@ -50,29 +46,17 @@ export default function CandidatureConfirmationPage() {
             <div className="flex gap-3">
               <span className="text-[#EC663B] font-bold">02.</span>
               <p>
-                <strong>Délai de réponse :</strong> Vous recevrez une notification par email et WhatsApp sous <strong>72 heures</strong>.
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <span className="text-[#EC663B] font-bold">03.</span>
-              <p>
-                <strong>Rappel de la sélection :</strong> Seules <strong>20 entreprises</strong> seront retenues dans cette première cohorte afin de garantir un accompagnement haute intensité.
+                <strong>Délai de réponse :</strong> Vous recevrez une notification par email sous <strong>7 à 14 jours</strong>.
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/mpme/diagnostic"
+              href="/"
               className="flex-1 py-3.5 px-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm transition-all text-center shadow-md shadow-[#EC663B]/20"
             >
-              Tester le Diagnostic en Démo →
-            </Link>
-            <Link
-              href="/admin/candidatures"
-              className="flex-1 py-3.5 px-4 bg-white hover:bg-[#F2F2F2] border border-[#D1D1D6] text-[#0A0A0A] font-medium rounded-full text-sm transition-colors text-center"
-            >
-              Console Admin ALODO
+              Retour à l'accueil →
             </Link>
           </div>
 
