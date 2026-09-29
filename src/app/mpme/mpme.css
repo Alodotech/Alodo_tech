@@ -371,3 +371,140 @@
   color: var(--grey-500);
   margin: 0;
 }
+
+/* ===========================================================
+   RESPONSIVE — Mobile First Fixes
+   =========================================================== */
+
+/* Hero buttons — stack on mobile, full width */
+@media (max-width: 640px) {
+  .mpme-hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+    padding: 0 16px;
+  }
+
+  .mpme-hero-actions .btn,
+  .mpme-hero-actions button {
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    font-size: 14px !important;
+    padding: 14px 20px !important;
+    white-space: normal !important;
+    word-break: break-word;
+  }
+
+  .mpme-hero h1 {
+    font-size: clamp(26px, 7vw, 40px);
+    padding: 0 8px;
+  }
+
+  .mpme-hero .lead {
+    font-size: 15px;
+    padding: 0 8px;
+  }
+
+  .mpme-pill {
+    font-size: 12px;
+    flex-wrap: wrap;
+    text-align: center;
+    justify-content: center;
+  }
+}
+
+/* CTA Box */
+@media (max-width: 640px) {
+  .cta-box {
+    padding: 36px 20px;
+    border-radius: 20px;
+    margin: 0 8px;
+  }
+
+  .cta-box h2 {
+    font-size: clamp(22px, 6vw, 32px);
+  }
+
+  .cta-box .mpme-hero-actions,
+  .cta-box > div[style] {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+/* Problem cards */
+@media (max-width: 640px) {
+  .problem-card {
+    padding: 24px 20px;
+  }
+}
+
+/* Step cards */
+@media (max-width: 640px) {
+  .steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Stats grid — 2 cols on very small */
+@media (max-width: 400px) {
+  .mpme-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+/* Admin candidatures table — horizontal scroll on mobile */
+@media (max-width: 768px) {
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Dashboard layout sidebar on mobile */
+  .space-y-6 {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+/* Buttons global — ensure minimum tap target of 44px */
+button,
+a.btn,
+.btn {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+/* Prevent long text overflow in table cells */
+td, th {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 480px) {
+  /* Reduce padding on form pages */
+  .p-6 {
+    padding: 16px !important;
+  }
+
+  .p-8 {
+    padding: 20px !important;
+  }
+
+  /* Stack action buttons in admin */
+  .flex.gap-2.flex-wrap {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  /* Diagnostic question buttons */
+  .grid.grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
