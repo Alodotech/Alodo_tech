@@ -382,7 +382,8 @@ export default function AdminCandidaturesPage() {
     } else {
       const target = applications.find((a) => a.id === appId);
 
-      // Trigger automated emails via Resend
+      // Envoi automatique d'emails commenté pour ne pas bloquer les déploiements
+      /*
       if (target?.company?.email) {
         if (status === "selected") {
           fetch('/api/send-dashboard-link', {
@@ -406,12 +407,13 @@ export default function AdminCandidaturesPage() {
           }).catch(console.error);
         }
       }
+      */
 
       const label =
         status === "selected"
-          ? "Entreprise admise dans la cohorte ! Email avec lien d'accès envoyé."
+          ? "Entreprise admise dans la cohorte Top 20."
           : status === "rejected"
-          ? "Dossier non retenu. Email de notification bienveillante envoyé."
+          ? "Dossier non retenu."
           : status === "under_review"
           ? "Dossier placé en cours d'analyse."
           : "Statut mis à jour.";
