@@ -357,13 +357,13 @@ export default function MpmeDashboardPage() {
           ===================================================================== */}
       {currentView === "candidature" && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Header Ma Candidature */}
+          {/* Header Mon Entreprise */}
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#EBEBEB]">
               <div>
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs uppercase tracking-widest text-[#EC663B] font-bold">
-                    Espace Candidat
+                    Espace Entreprise
                   </span>
                   <span className="text-xs text-[#A1A1A6]">•</span>
                   <span className="text-xs text-[#6E6E73] font-medium">
@@ -371,10 +371,10 @@ export default function MpmeDashboardPage() {
                   </span>
                 </div>
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0A]">
-                  Détails de ma Candidature
+                  Dossier & Profil de mon entreprise
                 </h1>
                 <p className="text-xs text-[#6E6E73] mt-1">
-                  Récapitulatif officiel transmis au comité technique ALODO TECH pour l'examen d'admission.
+                  Récapitulatif officiel transmis au comité technique ALODO TECH pour le diagnostic et le programme d'accompagnement.
                 </p>
               </div>
 
@@ -390,7 +390,7 @@ export default function MpmeDashboardPage() {
               </div>
             </div>
 
-            {/* Statut de Candidature */}
+            {/* Statut du dossier */}
             <div className="pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <span
@@ -407,7 +407,7 @@ export default function MpmeDashboardPage() {
                     ? "Lauréat — Retenu pour la Cohorte 1"
                     : isRejected
                     ? "Dossier Non Retenu"
-                    : "Candidature Enregistrée & Transmise"}
+                    : "Profil & Diagnostic Enregistrés"}
                 </span>
               </div>
 
@@ -683,7 +683,7 @@ export default function MpmeDashboardPage() {
               </h4>
               <p className="text-xs text-[#6E6E73] mt-1 max-w-xl">
                 {hasDiagnostic
-                  ? "Consultez l'audit complet des 8 dimensions et votre plan d'action à 90 jours sur votre tableau de bord."
+                  ? "Consultez les résultats de vos 8 dimensions et votre feuille de route à 90 jours sur votre tableau de bord."
                   : "Réalisez votre diagnostic de maturité en 8 dimensions (~10 min) pour compléter votre dossier auprès du comité ALODO."}
               </p>
             </div>
@@ -869,10 +869,10 @@ export default function MpmeDashboardPage() {
                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#EBEBEB]">
                   <div>
                     <h3 className="text-base font-bold text-[#0A0A0A]">
-                      Aperçu de votre candidature transmise
+                      Aperçu de votre profil d'entreprise
                     </h3>
                     <span className="text-xs text-[#8E8E93]">
-                      Déposé le {new Date(application?.submittedAt || "").toLocaleDateString("fr-FR")}
+                      Enregistré le {new Date(application?.submittedAt || "").toLocaleDateString("fr-FR")}
                     </span>
                   </div>
 
@@ -881,7 +881,7 @@ export default function MpmeDashboardPage() {
                     onClick={() => setCurrentView("candidature")}
                     className="text-xs font-bold text-[#EC663B] hover:underline flex items-center gap-1 cursor-pointer"
                   >
-                    Voir tous les détails de ma candidature →
+                    Voir tous les détails de mon entreprise →
                   </button>
                 </div>
 
@@ -1174,6 +1174,38 @@ export default function MpmeDashboardPage() {
                           </li>
                         ))}
                       </ul>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PASSAGE À L'ACTION SECTION */}
+                <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm mt-6">
+                  <div className="max-w-2xl">
+                    <span className="text-xs uppercase tracking-widest text-[#EC663B] font-semibold">
+                      Étape suivante
+                    </span>
+                    <h2 className="text-xl sm:text-2xl font-bold mt-1 text-[#0A0A0A]">
+                      Vous connaissez maintenant les principales priorités de votre entreprise. Êtes-vous prêt à passer à l’action ?
+                    </h2>
+                    <p className="text-xs sm:text-sm text-[#6E6E73] mt-2 leading-relaxed">
+                      Après réception de vos résultats, vous pouvez choisir de poursuivre avec ALODO. Un échange permet de préciser vos besoins et de définir les prochaines actions à engager.
+                    </p>
+
+                    <div className="mt-6 flex flex-wrap gap-4 items-center">
+                      <a
+                        href="https://wa.me/22901234567?text=Bonjour%20ALODO,%20je%20souhaite%20passer%20à%20l'action%20après%20mon%20diagnostic%20MPME"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-[#EC663B] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#EC663B]/20 hover:bg-[#d4562e] transition-colors"
+                      >
+                        <span>Je veux passer à l’action →</span>
+                      </a>
+                      <a
+                        href="mailto:contact@alodotech.com?subject=Programme%20MPME%20-%20Échange%20sur%20mes%20priorités"
+                        className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-[#D1D1D6] bg-white text-[#0A0A0A] text-xs sm:text-sm font-semibold hover:bg-[#FAFAFA] transition-colors"
+                      >
+                        <span>Choisir un créneau / Contacter l’équipe</span>
+                      </a>
                     </div>
                   </div>
                 </div>

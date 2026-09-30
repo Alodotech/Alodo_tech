@@ -5,54 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import GoogleAuthModal from "@/components/GoogleAuthModal";
 import { createClient } from "@/utils/supabase/client";
 import { DIMENSIONS } from "@/lib/mpme/questions";
 import "./mpme.css";
 
 export default function MpmeLandingPage() {
   const router = useRouter();
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [authDestination, setAuthDestination] = useState<"candidature" | "dashboard">("candidature");
-
-  const handleHeroApply = async () => {
-    setAuthDestination("candidature");
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      // Check if admin
-      const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
-      if (admin) {
-        router.push("/admin/candidatures");
-      } else {
-        router.push("/mpme/candidature");
-      }
-    } else {
-      setShowGoogleModal(true);
-    }
+  const handleHeroApply = () => {
+    router.push("/mpme/diagnostic");
   };
-
-  const handleHeroLogin = async () => {
-    setAuthDestination("dashboard");
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (user) {
-      const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
-      if (admin) {
-        router.push("/admin/candidatures");
-      } else {
-        router.push("/mpme/dashboard");
-      }
-    } else {
-      setShowGoogleModal(true);
-    }
-  };
-
-  // Google Modal is now using real Supabase OAuth, so onSuccess isn't called with fake data anymore.
-  // We can leave this empty or remove it. The redirect is handled by the callback route.
-  const handleGoogleSuccess = () => {};
 
   return (
     <>
@@ -72,51 +33,26 @@ export default function MpmeLandingPage() {
 
             {/* Display Headline */}
             <h1 style={{ textAlign: "center", margin: "0 auto", maxWidth: "920px" }}>
-              De l'activité informelle à une entreprise <span className="accent">structurée</span> et finançable.
+              <span className="accent">Structurez</span> votre entreprise. Renforcez votre capacité à grandir.
             </h1>
 
             {/* Breathable Lead Paragraph */}
             <p className="lead" style={{ textAlign: "center", margin: "24px auto 0 auto", maxWidth: "760px" }}>
-              Évaluez la maturité opérationnelle et financière de votre MPME sur 8 dimensions stratégiques.
-              Obtenez un diagnostic gratuit, un plan d'action opérationnel à 90 jours et accédez à l'accompagnement d'excellence d'ALODO TECH.
+              Le Programme MPME d’ALODO évalue la maturité de votre entreprise sur les principales dimensions de son fonctionnement afin d’identifier ses forces, ses points de vigilance et les actions prioritaires à engager.
+            </p>
+            
+            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "15px", color: "#6E6E73", fontWeight: 500 }}>
+              Diagnostic gratuit • 8 dimensions d’analyse • Feuille de route personnalisée
             </p>
 
-            {/* Action Buttons - Candidater + Se connecter */}
+            {/* Action Buttons */}
             <div className="mpme-hero-actions" style={{ display: "flex", gap: "14px", flexWrap: "wrap", justifyContent: "center", alignItems: "center", margin: "36px auto 0 auto" }}>
               <button
                 onClick={handleHeroApply}
                 className="btn primary"
-                style={{ cursor: "pointer", fontSize: "15px", padding: "16px 28px" }}
+                style={{ cursor: "pointer", fontSize: "16px", padding: "16px 36px" }}
               >
-                Candidater au programme MPME et diagnostic gratuit →
-              </button>
-
-              <button
-                type="button"
-                onClick={handleHeroLogin}
-                className="btn"
-                style={{
-                  cursor: "pointer",
-                  fontSize: "15px",
-                  padding: "15px 26px",
-                  background: "white",
-                  color: "#0A0A0A",
-                  border: "1px solid #D1D1D6",
-                  borderRadius: "9999px",
-                  fontWeight: 600,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "8px",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                  transition: "all 0.2s ease",
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                  <polyline points="10 17 15 12 10 7" />
-                  <line x1="15" y1="12" x2="3" y2="12" />
-                </svg>
-                <span>Se connecter</span>
+                Démarrer mon diagnostic →
               </button>
             </div>
 
@@ -128,68 +64,80 @@ export default function MpmeLandingPage() {
               </div>
               <div className="mpme-stat-item">
                 <div className="num teal">8</div>
-                <div className="label">Dimensions de gestion auditées</div>
+                <div className="label">Dimensions d’analyse clés</div>
               </div>
               <div className="mpme-stat-item">
                 <div className="num">100%</div>
-                <div className="label">Diagnostic pris en charge</div>
+                <div className="label">Diagnostic gratuit & pris en charge</div>
               </div>
               <div className="mpme-stat-item">
                 <div className="num">90 Jours</div>
-                <div className="label">Feuille de route concrète</div>
+                <div className="label">Feuille de route personnalisée</div>
               </div>
             </div>
           </div>
         </section>
 
         {/* =========================================================================
-            2. LE CONSTAT DE TERRAIN (PROBLÉMATIQUE MPME)
+            2. CE QUE VOUS OBTENEZ À L'ISSUE DU DIAGNOSTIC
             ========================================================================= */}
         <section className="bg-white">
           <div className="container">
-            <div className="section-head">
+            <div className="section-head" style={{ textAlign: "center", maxWidth: "760px", margin: "0 auto 48px auto" }}>
               <div>
-                <span className="eyebrow">Constat de terrain</span>
-                <h2>Votre entreprise fait du chiffre, mais pilotez-vous vraiment sa croissance ?</h2>
+                <span className="eyebrow teal">Livrables Concrets</span>
+                <h2>Ce que vous obtenez à l’issue du diagnostic</h2>
               </div>
-              <p className="lead" style={{ maxWidth: "480px" }}>
-                Au Bénin, de nombreuses MPME sont viables mais manquent d'une structure de gestion suffisante pour anticiper leurs crises et grandir.
+              <p className="lead" style={{ margin: "16px auto 0 auto" }}>
+                Une analyse claire de la situation de votre entreprise, accompagnée de recommandations concrètes pour orienter vos prochaines décisions.
               </p>
             </div>
 
-            <div className="problem-grid">
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "24px" }}>
               <div className="problem-card">
                 <div>
-                  <div className="num-badge" style={{ background: "#FEE2E2", color: "#DC2626" }}>
+                  <div className="num-badge" style={{ background: "#F0FDF4", color: "#16A34A" }}>
                     01
                   </div>
-                  <h3>Trésorerie sous tension</h3>
+                  <h3>Une évaluation de votre maturité</h3>
                   <p>
-                    Mélange entre finances personnelles et professionnelles, factures clients en retard et imprévisibilité permanente des flux de trésorerie disponibles.
+                    Mesurez le niveau de structuration de votre entreprise à travers 8 dimensions clés de son fonctionnement.
                   </p>
                 </div>
               </div>
 
               <div className="problem-card">
                 <div>
-                  <div className="num-badge" style={{ background: "#FEF3C7", color: "#D97706" }}>
+                  <div className="num-badge" style={{ background: "#EFF6FF", color: "#2563EB" }}>
                     02
                   </div>
-                  <h3>Dépendance au dirigeant</h3>
+                  <h3>Une identification de vos priorités</h3>
                   <p>
-                    Si le dirigeant s'absente 2 semaines, l'entreprise ralentit ou s'arrête. Manque de procédures écrites et délégations quasi impossibles.
+                    Repérez vos principaux points forts, vos points de vigilance et les domaines qui nécessitent une attention particulière.
                   </p>
                 </div>
               </div>
 
               <div className="problem-card">
                 <div>
-                  <div className="num-badge" style={{ background: "#CCFBF1", color: "#0D9488" }}>
+                  <div className="num-badge" style={{ background: "#FFF7ED", color: "#EA580C" }}>
                     03
                   </div>
-                  <h3>Accès au financement bloqué</h3>
+                  <h3>Un rapport personnalisé</h3>
                   <p>
-                    Difficulté à fournir en 48 heures des états financiers certifiés, un plan de trésorerie crédible et un dossier bancaire aux normes.
+                    Recevez une synthèse de votre situation et des recommandations adaptées aux réalités de votre entreprise.
+                  </p>
+                </div>
+              </div>
+
+              <div className="problem-card">
+                <div>
+                  <div className="num-badge" style={{ background: "#FAF5FF", color: "#9333EA" }}>
+                    04
+                  </div>
+                  <h3>Une feuille de route sur 90 jours</h3>
+                  <p>
+                    Disposez d’actions prioritaires et concrètes pour commencer à renforcer votre entreprise étape par étape.
                   </p>
                 </div>
               </div>
@@ -198,17 +146,17 @@ export default function MpmeLandingPage() {
         </section>
 
         {/* =========================================================================
-            3. LES 8 DIMENSIONS DU DIAGNOSTIC
+            3. VOTRE ENTREPRISE ANALYSÉE SOUS 8 DIMENSIONS CLÉS
             ========================================================================= */}
         <section id="dimensions" className="bg-grey">
           <div className="container">
             <div className="section-head">
               <div>
                 <span className="eyebrow teal">Méthodologie ALODO</span>
-                <h2>Le Diagnostic de Maturité en 8 Dimensions</h2>
+                <h2>Votre entreprise analysée sous 8 dimensions clés</h2>
               </div>
-              <p className="lead" style={{ maxWidth: "480px" }}>
-                Un audit complet et rigoureux pour évaluer la solidité de votre entreprise et identifier vos leviers prioritaires.
+              <p className="lead" style={{ maxWidth: "560px" }}>
+                Pour comprendre réellement la situation d’une entreprise, il ne suffit pas de regarder son chiffre d’affaires. Le diagnostic ALODO examine les principales dimensions qui influencent sa structuration, son fonctionnement et sa capacité à se développer.
               </p>
             </div>
 
@@ -230,17 +178,76 @@ export default function MpmeLandingPage() {
         </section>
 
         {/* =========================================================================
-            4. LE PARCOURS DE SÉLECTION (5 ÉTAPES)
+            4. UNE VISION CLAIRE DE LA MATURITÉ DE VOTRE ENTREPRISE
             ========================================================================= */}
         <section className="bg-white">
+          <div className="container">
+            <div className="section-head" style={{ textAlign: "center", maxWidth: "760px", margin: "0 auto 48px auto" }}>
+              <div>
+                <span className="eyebrow">Restitution & Décision</span>
+                <h2>Une vision claire de la maturité de votre entreprise</h2>
+              </div>
+              <p className="lead" style={{ margin: "16px auto 0 auto" }}>
+                À l’issue du diagnostic, vous obtenez une lecture synthétique de la situation de votre entreprise et des domaines qui méritent votre attention.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "24px" }}>
+              <div className="problem-card">
+                <div>
+                  <div className="num-badge" style={{ background: "#FFF7ED", color: "#EC663B" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4M12 16V8"/></svg>
+                  </div>
+                  <h3>Votre score de maturité</h3>
+                  <p>Un indicateur global permettant de situer le niveau de structuration de votre entreprise.</p>
+                </div>
+              </div>
+
+              <div className="problem-card">
+                <div>
+                  <div className="num-badge" style={{ background: "#EFF6FF", color: "#2563EB" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                  </div>
+                  <h3>Votre profil par dimension</h3>
+                  <p>Une lecture de votre niveau sur chacune des 8 dimensions.</p>
+                </div>
+              </div>
+
+              <div className="problem-card">
+                <div>
+                  <div className="num-badge" style={{ background: "#FEF3C7", color: "#D97706" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  </div>
+                  <h3>Vos priorités</h3>
+                  <p>Les principaux points de vigilance et les domaines à traiter en priorité.</p>
+                </div>
+              </div>
+
+              <div className="problem-card">
+                <div>
+                  <div className="num-badge" style={{ background: "#ECFDF5", color: "#059669" }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                  </div>
+                  <h3>Votre feuille de route</h3>
+                  <p>Des recommandations et actions prioritaires à mettre en œuvre sur les 90 prochains jours.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            5. COMMENT ÇA FONCTIONNE ? (LE PARCOURS EN 5 ÉTAPES)
+            ========================================================================= */}
+        <section className="bg-grey">
           <div className="container">
             <div className="section-head">
               <div>
                 <span className="eyebrow">Le Parcours</span>
-                <h2>Comment se déroule le programme ?</h2>
+                <h2>Comment ça fonctionne ?</h2>
               </div>
-              <p className="lead" style={{ maxWidth: "480px" }}>
-                Un cheminement clair en 5 étapes pour sélectionner et accompagner les 20 entreprises retenues.
+              <p className="lead" style={{ maxWidth: "520px" }}>
+                Un cheminement clair en 5 étapes pour faire votre diagnostic et passer à l'action.
               </p>
             </div>
 
@@ -249,27 +256,27 @@ export default function MpmeLandingPage() {
                 {
                   step: "01",
                   title: "Candidature",
-                  desc: "Formulaire court en 5 minutes pour présenter votre profil et vos enjeux.",
+                  desc: "Remplissez le formulaire de candidature avec les principales informations concernant votre entreprise, votre activité et vos besoins.",
                 },
                 {
                   step: "02",
                   title: "Sélection",
-                  desc: "Revue par le comité ALODO TECH. 20 entreprises retenues par cohorte.",
+                  desc: "Les candidatures sont étudiées selon les critères du programme. Les entreprises retenues sont contactées pour la suite du processus.",
                 },
                 {
                   step: "03",
                   title: "Diagnostic",
-                  desc: "Évaluation adaptative en 20-30 min sur vos 8 dimensions de gestion.",
+                  desc: "Votre entreprise est évaluée à travers les 8 dimensions du diagnostic afin d'identifier son niveau de maturité, ses forces et ses principaux points de vigilance.",
                 },
                 {
                   step: "04",
-                  title: "Rapport d'Audit",
-                  desc: "Score chiffré, points forts, points faibles et plan d'action à 90 jours.",
+                  title: "Restitution & feuille de route",
+                  desc: "Vous recevez les résultats de votre diagnostic ainsi qu'une feuille de route personnalisée avec les actions prioritaires à engager sur les 90 prochains jours.",
                 },
                 {
                   step: "05",
-                  title: "Accompagnement",
-                  desc: "Mise en œuvre concrète avec les experts et les outils d'ALODO TECH.",
+                  title: "Passage à l'action",
+                  desc: "Après réception de vos résultats, vous pouvez choisir de poursuivre avec ALODO. Un échange permet de préciser vos besoins et de définir les prochaines actions à engager.",
                 },
               ].map((st) => (
                 <div key={st.step} className="step-card">
@@ -283,46 +290,68 @@ export default function MpmeLandingPage() {
         </section>
 
         {/* =========================================================================
-            5. ENCADRÉ D'APPEL À CANDIDATURE
+            6. POURQUOI ALODO ?
+            ========================================================================= */}
+        <section className="bg-white">
+          <div className="container">
+            <div className="section-head" style={{ textAlign: "center", maxWidth: "700px", margin: "0 auto 48px auto" }}>
+              <div>
+                <span className="eyebrow teal">Notre Approche</span>
+                <h2>Pourquoi ALODO ?</h2>
+              </div>
+              <p className="lead" style={{ margin: "16px auto 0 auto" }}>
+                Un accompagnement pensé pour vous apporter clarté et leviers d'action concrets.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "24px", maxWidth: "1000px", margin: "0 auto" }}>
+              <div className="problem-card">
+                <div className="num-badge" style={{ background: "#EFF6FF", color: "#2563EB" }}>
+                  360°
+                </div>
+                <h3>Une vision à 360°</h3>
+                <p>8 dimensions pour comprendre les principaux enjeux de votre entreprise.</p>
+              </div>
+
+              <div className="problem-card">
+                <div className="num-badge" style={{ background: "#FFF7ED", color: "#EC663B" }}>
+                  90j
+                </div>
+                <h3>Des recommandations concrètes</h3>
+                <p>Des priorités clairement identifiées et une feuille de route sur 90 jours.</p>
+              </div>
+
+              <div className="problem-card">
+                <div className="num-badge" style={{ background: "#ECFDF5", color: "#059669" }}>
+                  Local
+                </div>
+                <h3>Une approche adaptée au contexte local</h3>
+                <p>Une analyse pensée pour les réalités des entreprises béninoises.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* =========================================================================
+            7. ENCADRÉ D'APPEL À L'ACTION
             ========================================================================= */}
         <section className="bg-grey">
           <div className="container">
             <div className="cta-box">
               <span className="eyebrow" style={{ marginBottom: "16px" }}>
-                Cohorte 1 · 20 Places
+                Diagnostic gratuit • Première cohorte : 20 entreprises
               </span>
-              <h2>Rejoignez les 20 premières entreprises accompagnées</h2>
+              <h2>Prêt à faire le point sur votre entreprise ?</h2>
               <p>
-                Pour garantir un audit haute précision et un suivi de proximité, les admissions sont volontairement limitées. Postulez en moins de 5 minutes.
+                Découvrez votre niveau de maturité, identifiez vos priorités et, si vous le souhaitez, engagez les prochaines étapes avec ALODO.
               </p>
-              <div style={{ marginTop: "32px", display: "flex", gap: "14px", flexWrap: "wrap", justifyContent: "center", alignItems: "center" }}>
+              <div style={{ marginTop: "32px", display: "flex", justifyContent: "center", alignItems: "center" }}>
                 <button
                   onClick={handleHeroApply}
                   className="btn primary"
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", fontSize: "16px", padding: "16px 36px" }}
                 >
-                  Déposer ma candidature maintenant →
-                </button>
-                <button
-                  type="button"
-                  onClick={handleHeroLogin}
-                  className="btn"
-                  style={{
-                    cursor: "pointer",
-                    background: "white",
-                    color: "#0A0A0A",
-                    border: "1px solid #D1D1D6",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "8px",
-                  }}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                    <polyline points="10 17 15 12 10 7" />
-                    <line x1="15" y1="12" x2="3" y2="12" />
-                  </svg>
-                  <span>Se connecter</span>
+                  Participer au Programme MPME →
                 </button>
               </div>
             </div>
@@ -330,7 +359,7 @@ export default function MpmeLandingPage() {
         </section>
 
         {/* =========================================================================
-            6. FAQ
+            8. FAQ
             ========================================================================= */}
         <section className="bg-white">
           <div className="container">
@@ -342,20 +371,20 @@ export default function MpmeLandingPage() {
             <div className="faq-grid">
               {[
                 {
-                  q: "Le diagnostic est-il gratuit ?",
-                  a: "Oui. Le dépôt de candidature et la réalisation du diagnostic de maturité avec le rapport d'audit sont 100 % pris en charge pour les 20 entreprises retenues dans la cohorte.",
+                  q: "Le diagnostic est-il vraiment gratuit ?",
+                  a: "Oui. Le diagnostic proposé dans le cadre de cette cohorte est entièrement gratuit pour les entreprises retenues.",
                 },
                 {
-                  q: "Ce programme garantit-il l'obtention d'un crédit bancaire ?",
-                  a: "Non. ALODO TECH ne promet aucun financement automatique. En revanche, le programme vous prépare rigoureusement à monter un dossier d'entreprise conforme, crédible et finançable par les institutions partenaires.",
+                  q: "Le diagnostic garantit-il l'obtention d'un financement ?",
+                  a: "Non. Le diagnostic permet d’identifier les éléments à renforcer pour améliorer la structuration et la capacité de l’entreprise à présenter un dossier solide à un potentiel financeur. Il ne garantit pas l’obtention d’un financement.",
                 },
                 {
                   q: "Combien de temps prend le formulaire de candidature ?",
-                  a: "Moins de 5 minutes. Seules les informations essentielles sur votre identité, votre activité et vos défis actuels sont demandées.",
+                  a: "Moins de 5 minutes. Seules les informations essentielles sur votre identité, votre activité et vos besoins sont demandées.",
                 },
                 {
-                  q: "Que se passe-t-il si mon entreprise n'est pas retenue dans les 20 ?",
-                  a: "Toutes les candidatures sérieuses intègrent la Communauté ALODO MPME. Vous recevrez nos guides pratiques de gestion et serez prioritaires pour les prochaines cohortes.",
+                  q: "Que se passe-t-il si mon entreprise n'est pas retenue ?",
+                  a: "Votre candidature peut vous permettre de rejoindre la Communauté des MPME d’ALODO, si vous choisissez d’y adhérer. Vous pourrez ainsi rester informé des ressources, opportunités et prochaines initiatives proposées par ALODO.",
                 },
               ].map((faq, i) => (
                 <div key={i} className="faq-card">
@@ -367,19 +396,6 @@ export default function MpmeLandingPage() {
           </div>
         </section>
       </main>
-
-      <GoogleAuthModal
-        isOpen={showGoogleModal}
-        onClose={() => setShowGoogleModal(false)}
-        onSuccess={handleGoogleSuccess}
-        title={authDestination === "dashboard" ? "Accéder à mon Dashboard" : "Continuer avec Google"}
-        subtitle={
-          authDestination === "dashboard"
-            ? "Connectez-vous pour retrouver votre candidature et vos diagnostics"
-            : "Connectez-vous pour candidater au programme ALODO MPME"
-        }
-        nextUrl={authDestination === "candidature" ? "/mpme/candidature" : "/mpme/dashboard"}
-      />
 
       {/* FOOTER OFFICIEL ALODO TECH */}
       <Footer />

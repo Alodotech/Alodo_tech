@@ -106,12 +106,13 @@ export default function AdminSettingsPage() {
     // Check if admin
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      window.location.href = "/";
+      window.location.href = "/admin/login";
       return;
     }
     const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
     if (!admin) {
-      window.location.href = "/mpme/dashboard";
+      await supabase.auth.signOut();
+      window.location.href = "/admin/login?error=unauthorized";
       return;
     }
 

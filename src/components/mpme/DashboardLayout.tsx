@@ -277,7 +277,7 @@ export default function DashboardLayout({
                   <span>Mon Dashboard</span>
                 </button>
 
-                {/* 2. MA CANDIDATURE */}
+                {/* 2. MON ENTREPRISE */}
                 <button
                   type="button"
                   onClick={() => {
@@ -295,7 +295,7 @@ export default function DashboardLayout({
                       isCandidatureActive ? "text-[#EC663B]" : "text-[#6E6E73]"
                     }`}
                   />
-                  <span>Ma Candidature</span>
+                  <span>Mon Entreprise</span>
                 </button>
               </>
             )}

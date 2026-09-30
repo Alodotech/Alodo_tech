@@ -198,7 +198,7 @@ export default function AdminCandidaturesPage() {
   const [adminEmail, setAdminEmail] = useState<string>("Console Gouverneur ALODO TECH");
 
   // Governor tabs: Light theme, harmonized with Dirigeant MPME Dashboard
-  const [adminTab, setAdminTab] = useState<"registry" | "top20" | "diagnostics" | "settings" | "leaders">("registry");
+  const [adminTab, setAdminTab] = useState<"top20" | "diagnostics" | "settings" | "leaders">("top20");
   const [viewMode, setViewMode] = useState<"split" | "table">("split");
 
   // Filters & Search
@@ -213,6 +213,12 @@ export default function AdminCandidaturesPage() {
   const [statusFeedback, setStatusFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [pdfModalApp, setPdfModalApp] = useState<Application | null>(null);
+
+  // Candidats Tab: Status Filters, Search & Pagination (20 per page)
+  const [leaderFilterStatus, setLeaderFilterStatus] = useState<"all" | "pending" | "under_review" | "selected" | "rejected">("all");
+  const [leaderSearch, setLeaderSearch] = useState<string>("");
+  const [leaderPage, setLeaderPage] = useState<number>(1);
+  const [inspectingApp, setInspectingApp] = useState<Application | null>(null);
 
   // EXTENSIVE GOVERNOR PARAMETERS
   const [editMaxCapacity, setEditMaxCapacity] = useState<number>(20);
@@ -243,8 +249,25 @@ export default function AdminCandidaturesPage() {
   const refreshData = async () => {
     const supabase = createClient();
     
-    // 0. Fetch Admin Email
+    // 0. Verify Admin Access
     const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      window.location.href = "/admin/login";
+      return;
+    }
+
+    const { data: adminRecord } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (!adminRecord) {
+      await supabase.auth.signOut();
+      window.location.href = "/admin/login?error=unauthorized";
+      return;
+    }
+
     if (user?.email) {
       setAdminEmail(user.email);
     }
@@ -357,13 +380,40 @@ export default function AdminCandidaturesPage() {
     if (error) {
       setStatusFeedback({ msg: "Erreur lors de la mise à jour.", type: "error" });
     } else {
+      const target = applications.find((a) => a.id === appId);
+
+      // Trigger automated emails via Resend
+      if (target?.company?.email) {
+        if (status === "selected") {
+          fetch('/api/send-dashboard-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toEmail: target.company.email,
+              companyName: target.company.name,
+              action: 'accept',
+            }),
+          }).catch(console.error);
+        } else if (status === "rejected") {
+          fetch('/api/send-dashboard-link', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              toEmail: target.company.email,
+              companyName: target.company.name,
+              action: 'reject',
+            }),
+          }).catch(console.error);
+        }
+      }
+
       const label =
         status === "selected"
-          ? "Entreprise admise dans le Top 20 !"
+          ? "Entreprise admise dans la cohorte ! Email avec lien d'accès envoyé."
           : status === "rejected"
-          ? "Candidature classée sans suite (rejetée)."
+          ? "Dossier non retenu. Email de notification bienveillante envoyé."
           : status === "under_review"
-          ? "Dossier placé en délibération."
+          ? "Dossier placé en cours d'analyse."
           : "Statut mis à jour.";
       setStatusFeedback({ msg: label, type: "success" });
       refreshData();
@@ -552,13 +602,51 @@ export default function AdminCandidaturesPage() {
       return 0;
     });
 
+  const pendingCount = applications.filter(
+    (a) => a.status !== "selected" && a.status !== "under_review" && a.status !== "rejected"
+  ).length;
+
+  const filteredLeaders = applications.filter((app) => {
+    // Status Filter: en attente, rejeter, retenir, deja analyser
+    if (leaderFilterStatus === "selected" && app.status !== "selected") return false;
+    if (leaderFilterStatus === "under_review" && app.status !== "under_review") return false;
+    if (leaderFilterStatus === "rejected" && app.status !== "rejected") return false;
+    if (
+      leaderFilterStatus === "pending" &&
+      (app.status === "selected" || app.status === "under_review" || app.status === "rejected")
+    )
+      return false;
+
+    // Search Query
+    if (leaderSearch.trim()) {
+      const q = leaderSearch.toLowerCase().trim();
+      const matchName = app.company?.name?.toLowerCase().includes(q) || false;
+      const matchLeader = app.company?.leaderName?.toLowerCase().includes(q) || false;
+      const matchCity = app.company?.city?.toLowerCase().includes(q) || false;
+      const matchSector = app.company?.sector?.toLowerCase().includes(q) || false;
+      const matchEmail = app.company?.email?.toLowerCase().includes(q) || false;
+      const matchPhone = app.company?.phone?.toLowerCase().includes(q) || false;
+      const matchWhatsApp = app.company?.whatsapp?.toLowerCase().includes(q) || false;
+      return matchName || matchLeader || matchCity || matchSector || matchEmail || matchPhone || matchWhatsApp;
+    }
+
+    return true;
+  });
+
+  const LEADER_PAGE_SIZE = 20;
+  const totalLeaderPages = Math.ceil(filteredLeaders.length / LEADER_PAGE_SIZE) || 1;
+  const paginatedLeaders = filteredLeaders.slice(
+    (leaderPage - 1) * LEADER_PAGE_SIZE,
+    leaderPage * LEADER_PAGE_SIZE
+  );
+
   if (!isClient) return null;
 
   return (
     <DashboardLayout 
       activeTab="admin" 
       adminSubTab={adminTab} 
-      onSelectAdminTab={(tab) => setAdminTab(tab)}
+      onSelectAdminTab={(tab) => setAdminTab(tab === "registry" ? "top20" : tab)}
     >
       <div className="space-y-6 animate-in fade-in duration-150">
 
@@ -741,19 +829,6 @@ export default function AdminCandidaturesPage() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setAdminTab("registry")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  adminTab === "registry"
-                    ? "bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 shadow-xs"
-                    : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-                }`}
-              >
-                <LayersIcon className="w-4 h-4" />
-                <span>Registre & Instruction ({totalCount})</span>
-              </button>
-
-              <button
-                type="button"
                 onClick={() => setAdminTab("top20")}
                 className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
                   adminTab === "top20"
@@ -779,612 +854,14 @@ export default function AdminCandidaturesPage() {
               </button>
             </div>
 
-            {/* Toggle View Mode for Registry (Split vs Table) */}
-            {adminTab === "registry" && (
-              <div className="flex items-center gap-1 bg-white p-1 rounded-full border border-[#EBEBEB] text-xs shadow-xs">
-                <button
-                  type="button"
-                  onClick={() => setViewMode("split")}
-                  className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    viewMode === "split" ? "bg-[#0A0A0A] text-white" : "text-[#6E6E73] hover:text-[#0A0A0A]"
-                  }`}
-                >
-                  <LayersIcon className="w-3.5 h-3.5" />
-                  <span>Vue Fiches (Cockpit)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode("table")}
-                  className={`px-3 py-1 rounded-full font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    viewMode === "table" ? "bg-[#0A0A0A] text-white" : "text-[#6E6E73] hover:text-[#0A0A0A]"
-                  }`}
-                >
-                  <TableIcon className="w-3.5 h-3.5" />
-                  <span>Vue Grand Tableau</span>
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* =========================================================================
-            TAB 1: REGISTRE DES CANDIDATURES
-            ========================================================================= */}
-        {adminTab === "registry" && (
-          <div className="space-y-6">
-            {/* Filter & Search Bar */}
-            <div className="bg-white p-5 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-4">
-              <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-                {/* Search Input */}
-                <div className="relative flex-1">
-                  <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
-                  <input
-                    type="text"
-                    placeholder="Recherche par entreprise, dirigeant, ville, secteur, email..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-full bg-[#FAFAFA] border border-[#EBEBEB] text-xs text-[#0A0A0A] placeholder-[#8E8E93] focus:outline-none focus:border-[#EC663B] transition-colors"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      onClick={() => setSearchQuery("")}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-[#8E8E93] hover:text-[#0A0A0A]"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                {/* Sort Dropdown */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-[#8E8E93] font-medium whitespace-nowrap">Trier par :</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
-                    className="px-3 py-2 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-semibold text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
-                  >
-                    <option value="score_desc">Score de Maturité (Décroissant)</option>
-                    <option value="date_desc">Date de Dépôt (Récente)</option>
-                    <option value="name_asc">Nom d'Entreprise (A-Z)</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Multi Filters Row */}
-              <div className="flex items-center justify-between flex-wrap gap-2 pt-2 border-t border-[#F2F2F2]">
-                {/* Status Filter Pills */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {[
-                    { id: "all", label: `Toutes (${totalCount})` },
-                    { id: "selected", label: `Top 20 Retenues (${selectedCount})` },
-                    { id: "diagnostic_completed", label: `Diags reçus (${diagnosticDoneCount})` },
-                    { id: "under_review", label: `En délibération (${underReviewCount})` },
-                    { id: "rejected", label: `Non retenues (${rejectedCount})` },
-                  ].map((f) => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setFilterStatus(f.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer ${
-                        filterStatus === f.id
-                          ? "bg-[#0A0A0A] text-white shadow-xs"
-                          : "bg-[#FAFAFA] hover:bg-[#F2F2F2] text-[#6E6E73] border border-[#EBEBEB]"
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Secondary Filters */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <select
-                    value={filterFormalized}
-                    onChange={(e) => setFilterFormalized(e.target.value)}
-                    className="px-2.5 py-1.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#6E6E73]"
-                  >
-                    <option value="all">Formalisation : Toutes</option>
-                    <option value="yes">RCCM/IFU Validé</option>
-                    <option value="no">Non formalisé</option>
-                  </select>
-
-                  <select
-                    value={filterCity}
-                    onChange={(e) => setFilterCity(e.target.value)}
-                    className="px-2.5 py-1.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-medium text-[#6E6E73]"
-                  >
-                    <option value="all">Villes : Tout le Bénin</option>
-                    <option value="cotonou">Cotonou</option>
-                    <option value="calavi">Abomey-Calavi</option>
-                    <option value="porto-novo">Porto-Novo</option>
-                    <option value="parakou">Parakou</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* MODE 1: SPLIT VIEW (LIST + INSPECTOR) */}
-            {viewMode === "split" && (
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                {/* Applications list (7 cols) */}
-                <div className="lg:col-span-7 bg-white rounded-3xl border border-[#EBEBEB] shadow-sm overflow-hidden flex flex-col">
-                  <div className="p-4 sm:p-5 border-b border-[#EBEBEB] bg-[#FAFAFA] flex items-center justify-between">
-                    <div>
-                      <h2 className="font-bold text-sm text-[#0A0A0A]">
-                        Dossiers de Candidature ({filteredApps.length})
-                      </h2>
-                      <span className="text-[11px] text-[#6E6E73]">
-                        Cliquez sur un dossier pour ouvrir la fiche d'arbitrage
-                      </span>
-                    </div>
-                    <span className="text-xs text-[#8E8E93] font-mono">
-                      {filteredApps.length} résultat{filteredApps.length > 1 ? "s" : ""}
-                    </span>
-                  </div>
-
-                  <div className="divide-y divide-[#F2F2F2] overflow-y-auto max-h-[800px]">
-                    {filteredApps.length === 0 ? (
-                      <div className="p-12 text-center text-[#8E8E93] text-xs space-y-2">
-                        <SearchIcon className="w-6 h-6 mx-auto text-slate-300" />
-                        <p className="font-bold text-[#0A0A0A]">Aucun dossier correspondant</p>
-                        <p className="text-[11px]">Modifiez votre recherche ou réinitialisez les filtres.</p>
-                      </div>
-                    ) : (
-                      filteredApps.map((app) => {
-                        const isSelected = selectedApp?.id === app.id;
-                        const isTop20 = app.status === "selected";
-                        const hasScore = typeof app.diagnosticScore === "number";
-
-                        return (
-                          <div
-                            key={app.id}
-                            onClick={() => setSelectedApp(app)}
-                            className={`p-5 cursor-pointer transition-all hover:bg-[#FAFAFA] ${
-                              isSelected
-                                ? "bg-orange-50/50 border-l-4 border-l-[#EC663B]"
-                                : "border-l-4 border-l-transparent"
-                            }`}
-                          >
-                            <div className="flex items-start justify-between gap-3 mb-2">
-                              <div>
-                                <div className="flex items-center gap-2 flex-wrap">
-                                  <h3 className="font-extrabold text-sm text-[#0A0A0A]">
-                                    {app.company.name}
-                                  </h3>
-                                  {isTop20 && (
-                                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                                      Admise Top 20 ✓
-                                    </span>
-                                  )}
-                                  {app.status === "under_review" && (
-                                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-semibold">
-                                      En délibération
-                                    </span>
-                                  )}
-                                  {app.status === "rejected" && (
-                                    <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-semibold">
-                                      Non retenue
-                                    </span>
-                                  )}
-                                </div>
-                                <div className="flex items-center gap-2.5 text-xs text-[#6E6E73] mt-1 flex-wrap">
-                                  <span className="flex items-center gap-1">
-                                    <UserIcon className="w-3 h-3 text-[#8E8E93]" />
-                                    {app.company.leaderName}
-                                  </span>
-                                  <span>•</span>
-                                  <span className="flex items-center gap-1">
-                                    <MapPinIcon className="w-3 h-3 text-[#8E8E93]" />
-                                    {app.company.city}
-                                  </span>
-                                  <span>•</span>
-                                  <span className="flex items-center gap-1">
-                                    <BriefcaseIcon className="w-3 h-3 text-[#8E8E93]" />
-                                    {app.company.sector}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Maturity Score badge */}
-                              {hasScore ? (
-                                <div className="text-right shrink-0">
-                                  <div
-                                    className={`px-2.5 py-1 rounded-xl text-xs font-mono font-bold ${
-                                      (app.diagnosticScore || 0) >= 70
-                                        ? "bg-emerald-100 text-emerald-800"
-                                        : (app.diagnosticScore || 0) >= 50
-                                        ? "bg-amber-100 text-amber-800"
-                                        : "bg-rose-100 text-rose-800"
-                                    }`}
-                                  >
-                                    {app.diagnosticScore}/100
-                                  </div>
-                                  <span className="text-[10px] text-[#8E8E93] block mt-0.5 font-medium">
-                                    {app.diagnosticLevel || "Maturité 8D"}
-                                  </span>
-                                </div>
-                              ) : (
-                                <span className="text-[11px] text-[#8E8E93] font-medium bg-[#F2F2F2] px-2 py-1 rounded-lg shrink-0">
-                                  Diag. en attente
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Priority Problem Quote */}
-                            {app.company.singleBiggestProblem && (
-                              <p className="text-xs text-[#6E6E73] italic line-clamp-1 bg-[#FAFAFA] p-2 rounded-lg border border-[#F2F2F2] my-2">
-                                "{app.company.singleBiggestProblem}"
-                              </p>
-                            )}
-
-                            {/* Tags footer */}
-                            <div className="flex items-center justify-between text-[11px] text-[#8E8E93] pt-2 border-t border-[#F7F7F7]">
-                              <div className="flex items-center gap-2">
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  app.company.isFormalized ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
-                                }`}>
-                                  RCCM: {app.company.isFormalized ? "OUI" : "NON"}
-                                </span>
-                                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  app.company.hasProBankAccount ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-500"
-                                }`}>
-                                  Banque: {app.company.hasProBankAccount ? "OUI" : "NON"}
-                                </span>
-                              </div>
-                              <span>
-                                Reçu le {new Date(app.submittedAt).toLocaleDateString("fr-FR")}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* Inspector Panel (5 cols) */}
-                <div className="lg:col-span-5 space-y-4">
-                  {selectedApp ? (
-                    <div className="bg-white rounded-3xl border border-[#EBEBEB] p-6 shadow-sm space-y-6">
-                      {/* Top Header of Candidate */}
-                      <div className="pb-4 border-b border-[#F2F2F2] flex items-start justify-between gap-4">
-                        <div>
-                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#EC663B] block">
-                            Fiche d'Arbitrage Officielle
-                          </span>
-                          <h2 className="text-xl font-extrabold text-[#0A0A0A] mt-1 font-tech">
-                            {selectedApp.company.name}
-                          </h2>
-                          <p className="text-xs text-[#6E6E73]">
-                            Dirigée par <span className="font-semibold text-[#0A0A0A]">{selectedApp.company.leaderName}</span>
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setPdfModalApp(selectedApp)}
-                          className="px-3 py-1.5 bg-white hover:bg-[#FAFAFA] border border-[#D1D1D6] rounded-full text-xs font-bold text-[#0A0A0A] flex items-center gap-1.5 cursor-pointer shadow-xs shrink-0"
-                          title="Télécharger le dossier officiel en PDF"
-                        >
-                          <DownloadIcon className="w-3.5 h-3.5" />
-                          <span>PDF</span>
-                        </button>
-                      </div>
-
-                      {/* ARBITRATION ACTION BAR */}
-                      <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-3">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-bold text-[#0A0A0A] uppercase tracking-wider text-[10px]">
-                            Décision d'Admission (Cohorte 1) :
-                          </span>
-                          <span className="text-[#8E8E93] text-[11px]">
-                            Quota : {selectedCount} / {maxCapacity}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(selectedApp.id, "selected")}
-                            disabled={selectedApp.status === "selected"}
-                            className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                              selectedApp.status === "selected"
-                                ? "bg-emerald-600 text-white cursor-default shadow-xs"
-                                : "bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200"
-                            }`}
-                          >
-                            <CheckIcon className="w-3.5 h-3.5" />
-                            <span>Retenir Top 20</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(selectedApp.id, "under_review")}
-                            disabled={selectedApp.status === "under_review"}
-                            className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                              selectedApp.status === "under_review"
-                                ? "bg-blue-600 text-white cursor-default shadow-xs"
-                                : "bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200"
-                            }`}
-                          >
-                            <ClockIcon className="w-3.5 h-3.5" />
-                            <span>En Délibération</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateStatus(selectedApp.id, "rejected")}
-                            disabled={selectedApp.status === "rejected"}
-                            className={`py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                              selectedApp.status === "rejected"
-                                ? "bg-rose-600 text-white cursor-default shadow-xs"
-                                : "bg-rose-50 text-rose-800 hover:bg-rose-100 border border-rose-200"
-                            }`}
-                          >
-                            <span>✕ Rejeter</span>
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Direct Candidate Contact via WhatsApp */}
-                      <div className="p-3.5 rounded-2xl bg-white border border-[#EBEBEB] space-y-2">
-                        <span className="text-[10px] font-bold text-[#8E8E93] uppercase tracking-wider block">
-                          Contact Direct Dirigeant
-                        </span>
-                        <div className="flex items-center justify-between gap-3 text-xs">
-                          <div>
-                            <span className="font-semibold text-[#0A0A0A] block">{selectedApp.company.phone}</span>
-                            <span className="text-[#8E8E93] text-[11px]">{selectedApp.company.email}</span>
-                          </div>
-
-                          <a
-                            href={`https://wa.me/${(selectedApp.company.whatsapp || selectedApp.company.phone).replace(/\D/g, "")}?text=${encodeURIComponent(
-                              `Bonjour ${selectedApp.company.leaderName}, nous vous contactons depuis la Direction d'ALODO TECH au sujet de votre candidature au programme d'accompagnement MPME (${selectedApp.company.name}).`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors shadow-xs"
-                            title="Ouvrir WhatsApp directement avec le dirigeant"
-                          >
-                            <MessageCircleIcon className="w-3.5 h-3.5" />
-                            <span>WhatsApp</span>
-                          </a>
-                        </div>
-                      </div>
-
-                      {/* Diagnostic 8D Score Details */}
-                      <div className="p-4 rounded-2xl bg-white border border-[#EBEBEB] space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#0A0A0A] uppercase tracking-wider text-[10px]">
-                            Maturité Diagnostique (8 Dimensions)
-                          </span>
-                          <span className="text-xs font-mono font-bold text-[#EC663B]">
-                            {selectedApp.diagnosticScore ? `${selectedApp.diagnosticScore}/100` : "Non réalisé"}
-                          </span>
-                        </div>
-
-                        {selectedApp.diagnosticReport?.dimensionScores ? (
-                          <div className="space-y-2 pt-1">
-                            {selectedApp.diagnosticReport.dimensionScores.map((dim) => (
-                              <div key={dim.dimensionId} className="space-y-1">
-                                <div className="flex justify-between text-[11px]">
-                                  <span className="text-[#6E6E73]">{dim.title}</span>
-                                  <span className="font-mono font-bold text-[#0A0A0A]">{dim.score}/100</span>
-                                </div>
-                                <div className="w-full h-1.5 bg-[#F2F2F2] rounded-full overflow-hidden">
-                                  <div
-                                    className={`h-full rounded-full ${
-                                      dim.score >= 70 ? "bg-emerald-500" : dim.score >= 50 ? "bg-[#EC663B]" : "bg-amber-500"
-                                    }`}
-                                    style={{ width: `${dim.score}%` }}
-                                  />
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-[#8E8E93] italic">
-                            Le diagnostic complet n'a pas encore été finalisé par cette entreprise.
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Economic & Legal Metrics */}
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="p-3 bg-[#FAFAFA] rounded-2xl border border-[#F2F2F2]">
-                          <span className="text-[10px] text-[#8E8E93] block">Formalisation RCCM</span>
-                          <span className="font-bold text-[#0A0A0A]">
-                            {selectedApp.company.isFormalized ? "Validé (RCCM/IFU)" : "Non formalisé"}
-                          </span>
-                        </div>
-                        <div className="p-3 bg-[#FAFAFA] rounded-2xl border border-[#F2F2F2]">
-                          <span className="text-[10px] text-[#8E8E93] block">Compte Bancaire Pro</span>
-                          <span className="font-bold text-[#0A0A0A]">
-                            {selectedApp.company.hasProBankAccount ? "Actif & Séparé" : "Non bancarisé"}
-                          </span>
-                        </div>
-                        <div className="p-3 bg-[#FAFAFA] rounded-2xl border border-[#F2F2F2]">
-                          <span className="text-[10px] text-[#8E8E93] block">Chiffre d'Affaires</span>
-                          <span className="font-bold text-[#0A0A0A]">{selectedApp.company.monthlyRevenue}</span>
-                        </div>
-                        <div className="p-3 bg-[#FAFAFA] rounded-2xl border border-[#F2F2F2]">
-                          <span className="text-[10px] text-[#8E8E93] block">Effectif Salarié</span>
-                          <span className="font-bold text-[#0A0A0A]">{selectedApp.company.employeesCount}</span>
-                        </div>
-                      </div>
-
-                      {/* Problem Statement */}
-                      {selectedApp.company.singleBiggestProblem && (
-                        <div className="p-3.5 rounded-2xl bg-orange-50/40 border border-orange-100">
-                          <span className="text-[10px] font-bold text-[#EC663B] uppercase tracking-wider block mb-1">
-                            Problématique n°1 Exprimée par le Dirigeant
-                          </span>
-                          <p className="text-xs text-[#0A0A0A] italic leading-relaxed">
-                            "{selectedApp.company.singleBiggestProblem}"
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Confidential Jury Notes */}
-                      <div className="space-y-3 pt-2 border-t border-[#F2F2F2]">
-                        <span className="text-xs font-bold text-[#0A0A0A] uppercase tracking-wider text-[10px] block">
-                          Notes Confidentielles du Jury ({selectedApp.internalNotes?.length || 0})
-                        </span>
-
-                        <div className="space-y-2 max-h-36 overflow-y-auto">
-                          {selectedApp.internalNotes && selectedApp.internalNotes.length > 0 ? (
-                            selectedApp.internalNotes.map((note) => (
-                              <div key={note.id} className="p-2.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs">
-                                <div className="flex items-center justify-between text-[10px] text-[#8E8E93] mb-1">
-                                  <span className="font-bold text-[#0A0A0A]">{note.author}</span>
-                                  <span>{new Date(note.createdAt).toLocaleDateString("fr-FR")}</span>
-                                </div>
-                                <p className="text-[#3A3A3C]">{note.content}</p>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-[#8E8E93] italic">Aucune note interne saisie pour le moment.</p>
-                          )}
-                        </div>
-
-                        <form onSubmit={handleAddNote} className="flex gap-2">
-                          <input
-                            type="text"
-                            placeholder="Ajouter une observation d'évaluation..."
-                            value={newNote}
-                            onChange={(e) => setNewNote(e.target.value)}
-                            className="flex-1 px-3 py-2 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs text-[#0A0A0A] placeholder-[#8E8E93] focus:outline-none focus:border-[#EC663B]"
-                          />
-                          <button
-                            type="submit"
-                            disabled={!newNote.trim()}
-                            className="px-3.5 py-2 rounded-xl bg-[#0A0A0A] hover:bg-slate-800 disabled:opacity-50 text-white text-xs font-bold transition-colors cursor-pointer"
-                          >
-                            Ajouter
-                          </button>
-                        </form>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-white rounded-3xl border border-[#EBEBEB] p-12 text-center text-[#8E8E93] text-xs">
-                      Sélectionnez un dossier à gauche pour afficher l'instruction complète.
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* MODE 2: FULL MASTER TABLE */}
-            {viewMode === "table" && (
-              <div className="bg-white rounded-3xl border border-[#EBEBEB] shadow-sm overflow-hidden">
-                <div className="p-5 border-b border-[#EBEBEB] bg-[#FAFAFA] flex items-center justify-between">
-                  <div>
-                    <h2 className="font-bold text-sm text-[#0A0A0A]">
-                      Grand Registre des Candidatures ({filteredApps.length})
-                    </h2>
-                    <span className="text-[11px] text-[#6E6E73]">
-                      Vue tabulaire complète pour l'examen de synthèse
-                    </span>
-                  </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-[#F8F9FA] text-[#6E6E73] font-semibold uppercase text-[10px] tracking-wider border-b border-[#EBEBEB]">
-                      <tr>
-                        <th className="p-4">Entreprise & Dirigeant</th>
-                        <th className="p-4">Localisation & Secteur</th>
-                        <th className="p-4">RCCM / IFU</th>
-                        <th className="p-4">Score 8D</th>
-                        <th className="p-4">Statut Actuel</th>
-                        <th className="p-4 text-right">Arbitrage Rapide</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#F2F2F2]">
-                      {filteredApps.map((app) => (
-                        <tr key={app.id} className="hover:bg-[#FAFAFA] transition-colors">
-                          <td className="p-4">
-                            <div className="font-extrabold text-sm text-[#0A0A0A]">{app.company.name}</div>
-                            <div className="text-xs text-[#6E6E73]">{app.company.leaderName}</div>
-                            <div className="text-[11px] text-[#8E8E93] font-mono">{app.company.phone}</div>
-                          </td>
-                          <td className="p-4">
-                            <div className="font-semibold text-[#0A0A0A]">{app.company.city}</div>
-                            <div className="text-xs text-[#6E6E73]">{app.company.sector}</div>
-                          </td>
-                          <td className="p-4">
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                              app.company.isFormalized ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-600"
-                            }`}>
-                              {app.company.isFormalized ? "Formalisé" : "Non formalisé"}
-                            </span>
-                          </td>
-                          <td className="p-4">
-                            {typeof app.diagnosticScore === "number" ? (
-                              <span className="font-mono font-bold text-xs px-2.5 py-1 rounded-xl bg-[#0A0A0A] text-white">
-                                {app.diagnosticScore}/100
-                              </span>
-                            ) : (
-                              <span className="text-[#8E8E93] text-[11px]">En attente</span>
-                            )}
-                          </td>
-                          <td className="p-4">
-                            {app.status === "selected" && (
-                              <span className="px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
-                                Retenue Top 20
-                              </span>
-                            )}
-                            {app.status === "under_review" && (
-                              <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold text-[10px]">
-                                En délibération
-                              </span>
-                            )}
-                            {app.status === "rejected" && (
-                              <span className="px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 font-semibold text-[10px]">
-                                Rejetée
-                              </span>
-                            )}
-                            {app.status !== "selected" && app.status !== "under_review" && app.status !== "rejected" && (
-                              <span className="px-2.5 py-1 rounded-full bg-zinc-100 text-zinc-700 font-semibold text-[10px]">
-                                Dossier Reçu
-                              </span>
-                            )}
-                          </td>
-                          <td className="p-4 text-right space-x-1.5 whitespace-nowrap">
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStatus(app.id, "selected")}
-                              disabled={app.status === "selected"}
-                              className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 border border-emerald-200 text-xs font-bold cursor-pointer disabled:opacity-40"
-                              title="Admettre dans le Top 20"
-                            >
-                              Top 20
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStatus(app.id, "under_review")}
-                              className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-800 hover:bg-blue-100 border border-blue-200 text-xs font-semibold cursor-pointer"
-                              title="Mettre en délibération"
-                            >
-                              Étude
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPdfModalApp(app)}
-                              className="px-2 py-1 rounded-lg bg-white border border-[#D1D1D6] text-xs font-bold hover:bg-[#F2F2F2] cursor-pointer"
-                              title="Voir PDF"
-                            >
-                              PDF
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => setAdminTab("leaders")}
+              className="px-4 py-2 rounded-full border border-[#D1D1D6] hover:border-[#0A0A0A] bg-white hover:bg-[#FAFAFA] text-[#0A0A0A] text-xs font-bold flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+            >
+              <UsersIcon className="w-3.5 h-3.5 text-[#EC663B]" />
+              <span>Gérer les Candidats ({applications.length}) →</span>
+            </button>
           </div>
         )}
 
@@ -1495,7 +972,7 @@ export default function AdminCandidaturesPage() {
                         <p className="text-[10px] text-[#8E8E93]">En attente de délibération du jury</p>
                         <button
                           type="button"
-                          onClick={() => setAdminTab("registry")}
+                          onClick={() => setAdminTab("leaders")}
                           className="mt-2 text-xs font-bold text-[#EC663B] hover:underline cursor-pointer"
                         >
                           Attribuer un dossier →
@@ -1578,7 +1055,7 @@ export default function AdminCandidaturesPage() {
                 </div>
                 <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-1">
                   <span className="text-[#EC663B] font-bold block">Levier d'Accompagnement :</span>
-                  <p>Mise en place en priorité de tableaux de bord financiers simples à 90 jours pour préparer l'accès au financement bancaire.</p>
+                  <p>Mise en place en priorité de tableaux de bord financiers simples à 90 jours.</p>
                 </div>
               </div>
             </div>
@@ -1586,87 +1063,718 @@ export default function AdminCandidaturesPage() {
         )}
 
         {/* =========================================================================
-            5. CANDIDATS (LEADERS) TAB
+            5. CANDIDATS (LEADERS) TAB — AVEC FILTRES, PAGINATION (20/PAGE) & INSPECTION
             ========================================================================= */}
         {adminTab === "leaders" && (
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm animate-in fade-in duration-150 mt-6">
-            <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-6 mb-6">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm animate-in fade-in duration-150 mt-6 space-y-6">
+            {/* Header + Export */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#F2F2F2] pb-6">
               <div>
-                <h2 className="text-xl font-extrabold text-[#0A0A0A] font-tech flex items-center gap-3">
+                <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech flex items-center gap-3">
                   <UsersIcon className="w-6 h-6 text-[#EC663B]" />
-                  Annuaire des Candidats
+                  Annuaire des Candidats & Entreprises
                 </h2>
-                <p className="text-xs text-[#6E6E73] mt-1">
-                  Liste des {applications.length} chefs d'entreprise ayant soumis une candidature
+                <p className="text-xs sm:text-sm text-[#6E6E73] mt-1">
+                  Gestion centralisée, filtrage par statut et arbitrage des {applications.length} dossiers soumis.
                 </p>
               </div>
+
+              <button
+                type="button"
+                onClick={exportCandidatesCsv}
+                className="px-4 py-2.5 rounded-full border border-[#D1D1D6] hover:border-[#0A0A0A] bg-white hover:bg-[#FAFAFA] text-[#0A0A0A] text-xs font-bold flex items-center gap-2 transition-all shadow-xs shrink-0 self-start sm:self-auto cursor-pointer"
+              >
+                <DownloadIcon className="w-3.5 h-3.5 text-[#EC663B]" />
+                <span>Exporter CSV ({applications.length})</span>
+              </button>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Filter Tabs requested by user: en attente, rejeter, retenir, deja analyser */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { setLeaderFilterStatus("all"); setLeaderPage(1); }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  leaderFilterStatus === "all"
+                    ? "bg-[#0A0A0A] text-white shadow-sm"
+                    : "bg-[#FAFAFA] text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
+                }`}
+              >
+                <span>Tous</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  leaderFilterStatus === "all" ? "bg-white/20 text-white" : "bg-[#EBEBEB] text-[#6E6E73]"
+                }`}>
+                  {totalCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setLeaderFilterStatus("pending"); setLeaderPage(1); }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  leaderFilterStatus === "pending"
+                    ? "bg-blue-600 text-white shadow-sm"
+                    : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                }`}
+              >
+                <span>En attente</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  leaderFilterStatus === "pending" ? "bg-white/20 text-white" : "bg-blue-200/60 text-blue-800"
+                }`}>
+                  {pendingCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setLeaderFilterStatus("under_review"); setLeaderPage(1); }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  leaderFilterStatus === "under_review"
+                    ? "bg-amber-600 text-white shadow-sm"
+                    : "bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200"
+                }`}
+              >
+                <span>Déjà analysé</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  leaderFilterStatus === "under_review" ? "bg-white/20 text-white" : "bg-amber-200/60 text-amber-800"
+                }`}>
+                  {underReviewCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setLeaderFilterStatus("selected"); setLeaderPage(1); }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  leaderFilterStatus === "selected"
+                    ? "bg-emerald-600 text-white shadow-sm"
+                    : "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200"
+                }`}
+              >
+                <span>Retenus (Top 20)</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  leaderFilterStatus === "selected" ? "bg-white/20 text-white" : "bg-emerald-200/60 text-emerald-800"
+                }`}>
+                  {selectedCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => { setLeaderFilterStatus("rejected"); setLeaderPage(1); }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                  leaderFilterStatus === "rejected"
+                    ? "bg-rose-600 text-white shadow-sm"
+                    : "bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200"
+                }`}
+              >
+                <span>Rejetés</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  leaderFilterStatus === "rejected" ? "bg-white/20 text-white" : "bg-rose-200/60 text-rose-800"
+                }`}>
+                  {rejectedCount}
+                </span>
+              </button>
+            </div>
+
+            {/* Search input */}
+            <div className="relative">
+              <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8E8E93]" />
+              <input
+                type="text"
+                placeholder="Rechercher par nom de dirigeant, nom d'entreprise, email, téléphone, ville..."
+                value={leaderSearch}
+                onChange={(e) => {
+                  setLeaderSearch(e.target.value);
+                  setLeaderPage(1);
+                }}
+                className="w-full pl-10 pr-10 py-2.5 bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl text-sm text-[#0A0A0A] placeholder-[#8E8E93] focus:outline-none focus:border-[#EC663B] focus:bg-white"
+              />
+              {leaderSearch && (
+                <button
+                  type="button"
+                  onClick={() => { setLeaderSearch(""); setLeaderPage(1); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#8E8E93] hover:text-[#0A0A0A]"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Status Feedback Alert */}
+            {statusFeedback && (
+              <div className={`p-4 rounded-2xl text-xs font-bold flex items-center justify-between ${
+                statusFeedback.type === "success"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                  : "bg-rose-50 text-rose-700 border border-rose-200"
+              }`}>
+                <span>{statusFeedback.msg}</span>
+                <button
+                  type="button"
+                  onClick={() => setStatusFeedback(null)}
+                  className="text-xs hover:opacity-70 cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
+            {/* Candidates Table (20 items per page) */}
+            <div className="overflow-x-auto rounded-2xl border border-[#EBEBEB]">
               <table className="w-full text-left text-sm text-[#6E6E73]">
-                <thead className="bg-[#FAFAFA] border-y border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] uppercase tracking-wider">
+                <thead className="bg-[#FAFAFA] border-b border-[#EBEBEB] text-xs font-bold text-[#0A0A0A] uppercase tracking-wider">
                   <tr>
-                    <th className="px-4 sm:px-6 py-4">Nom & Prénom</th>
-                    <th className="px-4 sm:px-6 py-4">Email</th>
-                    <th className="px-4 sm:px-6 py-4">Téléphone</th>
-                    <th className="px-4 sm:px-6 py-4">Entreprise</th>
-                    <th className="px-4 sm:px-6 py-4 text-center">Statut</th>
-                    <th className="px-4 sm:px-6 py-4 text-right">Action</th>
+                    <th className="px-6 py-4 whitespace-nowrap">NOM & PRÉNOM</th>
+                    <th className="px-6 py-4 whitespace-nowrap">EMAIL</th>
+                    <th className="px-6 py-4 whitespace-nowrap">TÉLÉPHONE</th>
+                    <th className="px-6 py-4 min-w-[240px]">ENTREPRISE</th>
+                    <th className="px-6 py-4 text-center whitespace-nowrap">STATUT</th>
+                    <th className="px-6 py-4 text-right whitespace-nowrap">ACTION</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EBEBEB]">
-                  {applications.map((app) => (
-                    <tr key={app.id} className="hover:bg-[#FAFAFA] transition-colors group">
-                      <td className="px-4 sm:px-6 py-4 font-bold text-[#0A0A0A] whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-[#EC663B]/10 flex items-center justify-center border border-[#EC663B]/20 shrink-0">
-                            <span className="text-[#EC663B] font-bold text-xs uppercase">
-                              {app.company?.leaderName?.charAt(0) || "?"}
-                            </span>
-                          </div>
-                          <span>{app.company?.leaderName || "Candidat Inconnu"}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 whitespace-nowrap">{app.company?.email || "-"}</td>
-                      <td className="px-4 sm:px-6 py-4 font-mono whitespace-nowrap">{app.company?.phone || "-"}</td>
-                      <td className="px-4 sm:px-6 py-4 font-medium text-[#EC663B] whitespace-nowrap">{app.company?.name || "-"}</td>
-                      <td className="px-4 sm:px-6 py-4 text-center whitespace-nowrap">
-                        <span className={`px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider inline-block ${
-                          app.status === 'selected' ? 'bg-emerald-100 text-emerald-700' :
-                          app.status === 'rejected' ? 'bg-rose-100 text-rose-700' :
-                          'bg-gray-100 text-gray-700'
-                        }`}>
-                          {app.status === 'selected' ? 'Admis Top 20' : app.status === 'rejected' ? 'Non Retenu' : 'En Attente'}
-                        </span>
-                      </td>
-                      <td className="px-4 sm:px-6 py-4 text-right whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedApp(app);
-                            setViewMode("split");
-                            setAdminTab("registry");
-                          }}
-                          className="px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#0A0A0A] text-white hover:bg-[#EC663B] transition-colors cursor-pointer shadow-xs"
-                        >
-                          Examiner →
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-[#EBEBEB] bg-white">
+                  {paginatedLeaders.map((app) => {
+                    const isSelected = app.status === "selected";
+                    const isRejected = app.status === "rejected";
+                    const isUnderReview = app.status === "under_review";
+                    const isPending = !isSelected && !isRejected && !isUnderReview;
+
+                    return (
+                      <tr key={app.id} className="hover:bg-[#FAFAFA] transition-colors group">
+                        {/* 1. Candidat & Entreprise */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-extrabold text-[#0A0A0A]">
+                            {app.company?.leaderName || "Dirigeant inconnu"}
+                          </span>
+                        </td>
+
+                        {/* 2. Contact */}
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-[#6E6E73] font-mono">
+                          {app.company?.email || "-"}
+                        </td>
+
+                        {/* 3. Téléphone */}
+                        <td className="px-6 py-4 whitespace-nowrap text-xs text-[#6E6E73] font-mono">
+                          {app.company?.phone || "-"}
+                        </td>
+
+                        {/* 4. Entreprise (Espace généreux pour les noms longs) */}
+                        <td className="px-6 py-4 min-w-[240px] text-xs font-extrabold text-[#EC663B] leading-relaxed">
+                          {app.company?.name || "-"}
+                        </td>
+
+                        {/* 5. Statut */}
+                        <td className="px-6 py-4 text-center whitespace-nowrap">
+                          <span
+                            className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider inline-block ${
+                              isSelected
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                : isUnderReview
+                                ? "bg-amber-100 text-amber-800 border border-amber-300"
+                                : isRejected
+                                ? "bg-rose-100 text-rose-800 border border-rose-300"
+                                : "bg-gray-100 text-gray-700 border border-gray-300"
+                            }`}
+                          >
+                            {isSelected
+                              ? "ADMIS TOP 20"
+                              : isUnderReview
+                              ? "DÉJÀ ANALYSÉ"
+                              : isRejected
+                              ? "REJETÉ"
+                              : "EN ATTENTE"}
+                          </span>
+                        </td>
+
+                        {/* 6. Action */}
+                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => setInspectingApp(app)}
+                            className="px-5 py-2 rounded-xl bg-[#0A0A0A] hover:bg-black text-white text-xs font-extrabold uppercase tracking-wider transition-all cursor-pointer shadow-sm hover:scale-[1.02] active:scale-[0.98]"
+                          >
+                            EXAMINER
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
-              {applications.length === 0 && (
-                <div className="text-center py-12">
-                  <UsersIcon className="w-8 h-8 text-[#D1D1D6] mx-auto mb-3" />
-                  <p className="text-sm text-[#8E8E93] font-medium">Aucun dirigeant inscrit pour le moment</p>
+
+              {filteredLeaders.length === 0 && (
+                <div className="text-center py-16 bg-white">
+                  <UsersIcon className="w-10 h-10 text-[#D1D1D6] mx-auto mb-3" />
+                  <p className="text-sm font-bold text-[#0A0A0A]">Aucun candidat trouvé</p>
+                  <p className="text-xs text-[#8E8E93] mt-1">
+                    Essayez de modifier votre filtre de statut ou votre terme de recherche.
+                  </p>
                 </div>
               )}
             </div>
+
+            {/* Pagination Controls (20 per page) */}
+            {filteredLeaders.length > 0 && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-[#F2F2F2]">
+                <div className="text-xs text-[#6E6E73]">
+                  Affichage de <strong className="text-[#0A0A0A]">{(leaderPage - 1) * LEADER_PAGE_SIZE + 1}</strong> à{" "}
+                  <strong className="text-[#0A0A0A]">
+                    {Math.min(leaderPage * LEADER_PAGE_SIZE, filteredLeaders.length)}
+                  </strong>{" "}
+                  sur <strong className="text-[#0A0A0A]">{filteredLeaders.length}</strong> candidats (20 par page)
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setLeaderPage((prev) => Math.max(1, prev - 1))}
+                    disabled={leaderPage <= 1}
+                    className="px-3.5 py-2 rounded-xl border border-[#D1D1D6] bg-white hover:bg-[#FAFAFA] disabled:opacity-40 text-xs font-bold text-[#0A0A0A] transition-all cursor-pointer"
+                  >
+                    ← Précédent
+                  </button>
+
+                  {/* Page numbers chips */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: totalLeaderPages }, (_, i) => i + 1).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setLeaderPage(p)}
+                        className={`w-8 h-8 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          leaderPage === p
+                            ? "bg-[#0A0A0A] text-white"
+                            : "bg-[#FAFAFA] hover:bg-[#EBEBEB] text-[#6E6E73]"
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setLeaderPage((prev) => Math.min(totalLeaderPages, prev + 1))}
+                    disabled={leaderPage >= totalLeaderPages}
+                    className="px-3.5 py-2 rounded-xl border border-[#D1D1D6] bg-white hover:bg-[#FAFAFA] disabled:opacity-40 text-xs font-bold text-[#0A0A0A] transition-all cursor-pointer"
+                  >
+                    Suivant →
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
+        {/* =========================================================================
+            6. MODAL D'EXAMEN APPROFONDI, DIAGNOSTIC & ARBITRAGE
+            ========================================================================= */}
+        {inspectingApp && (
+          <div 
+            className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setInspectingApp(null)}
+          >
+            <div
+              className="bg-white rounded-3xl border border-[#EBEBEB] shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* MODAL HEADER */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-[#F2F2F2] bg-[#FAFAFA]/80 shrink-0">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center shrink-0">
+                    <span className="text-[#EC663B] font-extrabold text-lg uppercase font-tech">
+                      {inspectingApp.company?.name?.charAt(0) || inspectingApp.company?.leaderName?.charAt(0) || "D"}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech">
+                        {inspectingApp.company?.name || "Entreprise"}
+                      </h3>
+                      <span
+                        className={`px-3 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                          inspectingApp.status === "selected"
+                            ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : inspectingApp.status === "under_review"
+                            ? "bg-amber-100 text-amber-800 border border-amber-300"
+                            : inspectingApp.status === "rejected"
+                            ? "bg-rose-100 text-rose-800 border border-rose-300"
+                            : "bg-gray-100 text-gray-700 border border-gray-300"
+                        }`}
+                      >
+                        {inspectingApp.status === "selected"
+                          ? "ADMIS TOP 20"
+                          : inspectingApp.status === "under_review"
+                          ? "DÉJÀ ANALYSÉ"
+                          : inspectingApp.status === "rejected"
+                          ? "REJETÉ"
+                          : "EN ATTENTE"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#6E6E73] mt-0.5">
+                      Dirigeant : <strong className="text-[#0A0A0A]">{inspectingApp.company?.leaderName}</strong> • {inspectingApp.company?.city || "Bénin"} ({inspectingApp.company?.sector || "Activité"})
+                    </p>
+                  </div>
+                </div>
 
+                <button
+                  type="button"
+                  onClick={() => setInspectingApp(null)}
+                  className="w-9 h-9 rounded-full bg-white hover:bg-[#EBEBEB] border border-[#EBEBEB] text-[#6E6E73] hover:text-[#0A0A0A] flex items-center justify-center font-bold text-sm transition-colors cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* ARBITRAGE STATUS BAR (CHANGEMENT RAPIDE DU STATUT) */}
+              <div className="px-6 py-4 bg-[#FAFAFA] border-b border-[#F2F2F2] shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#EC663B] block">
+                      Arbitrage du Comité · Changer le Statut
+                    </span>
+                    <span className="text-xs text-[#6E6E73]">
+                      Sélectionnez une décision pour actualiser le dossier et notifier le candidat.
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* EN ATTENTE */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await handleUpdateStatus(inspectingApp.id, "submitted");
+                        setInspectingApp({ ...inspectingApp, status: "submitted" });
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        inspectingApp.status !== "selected" && inspectingApp.status !== "under_review" && inspectingApp.status !== "rejected"
+                          ? "bg-[#0A0A0A] text-white shadow-sm ring-2 ring-[#0A0A0A]/20"
+                          : "bg-white text-[#6E6E73] hover:bg-[#F2F2F2] border border-[#D1D1D6]"
+                      }`}
+                    >
+                      <ClockIcon className="w-3.5 h-3.5" />
+                      <span>En attente</span>
+                    </button>
+
+                    {/* DÉJÀ ANALYSÉ */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await handleUpdateStatus(inspectingApp.id, "under_review");
+                        setInspectingApp({ ...inspectingApp, status: "under_review" });
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        inspectingApp.status === "under_review"
+                          ? "bg-amber-600 text-white shadow-sm ring-2 ring-amber-500/20"
+                          : "bg-white text-amber-700 hover:bg-amber-50 border border-amber-200"
+                      }`}
+                    >
+                      <span>🔍 Déjà analysé</span>
+                    </button>
+
+                    {/* RETENIR DANS LE TOP 20 */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await handleUpdateStatus(inspectingApp.id, "selected");
+                        setInspectingApp({ ...inspectingApp, status: "selected" });
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        inspectingApp.status === "selected"
+                          ? "bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-500/20"
+                          : "bg-white text-emerald-700 hover:bg-emerald-50 border border-emerald-200"
+                      }`}
+                    >
+                      <CheckIcon className="w-3.5 h-3.5" />
+                      <span>Retenir (Top 20)</span>
+                    </button>
+
+                    {/* REJETER */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        await handleUpdateStatus(inspectingApp.id, "rejected");
+                        setInspectingApp({ ...inspectingApp, status: "rejected" });
+                      }}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                        inspectingApp.status === "rejected"
+                          ? "bg-rose-600 text-white shadow-sm ring-2 ring-rose-500/20"
+                          : "bg-white text-rose-700 hover:bg-rose-50 border border-rose-200"
+                      }`}
+                    >
+                      <span>✕ Rejeter</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* MODAL BODY (SCROLLABLE) */}
+              <div className="p-6 sm:p-8 space-y-6 overflow-y-auto">
+                {/* 1. FICHE COMPLETE ENTREPRISE */}
+                <div className="bg-white rounded-2xl border border-[#EBEBEB] p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-3">
+                    <h4 className="text-sm font-extrabold text-[#0A0A0A] font-tech uppercase tracking-wider flex items-center gap-2">
+                      <UsersIcon className="w-4 h-4 text-[#EC663B]" />
+                      <span>Détails & Informations de l'Entreprise</span>
+                    </h4>
+                    <span className="text-xs text-[#8E8E93] font-mono">
+                      ID: {inspectingApp.id.slice(0, 8)}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Dirigeant(e) :</span>
+                      <strong className="text-sm text-[#0A0A0A] block mt-0.5">{inspectingApp.company?.leaderName || "-"}</strong>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Email de contact :</span>
+                      <a href={`mailto:${inspectingApp.company?.email}`} className="text-sm font-bold text-[#0A0A0A] hover:text-[#EC663B] block mt-0.5 truncate">
+                        {inspectingApp.company?.email || "-"}
+                      </a>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Téléphone & WhatsApp :</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-sm font-mono font-bold text-[#0A0A0A]">{inspectingApp.company?.phone || "-"}</span>
+                        {inspectingApp.company?.whatsapp && (
+                          <a
+                            href={`https://wa.me/${inspectingApp.company.whatsapp.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-bold text-[10px] hover:bg-emerald-200 transition-colors"
+                          >
+                            WhatsApp ↗
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Ville principale d'activité :</span>
+                      <strong className="text-sm text-[#0A0A0A] block mt-0.5">{inspectingApp.company?.city || "Non spécifiée"}</strong>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Secteur d'activité :</span>
+                      <strong className="text-sm text-[#0A0A0A] block mt-0.5">{inspectingApp.company?.sector || "Général"}</strong>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Chiffre d'affaires mensuel moyen :</span>
+                      <strong className="text-sm text-[#EC663B] block mt-0.5 font-mono">{inspectingApp.company?.monthlyRevenue || "Non précisé"}</strong>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Effectif & Année de création :</span>
+                      <strong className="text-sm text-[#0A0A0A] block mt-0.5">
+                        {inspectingApp.company?.employeesCount || "-"} • Créée en {inspectingApp.company?.yearCreated || "-"}
+                      </strong>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Formalisation (RCCM / IFU) :</span>
+                      <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold mt-1 ${
+                        inspectingApp.company?.isFormalized
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}>
+                        {inspectingApp.company?.isFormalized ? "✓ Formalisée (RCCM/IFU)" : "En cours de formalisation"}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+                      <span className="text-[#8E8E93] block text-[11px]">Compte bancaire professionnel :</span>
+                      <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold mt-1 ${
+                        inspectingApp.company?.hasProBankAccount
+                          ? "bg-emerald-100 text-emerald-800"
+                          : "bg-amber-100 text-amber-800"
+                      }`}>
+                        {inspectingApp.company?.hasProBankAccount ? "✓ Compte pro actif" : "Non bancarisée"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Motivations & Obstacles if present */}
+                  {(inspectingApp.company?.singleBiggestProblem || inspectingApp.company?.motivation) && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-[#F2F2F2] text-xs">
+                      {inspectingApp.company?.singleBiggestProblem && (
+                        <div className="p-3.5 rounded-xl bg-amber-50/50 border border-amber-200/60">
+                          <span className="text-amber-800 font-bold block mb-1">Obstacle majeur déclaré :</span>
+                          <p className="text-[#0A0A0A] italic">{inspectingApp.company.singleBiggestProblem}</p>
+                        </div>
+                      )}
+                      {inspectingApp.company?.motivation && (
+                        <div className="p-3.5 rounded-xl bg-blue-50/50 border border-blue-200/60">
+                          <span className="text-blue-800 font-bold block mb-1">Motivation pour le programme :</span>
+                          <p className="text-[#0A0A0A] italic">{inspectingApp.company.motivation}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. DIAGNOSTIC DE MATURITÉ (8 DIMENSIONS) */}
+                <div className="bg-white rounded-2xl border border-[#EBEBEB] p-5 space-y-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#F2F2F2] pb-4">
+                    <div>
+                      <h4 className="text-sm font-extrabold text-[#0A0A0A] font-tech uppercase tracking-wider flex items-center gap-2">
+                        <ShieldIcon className="w-4 h-4 text-[#EC663B]" />
+                        <span>Diagnostic de Maturité & Audit 8 Dimensions</span>
+                      </h4>
+                      <p className="text-xs text-[#6E6E73] mt-0.5">
+                        Évaluation multidimensionnelle calculée d'après les réponses du dirigeant.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setPdfModalApp(inspectingApp)}
+                      className="px-4 py-2 rounded-xl bg-[#0A0A0A] hover:bg-[#EC663B] text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+                    >
+                      <DownloadIcon className="w-3.5 h-3.5" />
+                      <span>Rapport PDF Officiel</span>
+                    </button>
+                  </div>
+
+                  {/* SCORE GLOBAL CARD */}
+                  <div className="p-5 rounded-2xl bg-[#0A0A0A] text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                      <span className="text-[11px] text-[#9CA3AF] uppercase tracking-wider block font-bold">
+                        Score Global de Maturité ALODO
+                      </span>
+                      <div className="flex items-baseline gap-3 mt-1">
+                        <span className="text-3xl sm:text-4xl font-extrabold text-[#EC663B] font-tech">
+                          {inspectingApp.diagnosticScore ?? "Non évalué"}
+                        </span>
+                        <span className="text-sm text-[#9CA3AF]">/ 100</span>
+                        {typeof inspectingApp.diagnosticScore === "number" && (
+                          <span className={`ml-2 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            inspectingApp.diagnosticScore >= 60 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                          }`}>
+                            {inspectingApp.diagnosticScore >= 60 ? "✓ Éligible au Top 20" : "Sous le seuil d'arbitrage"}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {inspectingApp.diagnosticLevel && (
+                      <div className="sm:text-right">
+                        <span className="text-[10px] text-[#9CA3AF] uppercase tracking-wider block font-bold">Niveau Diagnostiqué</span>
+                        <span className="px-3 py-1 rounded-xl bg-white/10 text-white font-extrabold text-xs mt-1 inline-block border border-white/20">
+                          {inspectingApp.diagnosticLevel}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 8 DIMENSIONS GRID */}
+                  <div>
+                    <span className="text-xs font-bold text-[#0A0A0A] block mb-3">
+                      Détail des 8 Dimensions Stratégiques :
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {[
+                        { id: "formalisation", title: "1. Formalisation & RCCM", weight: `${weights.formalisation}%` },
+                        { id: "finance", title: "2. Structure Financière", weight: `${weights.finance}%` },
+                        { id: "comptabilite", title: "3. Comptabilité & Trésorerie", weight: `${weights.comptabilite}%` },
+                        { id: "commercial", title: "4. Efficacité Commerciale", weight: `${weights.commercial}%` },
+                        { id: "digitalisation", title: "5. Digitalisation & Outils", weight: `${weights.digitalisation}%` },
+                        { id: "operations", title: "6. Process & Opérations", weight: `${weights.operations}%` },
+                        { id: "rh", title: "7. Ressources Humaines", weight: `${weights.rh}%` },
+                        { id: "financabilite", title: "8. Bancarisation & Crédit", weight: `${weights.financabilite}%` },
+                      ].map((dimMeta) => {
+                        const dimScoreObj = inspectingApp.diagnosticReport?.dimensionScores?.find(
+                          (d: any) => d.dimensionId === dimMeta.id
+                        );
+                        const score = dimScoreObj ? dimScoreObj.score : (inspectingApp.diagnosticScore || 50);
+
+                        return (
+                          <div key={dimMeta.id} className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] text-[#8E8E93] font-bold">{dimMeta.weight}</span>
+                              <span className={`px-2 py-0.5 rounded-md text-[11px] font-mono font-bold ${
+                                score >= 70
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : score >= 50
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-rose-100 text-rose-800"
+                              }`}>
+                                {score}/100
+                              </span>
+                            </div>
+                            <span className="text-xs font-bold text-[#0A0A0A] block truncate">{dimMeta.title}</span>
+                            <div className="w-full h-1.5 bg-[#EBEBEB] rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  score >= 70 ? "bg-emerald-500" : score >= 50 ? "bg-amber-500" : "bg-rose-500"
+                                }`}
+                                style={{ width: `${score}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* STRENGTHS & WEAKNESSES IF REPORT AVAILABLE */}
+                  {inspectingApp.diagnosticReport && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      {inspectingApp.diagnosticReport.strengths?.length > 0 && (
+                        <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+                          <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
+                            <CheckCircleIcon className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Forces Majeures Détectées</span>
+                          </span>
+                          <ul className="text-xs text-[#0A0A0A] space-y-1 list-disc list-inside">
+                            {inspectingApp.diagnosticReport.strengths.slice(0, 3).map((s: string, idx: number) => (
+                              <li key={idx}>{s}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {inspectingApp.diagnosticReport.weaknesses?.length > 0 && (
+                        <div className="p-4 rounded-xl bg-rose-50/60 border border-rose-200 space-y-2">
+                          <span className="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                            <span className="text-rose-600 font-bold">⚠</span>
+                            <span>Points de Vulnérabilité Critique</span>
+                          </span>
+                          <ul className="text-xs text-[#0A0A0A] space-y-1 list-disc list-inside">
+                            {inspectingApp.diagnosticReport.weaknesses.slice(0, 3).map((w: string, idx: number) => (
+                              <li key={idx}>{w}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* MODAL FOOTER */}
+              <div className="px-6 py-4 bg-[#FAFAFA] border-t border-[#F2F2F2] flex items-center justify-between shrink-0">
+                <span className="text-xs text-[#6E6E73]">
+                  Date de dépôt :{" "}
+                  <strong className="text-[#0A0A0A]">
+                    {inspectingApp.submittedAt ? new Date(inspectingApp.submittedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "Date inconnue"}
+                  </strong>
+                </span>
+
+                <button
+                  type="button"
+                  onClick={() => setInspectingApp(null)}
+                  className="px-5 py-2 rounded-xl bg-[#0A0A0A] hover:bg-black text-white text-xs font-bold transition-all cursor-pointer shadow-xs"
+                >
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
 

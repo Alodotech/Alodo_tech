@@ -27,36 +27,44 @@ export default function CandidatureConfirmationPage() {
           </div>
 
           <span className="text-xs uppercase tracking-widest text-[#00C2A8] font-bold">
-            Candidature Bien Reçue
+            Diagnostic & Profil Enregistrés
           </span>
 
           <h1 className="text-2xl sm:text-3xl font-extrabold mt-2 mb-4 text-[#0A0A0A]">
-            Merci pour votre confiance, {companyName} !
+            Félicitations, {companyName} !
           </h1>
 
-
+          <p className="text-sm text-[#6E6E73] mb-6">
+            Votre diagnostic de maturité a été enregistré avec succès. Vous pouvez dès maintenant consulter vos résultats par dimension et votre feuille de route personnalisée.
+          </p>
 
           <div className="text-left bg-[#FAFAFA] p-6 rounded-2xl border border-[#EBEBEB] space-y-3 mb-8 text-xs sm:text-sm text-[#3A3A3C]">
             <div className="flex gap-3">
               <span className="text-[#EC663B] font-bold">01.</span>
               <p>
-                <strong>Comité d'évaluation :</strong> Notre équipe analyse votre profil selon les critères de solidité et de motivation.
+                <strong>Restitution immédiate :</strong> Retrouvez votre score global, le détail de vos 8 dimensions et vos actions prioritaires à 90 jours.
               </p>
             </div>
             <div className="flex gap-3">
               <span className="text-[#EC663B] font-bold">02.</span>
               <p>
-                <strong>Délai de réponse :</strong> Vous recevrez une notification par email sous <strong>7 à 14 jours</strong>.
+                <strong>Passage à l'action :</strong> Si vous le souhaitez, un échange avec notre équipe peut être programmé pour vous accompagner dans vos prochaines étapes.
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/"
+              href="/mpme/dashboard"
               className="flex-1 py-3.5 px-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm transition-all text-center shadow-md shadow-[#EC663B]/20"
             >
-              Retour à l'accueil →
+              Consulter mon tableau de bord et mes résultats →
+            </Link>
+            <Link
+              href="/mpme"
+              className="py-3.5 px-5 bg-white border border-[#D1D1D6] hover:bg-[#FAFAFA] text-[#0A0A0A] font-semibold rounded-full text-sm transition-all text-center"
+            >
+              Accueil MPME
             </Link>
           </div>
 
