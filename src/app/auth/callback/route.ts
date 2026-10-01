@@ -26,6 +26,16 @@ export async function GET(request: Request) {
           // It's an admin, redirect to admin console
           return NextResponse.redirect(`${origin}/admin/candidatures`)
         }
+
+        // If trying to access admin without admin role, sign out and redirect
+        if (next.startsWith('/admin')) {
+          await supabase.auth.signOut()
+          return NextResponse.redirect(`${origin}/admin/login?error=unauthorized`)
+        }
+      }
+
+      if (next.startsWith('/admin')) {
+        return NextResponse.redirect(`${origin}/admin/login?error=unauthorized`)
       }
 
       return NextResponse.redirect(`${origin}${next}`)

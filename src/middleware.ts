@@ -1,7 +1,14 @@
-import { type NextRequest } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Couper complètement l'accès au dashboard et login MPME
+  if (pathname.startsWith('/mpme/dashboard') || pathname.startsWith('/mpme/login')) {
+    return NextResponse.redirect(new URL('/mpme', request.url));
+  }
+
   return await updateSession(request)
 }
 

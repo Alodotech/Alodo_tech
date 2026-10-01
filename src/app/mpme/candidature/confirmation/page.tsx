@@ -42,34 +42,28 @@ export default function CandidatureConfirmationPage() {
             <div className="flex gap-3">
               <span className="text-[#EC663B] font-bold">01.</span>
               <p>
-                <strong>Restitution immédiate :</strong> Retrouvez votre score global, le détail de vos 8 dimensions et vos actions prioritaires à 90 jours.
+                <strong>Dossier bien reçu :</strong> Vos informations et vos réponses au diagnostic ont été enregistrées avec succès.
               </p>
             </div>
             <div className="flex gap-3">
               <span className="text-[#EC663B] font-bold">02.</span>
               <p>
-                <strong>Passage à l'action :</strong> Si vous le souhaitez, un échange avec notre équipe peut être programmé pour vous accompagner dans vos prochaines étapes.
+                <strong>Retour par email :</strong> Nous vous ferons un retour par email dans un délai de 7 à 14 jours.
               </p>
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/mpme/dashboard"
-              className="flex-1 py-3.5 px-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm transition-all text-center shadow-md shadow-[#EC663B]/20"
-            >
-              Consulter mon tableau de bord et mes résultats →
-            </Link>
-            <Link
               href="/mpme"
-              className="py-3.5 px-5 bg-white border border-[#D1D1D6] hover:bg-[#FAFAFA] text-[#0A0A0A] font-semibold rounded-full text-sm transition-all text-center"
+              className="w-full py-3.5 px-6 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm transition-all text-center shadow-md shadow-[#EC663B]/20"
             >
-              Accueil MPME
+              Retour à l'accueil du programme →
             </Link>
           </div>
 
           <div className="mt-6 pt-6 border-t border-[#EBEBEB] text-xs text-[#6E6E73]">
-            Besoin d'aide ? Contactez notre équipe au <strong>+229 97 00 00 00</strong> ou sur <strong>mpme@alodo.tech</strong>
+            Besoin d'aide ? Contactez notre équipe sur <strong>partnership@alodotech.com</strong>
           </div>
         </div>
       </main>

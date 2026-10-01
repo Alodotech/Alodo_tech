@@ -72,6 +72,7 @@ function CheckCircleIcon({ className = "w-4 h-4" }: { className?: string }) {
 export default function AdminSettingsPage() {
   const [cohort, setCohort] = useState<Cohort | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [statusFeedback, setStatusFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
 
   // EXTENSIVE GOVERNOR PARAMETERS
@@ -115,6 +116,8 @@ export default function AdminSettingsPage() {
       window.location.href = "/admin/login?error=unauthorized";
       return;
     }
+
+    setIsAuthorized(true);
 
     const { data: cohortData } = await supabase.from('cohorts').select('*').eq('status', 'open').single();
     if (cohortData) {
@@ -170,7 +173,18 @@ export default function AdminSettingsPage() {
     setStatusFeedback({ msg: "La réinitialisation est désactivée en mode base de données.", type: "error" });
   };
 
-  if (!isClient) return null;
+  if (!isClient || !isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#EC663B] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-[#8E8E93] font-medium tracking-wide">
+            Vérification des autorisations...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DashboardLayout activeTab="admin" adminSubTab="settings">

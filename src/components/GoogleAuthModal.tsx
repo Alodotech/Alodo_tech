@@ -18,7 +18,7 @@ export default function GoogleAuthModal({
   onSuccess,
   title = "Connexion avec Google",
   subtitle = "Connectez-vous pour postuler au programme ALODO MPME",
-  nextUrl = "/mpme/dashboard",
+  nextUrl = "/mpme",
 }: GoogleAuthModalProps) {
   const [isLoading, setIsLoading] = useState(false);
 

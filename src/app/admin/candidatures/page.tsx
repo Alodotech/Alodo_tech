@@ -197,8 +197,8 @@ export default function AdminCandidaturesPage() {
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [adminEmail, setAdminEmail] = useState<string>("Console Gouverneur ALODO TECH");
 
-  // Governor tabs: Light theme, harmonized with Dirigeant MPME Dashboard
-  const [adminTab, setAdminTab] = useState<"top20" | "diagnostics" | "settings" | "leaders">("top20");
+  // Governor tabs: Leaders (Candidats) is primary, Top 20 is secondary
+  const [adminTab, setAdminTab] = useState<"top20" | "leaders">("leaders");
   const [viewMode, setViewMode] = useState<"split" | "table">("split");
 
   // Filters & Search
@@ -212,6 +212,7 @@ export default function AdminCandidaturesPage() {
   const [newNote, setNewNote] = useState("");
   const [statusFeedback, setStatusFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [isClient, setIsClient] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
   const [pdfModalApp, setPdfModalApp] = useState<Application | null>(null);
 
   // Candidats Tab: Status Filters, Search & Pagination (20 per page)
@@ -267,6 +268,8 @@ export default function AdminCandidaturesPage() {
       window.location.href = "/admin/login?error=unauthorized";
       return;
     }
+
+    setIsAuthorized(true);
 
     if (user?.email) {
       setAdminEmail(user.email);
@@ -369,6 +372,13 @@ export default function AdminCandidaturesPage() {
 
   useEffect(() => {
     setIsClient(true);
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get("tab");
+      if (tabParam === "top20" || tabParam === "leaders") {
+        setAdminTab(tabParam as any);
+      }
+    }
     refreshData();
   }, []);
 
@@ -642,50 +652,58 @@ export default function AdminCandidaturesPage() {
     leaderPage * LEADER_PAGE_SIZE
   );
 
-  if (!isClient) return null;
+  if (!isClient || !isAuthorized) {
+    return (
+      <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-[#EC663B] border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs text-[#8E8E93] font-medium tracking-wide">
+            Vérification des autorisations...
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <DashboardLayout 
       activeTab="admin" 
       adminSubTab={adminTab} 
-      onSelectAdminTab={(tab) => setAdminTab(tab === "registry" ? "top20" : tab)}
+      onSelectAdminTab={(tab) => setAdminTab(tab === "top20" ? "top20" : "leaders")}
     >
       <div className="space-y-6 animate-in fade-in duration-150">
 
         {/* =========================================================================
             1. EXECUTIVE COMMAND HEADER (LIGHT THEME IDENTICAL TO CANDIDATE DASHBOARD)
-            Harmonized palette: Clean white card, subtle borders, orange & teal accents
-            Strictly NO "+ Nouvelle Candidature" button (Admin is Governor, not applicant)
             ========================================================================= */}
-        {adminTab !== "leaders" && (
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#F2F2F2]">
-              <div>
-                <div className="flex items-center gap-2.5 mb-2 flex-wrap">
-                  <span className="px-3 py-1 rounded-full bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 text-[10px] font-mono font-bold tracking-wider uppercase flex items-center gap-1.5">
-                    <ShieldIcon className="w-3.5 h-3.5 text-[#EC663B]" />
-                    {adminEmail}
-                  </span>
-                  <span className="text-xs text-[#8E8E93]">•</span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    Cohorte 1 Active (Quota : {maxCapacity} Places)
-                  </span>
-                </div>
-
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0A] tracking-tight font-tech">
-                  Pilotage National du Programme ALODO MPME
-                </h1>
-                <p className="text-xs sm:text-sm text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
-                  Supervision souveraine des candidatures, examen approfondi des diagnostics de maturité (8 dimensions stratégiques) et arbitrage des 20 entreprises retenues.
-                </p>
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-[#F2F2F2]">
+            <div>
+              <div className="flex items-center gap-2.5 mb-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 text-[10px] font-mono font-bold tracking-wider uppercase flex items-center gap-1.5">
+                  <ShieldIcon className="w-3.5 h-3.5 text-[#EC663B]" />
+                  {adminEmail}
+                </span>
+                <span className="text-xs text-[#8E8E93]">•</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Cohorte 1 Active (Quota : {maxCapacity} Places)
+                </span>
               </div>
 
-              {/* Governor Action Suite */}
-              <div className="flex items-center gap-3 flex-wrap">
-                {/* Empty for now */}
-              </div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#0A0A0A] tracking-tight font-tech">
+                Pilotage National du Programme ALODO MPME
+              </h1>
+              <p className="text-xs sm:text-sm text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
+                Supervision souveraine des candidatures, examen approfondi des diagnostics de maturité (8 dimensions stratégiques) et arbitrage des 20 entreprises retenues.
+              </p>
             </div>
+
+            {/* Governor Action Suite */}
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Empty for now */}
+            </div>
+          </div>
 
           {/* Quota Gauge & Interactive 20-slot visualization */}
           <div className="pt-6">
@@ -734,7 +752,6 @@ export default function AdminCandidaturesPage() {
             </div>
           </div>
         </div>
-        )}
 
         {/* FEEDBACK TOAST */}
         {statusFeedback && (
@@ -765,8 +782,7 @@ export default function AdminCandidaturesPage() {
         {/* =========================================================================
             2. EXECUTIVE KPI CARDS (LIGHT THEME)
             ========================================================================= */}
-        {adminTab !== "leaders" && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-6 rounded-3xl bg-white border border-[#EBEBEB] shadow-sm">
             <div className="flex items-center justify-between text-[#8E8E93] mb-2">
               <span className="text-xs font-bold uppercase tracking-wider">Candidatures</span>
@@ -819,53 +835,41 @@ export default function AdminCandidaturesPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-[#EC663B]" />
               <span>Seuil de sélection : {cohort?.minScoreThreshold || 60}/100</span>
             </div>
-            </div>
           </div>
-        )}
+        </div>
 
         {/* =========================================================================
             3. GOVERNOR COMMAND TABS (LIGHT PALETTE, HARMONIZED WITH MPME)
             ========================================================================= */}
-        {adminTab !== "leaders" && (
-          <div className="flex items-center justify-between border-b border-[#EBEBEB] pb-1 flex-wrap gap-3">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setAdminTab("top20")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  adminTab === "top20"
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs"
-                    : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-                }`}
-              >
-                <AwardIcon className="w-4 h-4" />
-                <span>Les 20 Retenus ({selectedCount}/{maxCapacity})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setAdminTab("diagnostics")}
-                className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-                  adminTab === "diagnostics"
-                    ? "bg-[#EC663B]/10 text-[#EC663B] border border-[#EC663B]/20 shadow-xs"
-                    : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
-                }`}
-              >
-                <BarChartIcon className="w-4 h-4" />
-                <span>Matrice Diagnostics 8D</span>
-              </button>
-            </div>
-
+        <div className="flex items-center justify-between border-b border-[#EBEBEB] pb-2 flex-wrap gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <button
               type="button"
               onClick={() => setAdminTab("leaders")}
-              className="px-4 py-2 rounded-full border border-[#D1D1D6] hover:border-[#0A0A0A] bg-white hover:bg-[#FAFAFA] text-[#0A0A0A] text-xs font-bold flex items-center gap-2 transition-all shadow-xs cursor-pointer"
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                adminTab === "leaders"
+                  ? "bg-[#0A0A0A] text-white shadow-xs"
+                  : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
+              }`}
             >
-              <UsersIcon className="w-3.5 h-3.5 text-[#EC663B]" />
-              <span>Gérer les Candidats ({applications.length}) →</span>
+              <UsersIcon className={`w-4 h-4 ${adminTab === "leaders" ? "text-[#EC663B]" : "text-[#8E8E93]"}`} />
+              <span>Candidats & Entreprises ({applications.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setAdminTab("top20")}
+              className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+                adminTab === "top20"
+                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-xs"
+                  : "bg-white text-[#6E6E73] hover:text-[#0A0A0A] border border-[#EBEBEB]"
+              }`}
+            >
+              <AwardIcon className="w-4 h-4" />
+              <span>Les 20 Retenus ({selectedCount}/{maxCapacity})</span>
             </button>
           </div>
-        )}
+        </div>
 
         {/* =========================================================================
             TAB 2: LES 20 RETENUS (TABLEAU D'HONNEUR DE LA COHORTE 1)
@@ -988,87 +992,13 @@ export default function AdminCandidaturesPage() {
           </div>
         )}
 
-        {/* =========================================================================
-            TAB 3: MATRICE DIAGNOSTICS & 8 DIMENSIONS
-            ========================================================================= */}
-        {adminTab === "diagnostics" && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm">
-              <span className="text-xs uppercase tracking-widest font-bold text-[#EC663B] block mb-1">
-                Audits de Maturité Opérationnelle & Financière
-              </span>
-              <h2 className="text-2xl font-extrabold text-[#0A0A0A] font-tech">
-                Analyse Transversale des 8 Dimensions Stratégiques
-              </h2>
-              <p className="text-xs text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
-                Cartographie des points forts et faiblesses structurelles des MPME candidates au Bénin pour orienter les programmes de renforcement des capacités.
-              </p>
-            </div>
 
-            {/* 8 Dimensions Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {[
-                { title: "1. Formalisation & RCCM", weight: `${weights.formalisation}%`, score: 72, desc: "RCCM, IFU, conformité légale et statuts d'entreprise" },
-                { title: "2. Structure Financière", weight: `${weights.finance}%`, score: 58, desc: "Bilan comptable, séparation patrimoine dirigeant et entreprise" },
-                { title: "3. Comptabilité & Trésorerie", weight: `${weights.comptabilite}%`, score: 52, desc: "Prévisionnel de cash, suivi des créances et encaissements" },
-                { title: "4. Efficacité Commerciale", weight: `${weights.commercial}%`, score: 68, desc: "Acquisition clients, structuration des prix et marges brutes" },
-                { title: "5. Digitalisation & Outils", weight: `${weights.digitalisation}%`, score: 48, desc: "ERP, facturation électronique, CRM et présence digitale" },
-                { title: "6. Process & Opérations", weight: `${weights.operations}%`, score: 64, desc: "Standardisation, gestion des stocks et délais de livraison" },
-                { title: "7. Ressources Humaines", weight: `${weights.rh}%`, score: 60, desc: "Fiches de poste, contrats formels et politiques de primes" },
-                { title: "8. Bancarisation & Finançabilité", weight: `${weights.financabilite}%`, score: 55, desc: "Compte pro actif, relations bancaires et éligibilité crédit" },
-              ].map((dim, i) => (
-                <div key={i} className="p-5 rounded-3xl bg-white border border-[#EBEBEB] shadow-sm space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono font-bold text-[#8E8E93]">Pondération {dim.weight}</span>
-                    <span className="px-2 py-0.5 rounded-lg bg-[#0A0A0A] text-white font-mono font-bold text-xs">
-                      {dim.score}/100
-                    </span>
-                  </div>
-
-                  <h3 className="font-extrabold text-sm text-[#0A0A0A] font-tech">{dim.title}</h3>
-                  <p className="text-[11px] text-[#6E6E73] leading-relaxed">{dim.desc}</p>
-
-                  <div className="w-full h-2 bg-[#F2F2F2] rounded-full overflow-hidden mt-2">
-                    <div
-                      className={`h-full rounded-full ${
-                        dim.score >= 70 ? "bg-emerald-500" : dim.score >= 55 ? "bg-[#EC663B]" : "bg-amber-500"
-                      }`}
-                      style={{ width: `${dim.score}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Strategic Insights Box (Light theme with brand border) */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-4">
-              <h3 className="text-base font-bold font-tech text-[#0A0A0A] flex items-center gap-2">
-                <ShieldIcon className="w-4 h-4 text-[#EC663B]" />
-                <span>Enseignements Clés du Comité pour la Cohorte 1</span>
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-[#6E6E73]">
-                <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-1">
-                  <span className="text-emerald-700 font-bold block">Point Fort Majeur :</span>
-                  <p>Forte dynamique commerciale et ancrage territorial solide au Bénin (Cotonou et Abomey-Calavi en tête).</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-1">
-                  <span className="text-rose-600 font-bold block">Vulnérabilité Critique :</span>
-                  <p>Faible digitalisation des processus comptables et confusion fréquente entre trésorerie personnelle et pro.</p>
-                </div>
-                <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-1">
-                  <span className="text-[#EC663B] font-bold block">Levier d'Accompagnement :</span>
-                  <p>Mise en place en priorité de tableaux de bord financiers simples à 90 jours.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* =========================================================================
             5. CANDIDATS (LEADERS) TAB — AVEC FILTRES, PAGINATION (20/PAGE) & INSPECTION
             ========================================================================= */}
         {adminTab === "leaders" && (
-          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm animate-in fade-in duration-150 mt-6 space-y-6">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#EBEBEB] shadow-sm animate-in fade-in duration-150 space-y-6">
             {/* Header + Export */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#F2F2F2] pb-6">
               <div>
