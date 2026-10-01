@@ -255,28 +255,28 @@ export default function MpmeLandingPage() {
               {[
                 {
                   step: "01",
-                  title: "Candidature",
-                  desc: "Remplissez le formulaire de candidature avec les principales informations concernant votre entreprise, votre activité et vos besoins.",
+                  title: "Démarrer mon diagnostic",
+                  desc: "Vous renseignez les principales informations sur votre entreprise.",
                 },
                 {
                   step: "02",
-                  title: "Sélection",
-                  desc: "Les candidatures sont étudiées selon les critères du programme. Les entreprises retenues sont contactées pour la suite du processus.",
+                  title: "Évaluer votre entreprise",
+                  desc: "Votre entreprise est analysée à travers les 8 dimensions du diagnostic.",
                 },
                 {
                   step: "03",
-                  title: "Diagnostic",
-                  desc: "Votre entreprise est évaluée à travers les 8 dimensions du diagnostic afin d'identifier son niveau de maturité, ses forces et ses principaux points de vigilance.",
+                  title: "Recevoir vos résultats",
+                  desc: "Vous obtenez votre profil de maturité, vos priorités et vos recommandations.",
                 },
                 {
                   step: "04",
-                  title: "Restitution & feuille de route",
-                  desc: "Vous recevez les résultats de votre diagnostic ainsi qu'une feuille de route personnalisée avec les actions prioritaires à engager sur les 90 prochains jours.",
+                  title: "Votre feuille de route",
+                  desc: "Vous identifiez les actions prioritaires à engager sur les 90 prochains jours.",
                 },
                 {
                   step: "05",
-                  title: "Passage à l'action",
-                  desc: "Après réception de vos résultats, vous pouvez choisir de poursuivre avec ALODO. Un échange permet de préciser vos besoins et de définir les prochaines actions à engager.",
+                  title: "Passer à l'action",
+                  desc: "Si vous souhaitez aller plus loin, ALODO vous accompagne pour définir les prochaines étapes.",
                 },
               ].map((st) => (
                 <div key={st.step} className="step-card">
