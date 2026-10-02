@@ -235,11 +235,12 @@ export default function AdminCandidaturesPage() {
   const [editAutoNotify, setEditAutoNotify] = useState<boolean>(true);
   const [editArbitrationMode, setEditArbitrationMode] = useState<string>("collegial");
 
-  // 8 Dimensions Weightings
+  // Dimensions Weightings
   const [weights, setWeights] = useState({
     formalisation: 10,
-    finance: 15,
-    comptabilite: 15,
+    finance: 10,
+    comptabilite: 10,
+    fiscalite: 10,
     commercial: 15,
     digitalisation: 10,
     operations: 15,
@@ -695,7 +696,7 @@ export default function AdminCandidaturesPage() {
                 Pilotage National du Programme ALODO MPME
               </h1>
               <p className="text-xs sm:text-sm text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
-                Supervision souveraine des candidatures, examen approfondi des diagnostics de maturité (8 dimensions stratégiques) et arbitrage des 20 entreprises retenues.
+                Supervision souveraine des candidatures, examen approfondi des diagnostics de maturité (dimensions stratégiques) et arbitrage des 20 entreprises retenues.
               </p>
             </div>
 
@@ -1554,7 +1555,7 @@ export default function AdminCandidaturesPage() {
                     <div>
                       <h4 className="text-sm font-extrabold text-[#0A0A0A] font-tech uppercase tracking-wider flex items-center gap-2">
                         <ShieldIcon className="w-4 h-4 text-[#EC663B]" />
-                        <span>Diagnostic de Maturité & Audit 8 Dimensions</span>
+                        <span>Diagnostic de Maturité & Audit Multidimensionnel</span>
                       </h4>
                       <p className="text-xs text-[#6E6E73] mt-0.5">
                         Évaluation multidimensionnelle calculée d'après les réponses du dirigeant.
@@ -1602,21 +1603,22 @@ export default function AdminCandidaturesPage() {
                     )}
                   </div>
 
-                  {/* 8 DIMENSIONS GRID */}
+                  {/* DIMENSIONS GRID */}
                   <div>
                     <span className="text-xs font-bold text-[#0A0A0A] block mb-3">
-                      Détail des 8 Dimensions Stratégiques :
+                      Détail des Dimensions Stratégiques :
                     </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                       {[
                         { id: "formalisation", title: "1. Formalisation & RCCM", weight: `${weights.formalisation}%` },
                         { id: "finance", title: "2. Structure Financière", weight: `${weights.finance}%` },
                         { id: "comptabilite", title: "3. Comptabilité & Trésorerie", weight: `${weights.comptabilite}%` },
-                        { id: "commercial", title: "4. Efficacité Commerciale", weight: `${weights.commercial}%` },
-                        { id: "digitalisation", title: "5. Digitalisation & Outils", weight: `${weights.digitalisation}%` },
-                        { id: "operations", title: "6. Process & Opérations", weight: `${weights.operations}%` },
-                        { id: "rh", title: "7. Ressources Humaines", weight: `${weights.rh}%` },
-                        { id: "financabilite", title: "8. Bancarisation & Crédit", weight: `${weights.financabilite}%` },
+                        { id: "fiscalite", title: "4. Fiscalité & Conformité", weight: `${weights.fiscalite}%` },
+                        { id: "commercial", title: "5. Efficacité Commerciale", weight: `${weights.commercial}%` },
+                        { id: "digitalisation", title: "6. Digitalisation & Outils", weight: `${weights.digitalisation}%` },
+                        { id: "operations", title: "7. Process & Opérations", weight: `${weights.operations}%` },
+                        { id: "rh", title: "8. Ressources Humaines", weight: `${weights.rh}%` },
+                        { id: "financabilite", title: "9. Bancarisation & Crédit", weight: `${weights.financabilite}%` },
                       ].map((dimMeta) => {
                         const dimScoreObj = inspectingApp.diagnosticReport?.dimensionScores?.find(
                           (d: any) => d.dimensionId === dimMeta.id

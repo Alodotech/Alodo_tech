@@ -7,8 +7,16 @@ import Footer from "@/components/Footer";
 import "./contact.css";
 
 export default function Contact() {
-  const [formStatus, setFormStatus] = useState("Envoyer le message");
-  const [formStyle, setFormStyle] = useState({});
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    company: "",
+    subject: "",
+    message: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     // Reveal logic
@@ -26,10 +34,38 @@ export default function Contact() {
     return () => revealIo.disconnect();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormStatus("✓ Message envoyé · réponse sous 48h");
-    setFormStyle({ background: "var(--teal)" });
+    setLoading(true);
+    setErrorMessage("");
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Impossible d'envoyer votre message pour le moment.");
+      }
+
+      setStatus("success");
+      setFormData({
+        fullName: "",
+        email: "",
+        company: "",
+        subject: "",
+        message: "",
+      });
+    } catch (err: any) {
+      console.error(err);
+      setStatus("error");
+      setErrorMessage(err.message || "Erreur de connexion. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -100,42 +136,87 @@ export default function Contact() {
                   <span className="eyebrow">Formulaire</span>
                   <h3 className="h2" style={{ margin: "12px 0 28px" }}>Envoyez-nous un message.</h3>
 
+                  {status === "error" && (
+                    <div style={{ padding: "12px 16px", marginBottom: "18px", borderRadius: "12px", background: "#FEF2F2", border: "1px solid #FCA5A5", color: "#991B1B", fontSize: "13px" }}>
+                      {errorMessage}
+                    </div>
+                  )}
+
+                  {status === "success" && (
+                    <div style={{ padding: "14px 18px", marginBottom: "20px", borderRadius: "12px", background: "#ECFDF5", border: "1px solid #A7F3D0", color: "#065F46", fontSize: "13px", lineHeight: "1.5" }}>
+                      ✓ <strong>Merci !</strong> Votre message a bien été transmis à l'équipe ALODO TECH (<span style={{ textDecoration: "underline" }}>partnership@alodotech.co</span>). Nous vous répondrons sous 48 heures ouvrées.
+                    </div>
+                  )}
+
                   <div className="form-row">
                     <div className="field">
                       <label>Nom complet</label>
-                      <input type="text" placeholder="Jean Kouassi" required />
+                      <input
+                        type="text"
+                        placeholder="Jean Kouassi"
+                        required
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      />
                     </div>
                     <div className="field">
                       <label>Email professionnel</label>
-                      <input type="email" placeholder="jean@entreprise.com" required />
+                      <input
+                        type="email"
+                        placeholder="jean@entreprise.com"
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
                     </div>
                   </div>
 
                   <div className="form-row">
                     <div className="field">
                       <label>Société · structure</label>
-                      <input type="text" placeholder="Banque, IMF, fund…" />
+                      <input
+                        type="text"
+                        placeholder="Banque, IMF, fund…"
+                        value={formData.company}
+                        onChange={(e) => setFormData({ ...formData, company: e.target.value })}
+                      />
                     </div>
                     <div className="field">
                       <label>Objet</label>
-                      <select required>
+                      <select
+                        required
+                        value={formData.subject}
+                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                      >
                         <option value="">Sélectionner…</option>
-                        <option>Investissement</option>
-                        <option>Partenariat B2B</option>
-                        <option>Pilote MPME</option>
-                        <option>Presse / médias</option>
-                        <option>Candidature</option>
-                        <option>Autre</option>
+                        <option value="Investissement">Investissement</option>
+                        <option value="Partenariat B2B">Partenariat B2B</option>
+                        <option value="Pilote MPME">Pilote MPME</option>
+                        <option value="Presse / médias">Presse / médias</option>
+                        <option value="Candidature">Candidature</option>
+                        <option value="Autre">Autre</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="field">
                     <label>Message</label>
-                    <textarea placeholder="Dites-nous en quoi nous pouvons être utiles…" required></textarea>
+                    <textarea
+                      placeholder="Dites-nous en quoi nous pouvons être utiles…"
+                      required
+                      rows={5}
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    ></textarea>
                   </div>
 
-                  <button type="submit" style={formStyle}>{formStatus}</button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    style={status === "success" ? { background: "var(--teal)", cursor: "default" } : {}}
+                  >
+                    {loading ? "Envoi en cours..." : status === "success" ? "✓ Message envoyé · Réponse sous 48h" : "Envoyer le message"}
+                  </button>
                   <p className="form-note">Vos données restent confidentielles. RGPD compliant — pas de revente, pas de spam.</p>
                 </form>
               </div>

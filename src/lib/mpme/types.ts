@@ -106,6 +106,7 @@ export type DimensionId =
   | "formalisation"
   | "finance"
   | "comptabilite"
+  | "fiscalite"
   | "commercial"
   | "digitalisation"
   | "operations"

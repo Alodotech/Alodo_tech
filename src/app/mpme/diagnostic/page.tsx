@@ -317,11 +317,14 @@ function DiagnosticContent() {
         {phase === "company" && (
           <div className="bg-white p-6 sm:p-10 rounded-3xl border border-[#EBEBEB] shadow-sm">
             <div className="text-center mb-8">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#EC663B]/10 text-[#EC663B] mb-3">
+                Étape 1 sur 2 • Profil de l'entreprise
+              </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A0A0A]">
-                Diagnostic MPME
+                Diagnostic de Maturité MPME
               </h1>
               <p className="text-[#6E6E73] text-xs sm:text-sm mt-2 max-w-lg mx-auto">
-                Renseignez les coordonnées de votre entreprise ci-dessous, puis poursuivez avec les questions pour obtenir votre évaluation.
+                Renseignez les coordonnées de votre entreprise ci-dessous, puis poursuivez avec les 20 questions pour obtenir votre évaluation complète.
               </p>
             </div>
 
@@ -331,250 +334,246 @@ function DiagnosticContent() {
               </div>
             )}
 
-            <form onSubmit={handleStartQuestions} className="space-y-5">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Nom de l'entreprise <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: BioAgro Bénin SARL"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Nom et Prénom du dirigeant <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Ex: Jean Houndété"
-                    value={formData.leaderName}
-                    onChange={(e) => setFormData({ ...formData, leaderName: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Numéro WhatsApp <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+229 97 00 00 00"
-                    value={formData.whatsapp}
-                    onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Téléphone d'appel <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    placeholder="+229 97 00 00 00"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Adresse Email <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    placeholder="contact@monentreprise.bj"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Ville principale d'activité <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <select
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  >
-                    {BENIN_CITIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-
-                  {formData.city === "Autre commune / ville" && (
-                    <div className="mt-2.5 animate-in fade-in duration-200">
-                      <label className="block text-[11px] font-semibold text-[#3A3A3C] mb-1">
-                        Précisez votre ville / commune <span className="text-[#EC663B]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ex: Athiémé, Kétou, etc."
-                        value={customCity}
-                        onChange={(e) => setCustomCity(e.target.value)}
-                        className="w-full bg-[#FAFAFA] border border-[#EC663B] rounded-xl px-3.5 py-2 text-sm text-[#0A0A0A] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#EC663B]"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Secteur d'activité <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <select
-                    value={formData.sector}
-                    onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  >
-                    {SECTORS.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-
-                  {formData.sector === "Autre secteur" && (
-                    <div className="mt-2.5 animate-in fade-in duration-200">
-                      <label className="block text-[11px] font-semibold text-[#3A3A3C] mb-1">
-                        Précisez votre secteur d'activité <span className="text-[#EC663B]">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Ex: Énergies renouvelables, Cosmétique, etc."
-                        value={customSector}
-                        onChange={(e) => setCustomSector(e.target.value)}
-                        className="w-full bg-[#FAFAFA] border border-[#EC663B] rounded-xl px-3.5 py-2 text-sm text-[#0A0A0A] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#EC663B]"
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Année de création <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min={1990}
-                    max={2026}
-                    required
-                    value={formData.yearCreated}
-                    onChange={(e) => setFormData({ ...formData, yearCreated: Number(e.target.value) })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Nombre d'employés <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <select
-                    value={formData.employeesCount}
-                    onChange={(e) => setFormData({ ...formData, employeesCount: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  >
-                    <option value="1 à 2 personnes">1 à 2 personnes</option>
-                    <option value="3 à 5 personnes">3 à 5 personnes</option>
-                    <option value="6 à 10 personnes">6 à 10 personnes</option>
-                    <option value="11 à 25 personnes">11 à 25 personnes</option>
-                    <option value="Plus de 25 personnes">Plus de 25 personnes</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#3A3A3C] mb-1">
-                    Chiffre d'affaires mensuel moyen <span className="text-[#EC663B]">*</span>
-                  </label>
-                  <select
-                    value={formData.monthlyRevenue}
-                    onChange={(e) => setFormData({ ...formData, monthlyRevenue: e.target.value })}
-                    className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white"
-                  >
-                    {REVENUE_BRACKETS.map((r) => (
-                      <option key={r} value={r}>
-                        {r}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* OPTION COMMUNAUTÉ MPME ALODO */}
-              <div className="p-4 rounded-2xl bg-[#FAFAFA] border border-[#EBEBEB] space-y-3">
-                <div>
-                  <h3 className="text-xs font-bold text-[#0A0A0A]">
-                    Souhaitez-vous rejoindre la Communauté des MPME d’ALODO ?
+            <form onSubmit={handleStartQuestions} className="space-y-6">
+              {/* SECTION 1 : IDENTITÉ DE L'ENTREPRISE */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-[#F2F2F2]">
+                  <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[10px] font-extrabold flex items-center justify-center">1</span>
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A0A0A]">
+                    Identité de l'entreprise
                   </h3>
-                  <p className="text-xs text-[#6E6E73] mt-1 leading-relaxed">
-                    La Communauté des MPME permet aux entreprises participantes de rester informées des ressources, opportunités, événements et initiatives proposées par ALODO et son écosystème.
-                  </p>
                 </div>
 
-                <div className="space-y-2 pt-1">
-                  <label className="flex items-center gap-2.5 text-xs text-[#0A0A0A] cursor-pointer">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Nom de l'entreprise <span className="text-[#EC663B]">*</span>
+                    </label>
                     <input
-                      type="radio"
-                      name="community"
-                      checked={formData.joinCommunity === true}
-                      onChange={() => setFormData({ ...formData, joinCommunity: true })}
-                      className="accent-[#EC663B]"
+                      type="text"
+                      required
+                      placeholder="Ex: BioAgro Bénin SARL"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
                     />
-                    <span>Oui, je souhaite rejoindre la Communauté des MPME</span>
-                  </label>
-                  <label className="flex items-center gap-2.5 text-xs text-[#0A0A0A] cursor-pointer">
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Nom et Prénom du dirigeant <span className="text-[#EC663B]">*</span>
+                    </label>
                     <input
-                      type="radio"
-                      name="community"
-                      checked={formData.joinCommunity === false}
-                      onChange={() => setFormData({ ...formData, joinCommunity: false })}
-                      className="accent-[#EC663B]"
+                      type="text"
+                      required
+                      placeholder="Ex: Jean Houndété"
+                      value={formData.leaderName}
+                      onChange={(e) => setFormData({ ...formData, leaderName: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
                     />
-                    <span>Non, pas pour le moment</span>
-                  </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2 : CONTACT & LOCALISATION */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-[#F2F2F2]">
+                  <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[10px] font-extrabold flex items-center justify-center">2</span>
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A0A0A]">
+                    Contact & Localisation
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Adresse Email <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      placeholder="contact@monentreprise.bj"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Numéro WhatsApp <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+229 97 00 00 00"
+                      value={formData.whatsapp}
+                      onChange={(e) => setFormData({ ...formData, whatsapp: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Téléphone d'appel <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="+229 97 00 00 00"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Ville principale d'activité <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <select
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    >
+                      {BENIN_CITIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+
+                    {formData.city === "Autre commune / ville" && (
+                      <div className="mt-2.5 animate-in fade-in duration-200">
+                        <label className="block text-[11px] font-semibold text-[#3A3A3C] mb-1">
+                          Précisez votre ville / commune <span className="text-[#EC663B]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ex: Athiémé, Kétou, etc."
+                          value={customCity}
+                          onChange={(e) => setCustomCity(e.target.value)}
+                          className="w-full bg-[#FAFAFA] border border-[#EC663B] rounded-xl px-3.5 py-2 text-sm text-[#0A0A0A] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#EC663B]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3 : PROFIL & ACTIVITÉ */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-[#F2F2F2]">
+                  <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[10px] font-extrabold flex items-center justify-center">3</span>
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A0A0A]">
+                    Profil & Dimensionnement
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Secteur d'activité <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <select
+                      value={formData.sector}
+                      onChange={(e) => setFormData({ ...formData, sector: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    >
+                      {SECTORS.map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </select>
+
+                    {formData.sector === "Autre secteur" && (
+                      <div className="mt-2.5 animate-in fade-in duration-200">
+                        <label className="block text-[11px] font-semibold text-[#3A3A3C] mb-1">
+                          Précisez votre secteur d'activité <span className="text-[#EC663B]">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          placeholder="Ex: Énergies renouvelables, Cosmétique, etc."
+                          value={customSector}
+                          onChange={(e) => setCustomSector(e.target.value)}
+                          className="w-full bg-[#FAFAFA] border border-[#EC663B] rounded-xl px-3.5 py-2 text-sm text-[#0A0A0A] focus:outline-none focus:bg-white focus:ring-1 focus:ring-[#EC663B]"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Année de création <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      min={1990}
+                      max={2026}
+                      required
+                      value={formData.yearCreated}
+                      onChange={(e) => setFormData({ ...formData, yearCreated: Number(e.target.value) })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Nombre d'employés <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <select
+                      value={formData.employeesCount}
+                      onChange={(e) => setFormData({ ...formData, employeesCount: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    >
+                      <option value="1 à 2 personnes">1 à 2 personnes</option>
+                      <option value="3 à 5 personnes">3 à 5 personnes</option>
+                      <option value="6 à 10 personnes">6 à 10 personnes</option>
+                      <option value="11 à 25 personnes">11 à 25 personnes</option>
+                      <option value="Plus de 25 personnes">Plus de 25 personnes</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
+                      Chiffre d'affaires mensuel moyen <span className="text-[#EC663B]">*</span>
+                    </label>
+                    <select
+                      value={formData.monthlyRevenue}
+                      onChange={(e) => setFormData({ ...formData, monthlyRevenue: e.target.value })}
+                      className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
+                    >
+                      {REVENUE_BRACKETS.map((r) => (
+                        <option key={r} value={r}>
+                          {r}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 
               <div className="pt-4 border-t border-[#F2F2F2]">
                 <button
                   type="submit"
-                  className="w-full py-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm shadow-xl shadow-[#EC663B]/25 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-2xl text-sm shadow-xl shadow-[#EC663B]/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-2xl hover:-translate-y-0.5"
                 >
-                  <span>Suivant</span>
+                  <span>Poursuivre vers les 20 questions du diagnostic</span>
                   <span>→</span>
                 </button>
+                <p className="text-center text-[11px] text-[#8E8E93] mt-2.5">
+                  Étape 1 sur 2 • Temps estimé : 4 à 5 minutes • Vos réponses restent strictement confidentielles
+                </p>
               </div>
             </form>
           </div>
         )}
 
         {/* =========================================================================
-            PHASE 2 : LES 18 QUESTIONS DU DIAGNOSTIC
+            PHASE 2 : LES 20 QUESTIONS DU DIAGNOSTIC
             ========================================================================= */}
         {phase === "questions" && currentQuestion && (
           <div className="bg-white p-6 sm:p-10 rounded-3xl border border-[#EBEBEB] shadow-sm">
@@ -584,7 +583,7 @@ function DiagnosticContent() {
                 Diagnostic MPME
               </h1>
               <p className="text-[#6E6E73] text-xs sm:text-sm mt-2 max-w-lg mx-auto">
-                Évaluez la maturité de votre entreprise sur les 8 dimensions stratégiques.
+                Évaluez la maturité de votre entreprise sur les dimensions stratégiques clés.
               </p>
 
               {/* Progress Bar inside Header */}
@@ -712,14 +711,14 @@ function DiagnosticContent() {
             </h1>
 
             <p className="text-sm text-[#6E6E73] mb-6 leading-relaxed">
-              Votre diagnostic de maturité a été enregistré avec succès. Nos experts examinent actuellement les éléments de votre profil sur les 8 dimensions.
+              Votre diagnostic de maturité a été enregistré avec succès. Nos experts examinent actuellement les éléments de votre profil sur les dimensions stratégiques.
             </p>
 
             <div className="text-left bg-[#FAFAFA] p-6 rounded-2xl border border-[#EBEBEB] space-y-3.5 mb-8 text-xs sm:text-sm text-[#3A3A3C]">
               <div className="flex gap-3">
                 <span className="text-[#EC663B] font-bold">01.</span>
                 <p>
-                  <strong>Examen de votre dossier :</strong> L'équipe ALODO TECH analyse les 8 dimensions de votre entreprise.
+                  <strong>Examen de votre dossier :</strong> L'équipe ALODO TECH analyse les dimensions clés de votre entreprise.
                 </p>
               </div>
               <div className="flex gap-3">

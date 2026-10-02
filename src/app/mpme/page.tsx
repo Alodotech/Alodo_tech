@@ -42,7 +42,7 @@ export default function MpmeLandingPage() {
             </p>
             
             <p style={{ textAlign: "center", marginTop: "16px", fontSize: "15px", color: "#6E6E73", fontWeight: 500 }}>
-              Diagnostic gratuit • 8 dimensions d’analyse • Feuille de route personnalisée
+              Diagnostic gratuit • 9 dimensions d’analyse • Feuille de route personnalisée
             </p>
 
             {/* Action Buttons */}
@@ -63,7 +63,7 @@ export default function MpmeLandingPage() {
                 <div className="label">Places réservées pour la Cohorte 1</div>
               </div>
               <div className="mpme-stat-item">
-                <div className="num teal">8</div>
+                <div className="num teal">9</div>
                 <div className="label">Dimensions d’analyse clés</div>
               </div>
               <div className="mpme-stat-item">
@@ -101,7 +101,7 @@ export default function MpmeLandingPage() {
                   </div>
                   <h3>Une évaluation de votre maturité</h3>
                   <p>
-                    Mesurez le niveau de structuration de votre entreprise à travers 8 dimensions clés de son fonctionnement.
+                    Mesurez le niveau de structuration de votre entreprise à travers 9 dimensions clés de son fonctionnement.
                   </p>
                 </div>
               </div>
@@ -146,14 +146,14 @@ export default function MpmeLandingPage() {
         </section>
 
         {/* =========================================================================
-            3. VOTRE ENTREPRISE ANALYSÉE SOUS 8 DIMENSIONS CLÉS
+            3. VOTRE ENTREPRISE ANALYSÉE SOUS 9 DIMENSIONS CLÉS
             ========================================================================= */}
         <section id="dimensions" className="bg-grey">
           <div className="container">
             <div className="section-head">
               <div>
                 <span className="eyebrow teal">Méthodologie ALODO</span>
-                <h2>Votre entreprise analysée sous 8 dimensions clés</h2>
+                <h2>Votre entreprise analysée sous 9 dimensions clés</h2>
               </div>
               <p className="lead" style={{ maxWidth: "560px" }}>
                 Pour comprendre réellement la situation d’une entreprise, il ne suffit pas de regarder son chiffre d’affaires. Le diagnostic ALODO examine les principales dimensions qui influencent sa structuration, son fonctionnement et sa capacité à se développer.
@@ -209,7 +209,7 @@ export default function MpmeLandingPage() {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
                   </div>
                   <h3>Votre profil par dimension</h3>
-                  <p>Une lecture de votre niveau sur chacune des 8 dimensions.</p>
+                  <p>Une lecture de votre niveau sur chacune des 9 dimensions.</p>
                 </div>
               </div>
 
@@ -261,7 +261,7 @@ export default function MpmeLandingPage() {
                 {
                   step: "02",
                   title: "Évaluer votre entreprise",
-                  desc: "Votre entreprise est analysée à travers les 8 dimensions du diagnostic.",
+                  desc: "Votre entreprise est analysée à travers les 9 dimensions du diagnostic.",
                 },
                 {
                   step: "03",
@@ -310,7 +310,7 @@ export default function MpmeLandingPage() {
                   360°
                 </div>
                 <h3>Une vision à 360°</h3>
-                <p>8 dimensions pour comprendre les principaux enjeux de votre entreprise.</p>
+                <p>9 dimensions pour comprendre les principaux enjeux de votre entreprise.</p>
               </div>
 
               <div className="problem-card">
@@ -384,7 +384,7 @@ export default function MpmeLandingPage() {
                 },
                 {
                   q: "Que se passe-t-il si mon entreprise n'est pas retenue ?",
-                  a: "Votre candidature peut vous permettre de rejoindre la Communauté des MPME d’ALODO, si vous choisissez d’y adhérer. Vous pourrez ainsi rester informé des ressources, opportunités et prochaines initiatives proposées par ALODO.",
+                  a: "Votre participation vous permet de rejoindre directement la Communauté des MPME d’ALODO afin de rester informé des ressources, opportunités, ateliers et prochaines initiatives de notre écosystème.",
                 },
               ].map((faq, i) => (
                 <div key={i} className="faq-card">

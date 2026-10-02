@@ -4,12 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 
 export default function Footer() {
-  const [lang, setLang] = useState("fr");
-
-  useEffect(() => {
-    const savedLang = localStorage.getItem("alodo-lang") || "fr";
-    setLang(savedLang);
-  }, []);
+  const lang = "fr";
 
   const T = lang === "fr" ? {
     tag: "Infrastructure financière & digitale pour les marchés émergents.",

@@ -12,7 +12,7 @@ export function calculateDiagnosticScore(
 ): DiagnosticReport {
   const answerMap = new Map(answers.map((a) => [a.questionId, a.value]));
 
-  // Calculate score for each of the 8 dimensions
+  // Calculate score for each dimension
   const dimensionScores: DimensionScore[] = DIMENSIONS.map((dim) => {
     const dimQuestions = QUESTIONS_V1.filter((q) => q.dimensionId === dim.id);
     let totalDimScore = 0;

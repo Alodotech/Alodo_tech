@@ -202,7 +202,7 @@ export default function DossierPdfDocument({
           {activeReport && (
             <div>
               <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider mb-3 pb-1 border-b border-[#EBEBEB] flex items-center gap-2">
-                <span className="text-[#EC663B]">2.</span> Bilan du Diagnostic de Maturité (8 Dimensions)
+                <span className="text-[#EC663B]">2.</span> Bilan du Diagnostic de Maturité (Dimensions Clés)
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">

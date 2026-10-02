@@ -89,11 +89,12 @@ export default function AdminSettingsPage() {
   const [editAutoNotify, setEditAutoNotify] = useState<boolean>(true);
   const [editArbitrationMode, setEditArbitrationMode] = useState<string>("collegial");
 
-  // 8 Dimensions Weightings
+  // Dimensions Weightings
   const [weights, setWeights] = useState({
     formalisation: 10,
-    finance: 15,
-    comptabilite: 15,
+    finance: 10,
+    comptabilite: 10,
+    fiscalite: 10,
     commercial: 15,
     digitalisation: 10,
     operations: 15,
@@ -225,7 +226,7 @@ export default function AdminSettingsPage() {
                 Paramètres de Gouvernance du Programme ALODO MPME
               </h2>
               <p className="text-xs text-[#6E6E73] mt-1 max-w-2xl leading-relaxed">
-                Régulez l'ensemble du cycle de vie du programme : quotas d'admission, dates du calendrier national, pondérations des 8 dimensions, bannières du site et directives d'arbitrage.
+                Régulez l'ensemble du cycle de vie du programme : quotas d'admission, dates du calendrier national, pondérations des dimensions d'évaluation, bannières du site et directives d'arbitrage.
               </p>
             </div>
 
@@ -416,23 +417,24 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          {/* Box 3: Pondération Stratégique des 8 Dimensions */}
+          {/* Box 3: Pondération Stratégique des Dimensions */}
           <div className="bg-white p-6 rounded-3xl border border-[#EBEBEB] shadow-sm space-y-5">
             <div className="flex items-center justify-between border-b border-[#F2F2F2] pb-3">
               <h3 className="font-extrabold text-sm text-[#0A0A0A] flex items-center gap-2">
                 <BarChartIcon className="w-4 h-4 text-indigo-600" />
-                <span>3. Pondérations Stratégiques des 8 Dimensions (Total = 100%)</span>
+                <span>3. Pondérations Stratégiques des Dimensions (Total = 100%)</span>
               </h3>
               <span className="text-xs font-mono font-bold text-emerald-600">
                 Total : {Object.values(weights).reduce((a, b) => a + b, 0)}%
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {[
                 { key: "formalisation", label: "Formalisation & RCCM", value: weights.formalisation },
                 { key: "finance", label: "Structure Financière", value: weights.finance },
                 { key: "comptabilite", label: "Comptabilité & Trésorerie", value: weights.comptabilite },
+                { key: "fiscalite", label: "Fiscalité & Conformité", value: weights.fiscalite },
                 { key: "commercial", label: "Efficacité Commerciale", value: weights.commercial },
                 { key: "digitalisation", label: "Digitalisation & Tech", value: weights.digitalisation },
                 { key: "operations", label: "Process & Opérations", value: weights.operations },

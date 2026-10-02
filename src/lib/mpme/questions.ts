@@ -11,7 +11,7 @@ export const DIMENSIONS: DimensionMeta[] = [
   {
     id: "finance",
     title: "Finance",
-    weight: 15,
+    weight: 10,
     description: "Maîtrisez-vous votre trésorerie, vos charges, vos revenus et vos principaux indicateurs financiers ?",
     iconName: "TrendingUp",
   },
@@ -21,6 +21,13 @@ export const DIMENSIONS: DimensionMeta[] = [
     weight: 10,
     description: "Disposez-vous d’une information comptable fiable et régulièrement tenue pour piloter votre activité ?",
     iconName: "BookOpen",
+  },
+  {
+    id: "fiscalite",
+    title: "Fiscalité & Conformité",
+    weight: 10,
+    description: "Vos obligations déclaratives et fiscales sont-elles maîtrisées et vos justificatifs convenablement conservés ?",
+    iconName: "Receipt",
   },
   {
     id: "commercial",
@@ -53,7 +60,7 @@ export const DIMENSIONS: DimensionMeta[] = [
   {
     id: "financabilite",
     title: "Finançabilité",
-    weight: 15,
+    weight: 10,
     description: "Votre entreprise dispose-t-elle des éléments nécessaires pour présenter un dossier solide à un potentiel financeur ? La finançabilité ne garantit pas l’obtention d’un financement.",
     iconName: "ShieldCheck",
   },
@@ -180,7 +187,39 @@ export const QUESTIONS_V1: Question[] = [
     ],
   },
 
-  // 4. Commercial
+  // 4. Fiscalité & Conformité
+  {
+    id: "fisc_1",
+    dimensionId: "fiscalite",
+    subDimension: "Suivi des obligations fiscales",
+    text: "Vos obligations fiscales sont-elles régulièrement suivies ?",
+    type: "single_choice",
+    required: true,
+    weight: 50,
+    options: [
+      { value: "on_time_regular", label: "Oui, mes déclarations et paiements sont effectués dans les délais et suivis régulièrement", score: 100 },
+      { value: "general_irregular", label: "Je fais généralement mes déclarations, mais le suivi n’est pas toujours régulier", score: 60 },
+      { value: "struggling_deadlines", label: "J’ai des difficultés à suivre mes obligations fiscales et leurs échéances", score: 30 },
+      { value: "unknown_obligations", label: "Je ne sais pas précisément quelles sont mes obligations fiscales", score: 0 },
+    ],
+  },
+  {
+    id: "fisc_2",
+    dimensionId: "fiscalite",
+    subDimension: "Conservation des justificatifs",
+    text: "Vos documents et justificatifs fiscaux sont-ils correctement conservés ?",
+    type: "single_choice",
+    required: true,
+    weight: 50,
+    options: [
+      { value: "available_organized", label: "Oui, ils sont disponibles et bien classés", score: 100 },
+      { value: "available_improvable", label: "Ils sont disponibles, mais leur classement pourrait être amélioré", score: 60 },
+      { value: "missing_hard_to_find", label: "Plusieurs documents sont manquants ou difficiles à retrouver", score: 25 },
+      { value: "none_kept", label: "Non, je ne conserve pas ou très peu de justificatifs fiscaux", score: 0 },
+    ],
+  },
+
+  // 5. Commercial
   {
     id: "comm_1",
     dimensionId: "commercial",

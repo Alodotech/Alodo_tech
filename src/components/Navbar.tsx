@@ -24,8 +24,6 @@ export default function Navbar({ activeKey }: { activeKey?: string }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("alodo-lang") || "fr";
-    setLang(savedLang);
     if (typeof window !== "undefined") {
       const user = localStorage.getItem("alodo_mpme_user");
       if (user) {
@@ -33,12 +31,6 @@ export default function Navbar({ activeKey }: { activeKey?: string }) {
       }
     }
   }, [pathname]);
-
-  const toggleLang = (newLang: string) => {
-    localStorage.setItem("alodo-lang", newLang);
-    setLang(newLang);
-    window.location.reload(); // Refresh to apply changes if using server components or local translations
-  };
 
   return (
     <nav className={`nav ${isMobileOpen ? "nav-mobile-open" : ""}`} id="siteNav">
@@ -67,23 +59,15 @@ export default function Navbar({ activeKey }: { activeKey?: string }) {
           })}
           
           <div className="mobile-only" style={{ marginTop: "auto", paddingTop: "32px" }}>
-            <div className="lang" style={{ marginBottom: "16px", display: "flex", width: "fit-content" }}>
-              <button className={lang === "fr" ? "on" : ""} onClick={() => toggleLang("fr")}>FR</button>
-              <button className={lang === "en" ? "on" : ""} onClick={() => toggleLang("en")}>EN</button>
-            </div>
             <Link href="/contact" className="btn primary" style={{ width: "100%", justifyContent: "center" }}>
-              {lang === "fr" ? "Nous contacter" : "Contact"}
+              Nous contacter
             </Link>
           </div>
         </div>
 
         <div className="nav-right">
-          <div className="lang">
-            <button className={lang === "fr" ? "on" : ""} onClick={() => toggleLang("fr")}>FR</button>
-            <button className={lang === "en" ? "on" : ""} onClick={() => toggleLang("en")}>EN</button>
-          </div>
           <Link href="/contact" className="btn primary sm desktop-only">
-            {lang === "fr" ? "Nous contacter" : "Contact"}
+            Nous contacter
           </Link>
           
           <button
