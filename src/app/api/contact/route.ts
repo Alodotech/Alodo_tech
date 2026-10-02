@@ -15,8 +15,8 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const recipientEmail = process.env.CONTACT_EMAIL || "partnership@alodotech.co";
-    const fromEmail = process.env.RESEND_FROM_EMAIL || "ALODO TECH <onboarding@resend.dev>";
+    const recipientEmail = process.env.CONTACT_EMAIL || "partnership@alodotech.com";
+    const fromEmail = process.env.RESEND_FROM_EMAIL || "ALODO TECH <partnership@alodotech.com>";
 
     if (!apiKey) {
       console.warn("RESEND_API_KEY manquante. Message de contact reçu :", body);
@@ -84,25 +84,16 @@ ${message}
       </div>
     `;
 
-    let sendResult = await resend.emails.send({
+    // Recipients: primary email + backup Gmail so no message is ever missed
+    const recipients = Array.from(new Set([recipientEmail, "partnershipalodotech@gmail.com"]));
+
+    const sendResult = await resend.emails.send({
       from: fromEmail,
-      to: [recipientEmail],
+      to: recipients,
       replyTo: email,
       subject: emailSubject,
       html: htmlContent,
     });
-
-    // If Resend is in free/testing mode and rejects unverified domains:
-    if (sendResult.error && sendResult.error.message.includes("You can only send testing emails to your own email address")) {
-      console.warn("Resend en mode test : redirection automatique vers le compte vérifié (partnershipalodotech@gmail.com)");
-      sendResult = await resend.emails.send({
-        from: fromEmail,
-        to: ["partnershipalodotech@gmail.com"],
-        replyTo: email,
-        subject: `[Mode Test - Destiné à ${recipientEmail}] ${emailSubject}`,
-        html: htmlContent,
-      });
-    }
 
     if (sendResult.error) {
       console.error("Erreur Resend :", sendResult.error);

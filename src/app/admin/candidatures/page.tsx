@@ -393,38 +393,27 @@ export default function AdminCandidaturesPage() {
     } else {
       const target = applications.find((a) => a.id === appId);
 
-      // Envoi automatique d'emails commenté pour ne pas bloquer les déploiements
-      /*
+      // Envoi automatique d'emails officiel (Acceptation ou Refus)
       if (target?.company?.email) {
-        if (status === "selected") {
+        if (status === "selected" || status === "rejected") {
           fetch('/api/send-dashboard-link', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               toEmail: target.company.email,
               companyName: target.company.name,
-              action: 'accept',
+              leaderName: target.company.leaderName,
+              action: status === "selected" ? "accept" : "reject",
             }),
-          }).catch(console.error);
-        } else if (status === "rejected") {
-          fetch('/api/send-dashboard-link', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              toEmail: target.company.email,
-              companyName: target.company.name,
-              action: 'reject',
-            }),
-          }).catch(console.error);
+          }).catch((err) => console.error("Erreur envoi notification candidat :", err));
         }
       }
-      */
 
       const label =
         status === "selected"
-          ? "Entreprise admise dans la cohorte Top 20."
+          ? "Entreprise admise dans la cohorte Top 20 • Email de félicitations envoyé."
           : status === "rejected"
-          ? "Dossier non retenu."
+          ? "Dossier non retenu • Email de notification bienveillante envoyé."
           : status === "under_review"
           ? "Dossier placé en cours d'analyse."
           : "Statut mis à jour.";
