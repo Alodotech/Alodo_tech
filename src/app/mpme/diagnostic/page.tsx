@@ -714,27 +714,48 @@ function DiagnosticContent() {
               Votre diagnostic de maturité a été enregistré avec succès. Nos experts examinent actuellement les éléments de votre profil sur les dimensions stratégiques.
             </p>
 
-            <div className="text-left bg-[#FAFAFA] p-6 rounded-2xl border border-[#EBEBEB] space-y-3.5 mb-8 text-xs sm:text-sm text-[#3A3A3C]">
-              <div className="flex gap-3">
-                <span className="text-[#EC663B] font-bold">01.</span>
-                <p>
-                  <strong>Examen de votre dossier :</strong> L'équipe ALODO TECH analyse les dimensions clés de votre entreprise.
+            {/* INVITATION À REJOINDRE LA COMMUNAUTÉ / CHAÎNE WHATSAPP */}
+            <div className="bg-gradient-to-br from-[#F0FDF4] to-[#FAFAFA] border border-[#25D366]/30 rounded-2xl p-6 sm:p-7 mb-8 text-center space-y-4">
+              <div className="w-12 h-12 rounded-full bg-[#25D366]/10 flex items-center justify-center mx-auto">
+                <img
+                  src="https://img.icons8.com/color/48/whatsapp--v1.png"
+                  alt="WhatsApp"
+                  className="w-7 h-7"
+                />
+              </div>
+
+              <div>
+                <h3 className="text-base font-extrabold text-[#0A0A0A]">
+                  Rejoignez la Communauté des MPME d'ALODO
+                </h3>
+                <p className="text-xs sm:text-sm text-[#4A4A4F] mt-1.5 max-w-md mx-auto leading-relaxed">
+                  Pour suivre la suite du programme, les annonces officielles, les opportunités d'accompagnement et les prochains ateliers, rejoignez notre chaîne WhatsApp officielle.
                 </p>
               </div>
-              <div className="flex gap-3">
-                <span className="text-[#EC663B] font-bold">02.</span>
-                <p>
-                  <strong>Retour par email :</strong> Nous vous ferons un retour par email dans un délai de 7 à 14 jours.
-                </p>
+
+              <div className="pt-1">
+                <a
+                  href="https://whatsapp.com/channel/0029VbDTqIa0lwgh8GZWuS1k"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold rounded-full text-sm shadow-lg shadow-[#25D366]/25 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <img
+                    src="https://img.icons8.com/color/48/whatsapp--v1.png"
+                    alt=""
+                    className="w-5 h-5"
+                  />
+                  <span>Rejoindre la Chaîne WhatsApp →</span>
+                </a>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="/mpme"
-                className="py-3.5 px-6 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-full text-sm transition-all text-center shadow-md shadow-[#EC663B]/20"
+                className="py-3 px-6 bg-white hover:bg-[#F5F5F7] text-[#0A0A0A] font-semibold border border-[#D1D1D6] rounded-full text-xs sm:text-sm transition-all text-center"
               >
-                Retour à l'accueil ALODO MPME →
+                Retour à l'accueil du programme
               </Link>
             </div>
 
