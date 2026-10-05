@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/mpme/DashboardLayout";
 import DossierPdfDocument from "@/components/mpme/DossierPdfDocument";
+import RapportMpmePdf from "@/components/mpme/RapportMpmePdf";
 import { MpmeStorage } from "@/lib/mpme/storage";
 import { Application, Cohort } from "@/lib/mpme/types";
 import { createClient } from "@/utils/supabase/client";
@@ -214,6 +215,7 @@ export default function AdminCandidaturesPage() {
   const [isClient, setIsClient] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pdfModalApp, setPdfModalApp] = useState<Application | null>(null);
+  const [rapportMpmeApp, setRapportMpmeApp] = useState<Application | null>(null);
 
   // Candidats Tab: Status Filters, Search & Pagination (20 per page)
   const [leaderFilterStatus, setLeaderFilterStatus] = useState<"all" | "pending" | "under_review" | "selected" | "rejected">("all");
@@ -544,10 +546,6 @@ export default function AdminCandidaturesPage() {
   const diagnosticRate = totalCount > 0 ? Math.round((diagnosticDoneCount / totalCount) * 100) : 0;
 
   const scoredApps = applications.filter((a) => typeof a.diagnosticScore === "number");
-  const averageMaturityScore =
-    scoredApps.length > 0
-      ? Math.round(scoredApps.reduce((acc, curr) => acc + (curr.diagnosticScore || 0), 0) / scoredApps.length)
-      : 0;
 
   const underReviewCount = applications.filter((a) => a.status === "under_review").length;
   const rejectedCount = applications.filter((a) => a.status === "rejected").length;
@@ -810,20 +808,6 @@ export default function AdminCandidaturesPage() {
             <div className="text-[11px] text-[#6E6E73] mt-2 flex items-center gap-1.5 font-medium">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
               <span>{totalCount - diagnosticDoneCount} en cours de passage</span>
-            </div>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-white border border-[#EBEBEB] shadow-sm">
-            <div className="flex items-center justify-between text-[#8E8E93] mb-2">
-              <span className="text-xs font-bold uppercase tracking-wider">Moyenne Maturité</span>
-              <ShieldIcon className="w-4 h-4 text-[#EC663B]" />
-            </div>
-            <div className="text-3xl font-extrabold text-[#EC663B] font-tech">
-              {averageMaturityScore > 0 ? `${averageMaturityScore}/100` : "N/A"}
-            </div>
-            <div className="text-[11px] text-[#6E6E73] mt-2 flex items-center gap-1.5 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#EC663B]" />
-              <span>Seuil de sélection : {cohort?.minScoreThreshold || 60}/100</span>
             </div>
           </div>
         </div>
@@ -1559,6 +1543,14 @@ export default function AdminCandidaturesPage() {
                       <DownloadIcon className="w-3.5 h-3.5" />
                       <span>Rapport PDF Officiel</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => setRapportMpmeApp(inspectingApp)}
+                      className="px-4 py-2 rounded-xl bg-[#00C2A8] hover:bg-[#009e8a] text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+                    >
+                      <DownloadIcon className="w-3.5 h-3.5" />
+                      <span>Rapport MPME</span>
+                    </button>
                   </div>
 
                   {/* SCORE GLOBAL CARD */}
@@ -1707,6 +1699,13 @@ export default function AdminCandidaturesPage() {
         report={pdfModalApp?.diagnosticReport || null}
         isOpen={Boolean(pdfModalApp)}
         onClose={() => setPdfModalApp(null)}
+      />
+
+      {/* RAPPORT MPME — VERSION SIMPLIFIÉE (dirigeant & partenaires) */}
+      <RapportMpmePdf
+        application={rapportMpmeApp}
+        isOpen={Boolean(rapportMpmeApp)}
+        onClose={() => setRapportMpmeApp(null)}
       />
     </DashboardLayout>
   );
