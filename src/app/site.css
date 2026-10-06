@@ -680,6 +680,11 @@ section.tight { padding: calc(var(--section-y) * 0.6) 0; }
     min-height: auto !important;
     overflow: visible !important;
   }
+  /* Strict hiding of any application UI marked print:hidden or non-print containers */
+  .print\:hidden,
+  [class*="print:hidden"] {
+    display: none !important;
+  }
   .avoid-break {
     page-break-inside: avoid !important;
     break-inside: avoid !important;

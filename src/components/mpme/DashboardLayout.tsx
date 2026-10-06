@@ -53,6 +53,15 @@ function UsersIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+function UserIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
 function GlobeIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -88,8 +97,8 @@ interface DashboardLayoutProps {
   currentView?: "dashboard" | "candidature";
   onSelectView?: (view: "dashboard" | "candidature") => void;
   onDownloadPdf?: () => void;
-  adminSubTab?: "registry" | "top20" | "diagnostics" | "settings" | "leaders";
-  onSelectAdminTab?: (tab: "registry" | "top20" | "diagnostics" | "settings" | "leaders") => void;
+  adminSubTab?: "overview" | "registry" | "top20" | "diagnostics" | "settings" | "leaders";
+  onSelectAdminTab?: (tab: "overview" | "registry" | "top20" | "diagnostics" | "settings" | "leaders") => void;
 }
 
 export default function DashboardLayout({
@@ -203,31 +212,48 @@ export default function DashboardLayout({
                 <Link
                   href="/admin/candidatures"
                   className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
-                    activeTab === "admin" && adminSubTab !== "settings"
+                    pathname === "/admin/candidatures"
                       ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                       : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
                   }`}
                 >
                   <DashboardIcon
                     className={`w-5 h-5 shrink-0 ${
-                      activeTab === "admin" && adminSubTab !== "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                      pathname === "/admin/candidatures" ? "text-[#EC663B]" : "text-[#6E6E73]"
                     }`}
                   />
                   <span>Vue Générale</span>
                 </Link>
 
-                {/* 2. PARAMÈTRES GOUVERNEUR */}
+                {/* 2. CANDIDATS & ENTREPRISES (BOUTON AVEC ICÔNE USER) */}
+                <Link
+                  href="/admin/candidats"
+                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
+                    pathname === "/admin/candidats"
+                      ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                      : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
+                  }`}
+                >
+                  <UserIcon
+                    className={`w-5 h-5 shrink-0 ${
+                      pathname === "/admin/candidats" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                    }`}
+                  />
+                  <span>Candidats & Entreprises</span>
+                </Link>
+
+                {/* 3. PARAMÈTRES GOUVERNEUR */}
                 <Link
                   href="/admin/settings"
                   className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
-                    activeTab === "admin" && adminSubTab === "settings"
+                    activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings")
                       ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                       : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
                   }`}
                 >
                   <SettingsIcon
                     className={`w-5 h-5 shrink-0 ${
-                      activeTab === "admin" && adminSubTab === "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                      activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings") ? "text-[#EC663B]" : "text-[#6E6E73]"
                     }`}
                   />
                   <span>Paramètres Gouverneur</span>
@@ -372,33 +398,51 @@ export default function DashboardLayout({
                       <Link
                         href="/admin/candidatures"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
-                          activeTab === "admin" && adminSubTab !== "settings"
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left cursor-pointer ${
+                          pathname === "/admin/candidatures"
                             ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                             : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
                         }`}
                       >
                         <DashboardIcon
                           className={`w-5 h-5 shrink-0 ${
-                            activeTab === "admin" && adminSubTab !== "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                            pathname === "/admin/candidatures" ? "text-[#EC663B]" : "text-[#6E6E73]"
                           }`}
                         />
                         <span>Vue Générale</span>
                       </Link>
 
-                      {/* 2. PARAMÈTRES GOUVERNEUR */}
+                      {/* 2. CANDIDATS & ENTREPRISES (AVEC ICÔNE USER) */}
+                      <Link
+                        href="/admin/candidats"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left cursor-pointer ${
+                          pathname === "/admin/candidats"
+                            ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                            : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
+                        }`}
+                      >
+                        <UserIcon
+                          className={`w-5 h-5 shrink-0 ${
+                            pathname === "/admin/candidats" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                          }`}
+                        />
+                        <span>Candidats & Entreprises</span>
+                      </Link>
+
+                      {/* 3. PARAMÈTRES GOUVERNEUR */}
                       <Link
                         href="/admin/settings"
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
-                          activeTab === "admin" && adminSubTab === "settings"
+                          activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings")
                             ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
                             : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
                         }`}
                       >
                         <SettingsIcon
                           className={`w-5 h-5 shrink-0 ${
-                            activeTab === "admin" && adminSubTab === "settings" ? "text-[#EC663B]" : "text-[#6E6E73]"
+                            activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings") ? "text-[#EC663B]" : "text-[#6E6E73]"
                           }`}
                         />
                         <span>Paramètres Gouverneur</span>

@@ -55,9 +55,11 @@ export default function DossierPdfDocument({
     const prevTitle = document.title;
     const compName = comp?.name ? comp.name.replace(/[^a-zA-Z0-9_-]/g, "_") : "Entreprise";
     document.title = `Rapport_Officiel_ALODO_MPME_${compName}`;
+    document.body.classList.add("printing-admin-pdf");
     window.print();
     setTimeout(() => {
       document.title = prevTitle;
+      document.body.classList.remove("printing-admin-pdf");
     }, 1000);
   };
 

@@ -10,81 +10,106 @@ interface RapportMpmePdfProps {
   onClose: () => void;
 }
 
-// ── Helpers pour traduire les réponses en langage humain de terrain ───────────
+// ── Traduction en langage 100% humain et concret de terrain (zéro jargon, zéro score, zéro pourcentage) ──
 
-function getTerrainDiagnostique(application: Application, report: DiagnosticReport | null) {
+function getTerrainDiagnostique(application: Application, _report: DiagnosticReport | null) {
   const comp = application.company;
   const answers: DiagnosticAnswer[] = application.diagnosticAnswers || [];
 
   const defis: { titre: string; constat: string; solution: string }[] = [];
   const atouts: string[] = [];
 
-  // 1. Trésorerie & Compte bancaire
+  // 1. Gestion de la caisse & séparation des poches
   if (!comp?.hasProBankAccount) {
     defis.push({
-      titre: "Séparation argent personnel & argent du commerce",
-      constat: "Vos recettes professionnelles et vos dépenses familiales se mélangent encore (comptes personnels ou Mobile Money privé).",
-      solution: "Créer une poche ou un compte séparé dès le 1er mois pour savoir enfin exactement ce que votre commerce génère chaque soir.",
+      titre: "Séparer l'argent de la maison et l'argent du commerce",
+      constat: "Vos recettes de vente et vos dépenses de famille se mélangent encore dans la même poche ou sur le même compte Mobile Money.",
+      solution: "Créer un numéro Mobile Money ou un compte dédié uniquement au commerce dès le premier mois, pour savoir exactement ce que votre activité vous rapporte chaque soir.",
     });
   } else {
-    atouts.push("Vous avez déjà pris le bon réflexe de séparer vos finances personnelles de celles de l'entreprise.");
+    atouts.push("Vous avez déjà le réflexe de séparer vos finances personnelles de l'argent de votre commerce.");
   }
 
-  // 2. Formalisation légale
+  // 2. Les papiers officiels sans tracas
   if (!comp?.isFormalized) {
     defis.push({
-      titre: "Reconnaissance administrative (RCCM / IFU)",
-      constat: "Votre activité n'est pas encore enregistrée officiellement auprès des institutions.",
-      solution: "Pas de panique : ALODO vous aide à régulariser vos papiers pas à pas sans démarches compliquées, afin de vous protéger et d'accéder aux marchés officiels.",
+      titre: "Mettre les papiers officiels en règle, sans stress",
+      constat: "Votre activité n'est pas encore enregistrée au registre du commerce ou aux impôts, ce qui peut vous faire peur en cas de contrôle.",
+      solution: "L'équipe ALODO vous accompagne étape par étape pour régulariser vos papiers simplement, sans tracasserie, pour travailler l'esprit tranquille et vendre à de grands clients.",
     });
   } else {
-    atouts.push("Votre entreprise est formellement enregistrée (IFU / RCCM), une base précieuse pour grandir.");
+    atouts.push("Votre entreprise est déjà enregistrée officiellement, une vraie force pour rassurer vos partenaires.");
   }
 
-  // 3. Suivi quotidien des chiffres
+  // 3. Suivi quotidien des ventes et des dépenses (la règle des 5 minutes)
   const fin1 = answers.find((a) => a.questionId === "fin_1")?.value;
   if (fin1 === "none" || fin1 === "when_tight" || !fin1) {
     defis.push({
-      titre: "Visibilité sur les entrées et sorties d'argent",
-      constat: "Vous gérez la trésorerie 'à vue' ou seulement quand il y a une urgence, ce qui crée du stress à chaque fin de mois.",
-      solution: "Mettre en place la règle des 5 minutes par jour : un cahier de caisse ou un outil simple pour noter chaque vente et chaque dépense.",
+      titre: "Savoir exactement ce qui rentre et ce qui sort chaque jour",
+      constat: "Vous gérez la caisse de tête ou seulement quand l'argent commence à manquer, ce qui apporte des angoisses imprévues à chaque fin de mois.",
+      solution: "La règle simple des 5 minutes par jour : un petit carnet de caisse ou une note sur téléphone pour inscrire chaque vente et chaque dépense avant de dormir.",
     });
   } else {
-    atouts.push("Vous avez l'habitude de suivre vos mouvements d'argent régulièrement.");
+    atouts.push("Vous avez l'habitude de noter et suivre vos rentrées d'argent avec rigueur.");
   }
 
-  // 4. Accords et contrats
-  const form3 = answers.find((a) => a.questionId === "form_3")?.value;
-  if (form3 === "mostly_verbal" || form3 === "some_verbal") {
+  // 4. Connaissance du bénéfice réel sur chaque vente
+  const fin2 = answers.find((a) => a.questionId === "fin_2")?.value;
+  if (fin2 === "none" || fin2 === "estimated" || !fin2) {
     defis.push({
-      titre: "Accords oraux avec les clients et fournisseurs",
-      constat: "La majorité de vos ententes reposent sur la parole, ce qui vous expose à des impayés et des désaccords non protégés.",
-      solution: "Sécuriser vos relations avec des bons de commande, reçus et accords simples écrits pour ne plus perdre d'argent.",
+      titre: "Calculer son vrai bénéfice sur chaque produit ou service",
+      constat: "Vous vendez régulièrement, mais à la fin du mois vous ne savez pas exactement combien il vous reste en bénéfice net après avoir payé les charges et le transport.",
+      solution: "Calculer votre coût de revient réel pour fixer vos prix avec certitude et être sûr de dégager un bénéfice net sur chaque vente.",
     });
+  } else {
+    atouts.push("Vous connaissez bien vos marges et ce que chaque vente vous rapporte réellement.");
   }
 
-  // 5. Utilisation du numérique
+  // 5. Les impayés et la protection des livraisons
+  const form3 = answers.find((a) => a.questionId === "form_3")?.value;
+  const fin3 = answers.find((a) => a.questionId === "fin_3")?.value;
+  if (form3 === "mostly_verbal" || form3 === "some_verbal" || fin3 === "high_delay") {
+    defis.push({
+      titre: "Éviter les impayés et les retards de paiement",
+      constat: "Beaucoup de ventes ou livraisons reposent uniquement sur la parole verbale, ce qui entraîne des retards de paiement ou des dettes difficiles à récupérer.",
+      solution: "Sécuriser vos ventes avec un reçu simple, un bon de commande ou un message de confirmation écrit, et demander une avance avant toute commande importante.",
+    });
+  } else {
+    atouts.push("Vous avez l'habitude de garder des traces écrites de vos accords commerciaux.");
+  }
+
+  // 6. Utiliser le téléphone pour vendre et fidéliser
   const digi1 = answers.find((a) => a.questionId === "digi_1")?.value;
   if (digi1 === "paper_only" || digi1 === "basic_whatsapp" || !digi1) {
     defis.push({
-      titre: "Modernisation des outils de vente",
-      constat: "Vos opérations reposent encore beaucoup sur le papier et la mémoire, sans archivage numérique sécurisé.",
-      solution: "Adopter des outils simples sur votre téléphone (WhatsApp Business, catalogue numérique, facturation mobile) pour gagner du temps.",
+      titre: "Utiliser son téléphone comme un vrai commercial",
+      constat: "Vos opérations se font encore sur papier volant ou de mémoire, sans sauvegarde organisée des numéros de vos clients.",
+      solution: "Installer WhatsApp Business, créer un catalogue photo de vos produits et garder le contact avec vos anciens clients pour qu'ils reviennent commander chez vous.",
+    });
+  } else {
+    atouts.push("Vous utilisez déjà les outils sur smartphone pour communiquer et vendre à vos clients.");
+  }
+
+  // 7. Organisation de l'équipe et transmission
+  const rh1 = answers.find((a) => a.questionId === "rh_1")?.value;
+  if (rh1 === "all_on_founder" || rh1 === "informal_tasks") {
+    defis.push({
+      titre: "Ne plus tout porter seul sur ses épaules",
+      constat: "Tout repose sur vous du matin au soir : si vous êtes absent ou malade, l'activité s'arrête ou tourne au ralenti.",
+      solution: "Former un collaborateur ou apprenti de confiance sur les tâches simples pour vous libérer du temps et pouvoir vous reposer.",
     });
   }
 
-  // 6. Problème déclaré par le dirigeant
+  // 8. Problème prioritaire déclaré par le dirigeant
   const mainProblem = comp?.singleBiggestProblem;
 
-  // Atouts complémentaires tirés du rapport si disponibles
-  if (report?.strengths && report.strengths.length > 0) {
-    report.strengths.slice(0, 2).forEach((s) => {
-      const clean = s.replace(/\s*\(Score:\s*[\d/]+\)/gi, "").replace(/\/100/g, "").replace(/\s*—\s*Base solide.*/gi, "").trim();
-      if (clean && !atouts.includes(clean)) atouts.push(clean);
-    });
+  // Atouts naturels complémentaires
+  if (atouts.length === 0) {
+    atouts.push("Votre courage entrepreneurial et votre présence active auprès de vos clients.");
+    atouts.push("Une activité commerciale vivante avec des produits ou services qui répondent à un vrai besoin.");
   }
 
-  return { defis, atouts, mainProblem };
+  return { defis: defis.slice(0, 5), atouts, mainProblem };
 }
 
 export default function RapportMpmePdf({ application, isOpen, onClose }: RapportMpmePdfProps) {
@@ -119,9 +144,11 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
     const prevTitle = document.title;
     const compName = comp?.name ? comp.name.replace(/[^a-zA-Z0-9_-]/g, "_") : "Entreprise";
     document.title = `Feuille_De_Route_MPME_${compName}`;
+    document.body.classList.add("printing-mpme-pdf");
     window.print();
     setTimeout(() => {
       document.title = prevTitle;
+      document.body.classList.remove("printing-mpme-pdf");
     }, 1000);
   };
 
@@ -136,7 +163,7 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
     >
       <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl border border-[#EBEBEB] overflow-hidden my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:rounded-none print:max-w-none print:w-full">
         
-        {/* ── Barre d'action supérieure TOUJOURS VISIBLE (Sticky) ── */}
+        {/* ── BARRE D'ACTION SUPÉRIEURE (ÉCRAN SEULEMENT) ── */}
         <div className="sticky top-0 z-50 p-4 bg-[#0A0A0A] text-white flex items-center justify-between border-b border-white/10 shadow-lg print:hidden shrink-0">
           <div className="flex items-center gap-3">
             <img
@@ -145,8 +172,8 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
               style={{ height: "28px", width: "auto", filter: "brightness(0) invert(1)" }}
             />
             <div>
-              <span className="text-sm font-bold block">Feuille de Route Dirigeant — Version Terrain</span>
-              <span className="text-xs text-emerald-400">100% pratique pour le chef d'entreprise • Format A4</span>
+              <span className="text-sm font-bold block">Feuille de Route & Guide Pratique MPME</span>
+              <span className="text-xs text-emerald-400">Document remis au dirigeant • Zéro jargon technique, zéro score • Format A4</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -164,20 +191,20 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             <button
               onClick={onClose}
               className="px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
-              title="Fermer (Échap)"
+              title="Fermer"
             >
               <span>✕ Fermer</span>
             </button>
           </div>
         </div>
 
-        {/* ── Corps du document imprimable (A4) ── */}
+        {/* ── CORPS DU DOCUMENT IMPRIMABLE (A4) ── */}
         <div
           id="printable-rapport-mpme"
           className="p-8 sm:p-12 text-[#111827] bg-white font-sans space-y-6 print:p-6 print:space-y-5"
           style={{ minHeight: "297mm" }}
         >
-          {/* EN-TÊTE CHALEUREUX & INSTITUTIONNEL */}
+          {/* EN-TÊTE OFFICIEL ET CHALEUREUX */}
           <div className="flex items-center justify-between border-b-2 border-[#EC663B] pb-5 avoid-break">
             <div className="flex items-center gap-3">
               <img src="/logo/logo.png" alt="ALODO TECH" style={{ height: "42px", width: "auto" }} />
@@ -186,24 +213,24 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
                   <span className="text-[#EC663B]">ALODO</span> TECH
                 </div>
                 <div className="text-xs font-semibold text-[#00C2A8] tracking-wider uppercase">
-                  Programme National d'Accompagnement MPME
+                  Programme National d'Accompagnement des Entreprises
                 </div>
               </div>
             </div>
 
             <div className="text-right">
               <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-[#FFF5F2] text-[#EC663B] border border-[#EC663B]/20 inline-block mb-1">
-                BILAN DE SITUATION & FEUILLE DE ROUTE
+                GUIDE PRATIQUE DE L'ENTREPRISE
               </span>
               <div className="text-xs text-[#6B7280]">Émis le {today}</div>
             </div>
           </div>
 
-          {/* FICHE DU DIRIGEANT & DE L'ENTREPRISE */}
+          {/* FICHE DE L'ENTREPRISE ACCOMPAGNÉE */}
           <div className="p-5 rounded-2xl bg-[#FAFAFA] border border-[#E5E7EB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 avoid-break">
             <div>
               <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider block mb-0.5">
-                Entreprise accompagnée
+                Dossier Pratique d'Accompagnement
               </span>
               <h1 className="text-2xl font-extrabold text-[#0A0A0A] leading-tight">
                 {comp?.name || "Votre Entreprise"}
@@ -216,50 +243,50 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             </div>
 
             <div className="bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-center shrink-0 shadow-xs">
-              <span className="text-[10px] font-bold text-[#6B7280] uppercase block">Engagement ALODO</span>
+              <span className="text-[10px] font-bold text-[#6B7280] uppercase block">Mission ALODO</span>
               <span className="text-sm font-extrabold text-[#00C2A8] block mt-0.5">
-                Accompagnement Sur Mesure
+                Accompagnement de Terrain
               </span>
             </div>
           </div>
 
-          {/* MOT D'INTRODUCTION BIENVEILLANT ALODO */}
+          {/* MOT D'INTRODUCTION BIENVEILLANT ALODO (ZÉRO JARGON, ZÉRO SCORE) */}
           <div className="p-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-[#1E3A8A] leading-relaxed avoid-break">
             <strong className="block text-sm font-bold text-[#1D4ED8] mb-1">
               👋 Le message de l'équipe ALODO : Vous n'êtes plus seul(e)
             </strong>
             <p>
-              Merci d'avoir pris le temps de faire ce diagnostic en toute honnêteté. 
-              Le Programme ALODO MPME a été créé spécialement pour <strong>les entrepreneurs du terrain qui font face à de vraies difficultés</strong> : 
-              argent mélangé, imprévus de caisse, manque de temps, documents administratifs en retard. 
-              Ce document n'est pas un examen ou une note d'école, mais un <strong>guide pratique</strong> pour régler vos blocages prioritaires, étape par étape.
+              Merci d'avoir partagé la situation de votre entreprise en toute franchise. 
+              Le Programme ALODO a été créé pour <strong>les entrepreneurs du quotidien qui se battent avec de vraies réalités</strong> : 
+              argent de la maison mélangé avec la caisse, clients qui tardent à payer, imprévus financiers, manque de temps. 
+              Ici, il n'y a <strong>aucune note, aucun jugement, aucun calcul compliqué</strong> : juste des solutions simples et réalistes pour débloquer votre activité pas à pas.
             </p>
           </div>
 
-          {/* LE PROBLÈME MAJEUR QUE LE DIRIGEANT A PARTAGÉ */}
+          {/* LA PRIORITÉ N°1 EXPRIMÉE PAR LE DIRIGEANT */}
           {mainProblem && (
             <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] avoid-break">
               <span className="text-[11px] font-bold text-[#B45309] uppercase tracking-wider block mb-1">
-                🎯 Ce qui vous empêche de dormir la nuit (votre priorité n°1 déclarée) :
+                🎯 Ce qui vous préoccupe le plus en ce moment (votre priorité déclarée) :
               </span>
               <p className="text-sm font-bold text-[#92400E] italic">
                 "{mainProblem}"
               </p>
               <p className="text-[11px] text-[#B45309] mt-2">
-                → C'est exactement sur ce point que nos experts vont concentrer leurs premiers efforts avec vous.
+                → C'est exactement par ce point que nos conseillers vont commencer leur travail à vos côtés.
               </p>
             </div>
           )}
 
-          {/* VOS VRAIS DÉFIS ACTUELS (EN LANGAGE PARLÉ SANS SCORE) */}
+          {/* VOS VRAIS DÉFIS DU QUOTIDIEN ET LES SOLUTIONS PRATIQUES */}
           <div className="space-y-3 avoid-break">
             <div className="border-b border-[#E5E7EB] pb-2">
               <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#EC663B]" />
-                Ce qui bloque aujourd'hui dans votre quotidien (et comment on le règle)
+                Ce qui bloque aujourd'hui (et comment on le règle ensemble)
               </h2>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Ces points sont tout à fait normaux pour une entreprise en croissance. Voici ce que nous allons corriger ensemble :
+                Ces difficultés sont tout à fait normales quand un commerce grandit. Voici les solutions concrètes :
               </p>
             </div>
 
@@ -279,11 +306,11 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
                   </div>
 
                   <p className="text-[#4B5563] pl-7 leading-relaxed">
-                    <strong className="text-[#374151]">Le constat :</strong> {item.constat}
+                    <strong className="text-[#374151]">Ce qui se passe :</strong> {item.constat}
                   </p>
 
                   <div className="pl-7 pt-1 text-[#065F46] bg-[#ECFDF5] p-2 rounded-lg mt-1 flex items-start gap-1.5">
-                    <span className="font-bold shrink-0">💡 Solution ALODO :</span>
+                    <span className="font-bold shrink-0">💡 Ce qu'on va faire avec ALODO :</span>
                     <span>{item.solution}</span>
                   </div>
                 </div>
@@ -291,11 +318,11 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             </div>
           </div>
 
-          {/* VOS FORCES SUR LESQUELLES NOUS ALLONS NOUS APPUYER */}
+          {/* VOS FORCES DÉJÀ PRÉSENTES */}
           {atouts.length > 0 && (
             <div className="p-4 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] avoid-break">
               <h3 className="text-xs font-bold text-[#166534] uppercase tracking-wider mb-2 flex items-center gap-2">
-                <span className="text-emerald-600 font-bold">✓</span> Vos forces & vos points d'appui déjà en place
+                <span className="text-emerald-600 font-bold">✓</span> Vos forces & les atouts solides de votre commerce
               </h3>
               <ul className="space-y-1 text-xs text-[#14532D]">
                 {atouts.map((atout, i) => (
@@ -308,15 +335,15 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             </div>
           )}
 
-          {/* PLAN D'ACTION SIMPLE PAS À PAS (SUR 90 JOURS) */}
+          {/* PLAN D'ACTION SIMPLE ET RÉALISTE SUR 3 MOIS */}
           <div className="space-y-3 avoid-break">
             <div className="border-b border-[#E5E7EB] pb-2">
               <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full bg-[#00C2A8]" />
-                Votre feuille de route concrète pour les 90 prochains jours
+                Votre plan pas à pas pour les 3 prochains mois
               </h2>
               <p className="text-xs text-[#6B7280] mt-0.5">
-                Des étapes réalistes, simples à suivre même si vous avez peu de temps chaque semaine :
+                Des étapes claires, faisables même si vos journées sont très chargées :
               </p>
             </div>
 
@@ -325,23 +352,23 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
               <div className="p-3.5 rounded-xl bg-[#FFF5F2] border border-[#EC663B]/30 flex flex-col justify-between">
                 <div>
                   <div className="text-[10px] font-bold text-[#EC663B] uppercase tracking-wider mb-1">
-                    Mois 1 (0 – 30 jours)
+                    Mois 1
                   </div>
                   <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
-                    Stopper les fuites d'argent
+                    Mettre de l'ordre dans la caisse
                   </h4>
                   <ul className="space-y-1.5 text-[#374151]">
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#EC663B] font-bold">1.</span>
-                      <span>Ouvrir une poche / compte dédié au commerce.</span>
+                      <span>Ouvrir une poche ou un compte séparé pour le commerce.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#EC663B] font-bold">2.</span>
-                      <span>Noter les ventes et dépenses chaque soir.</span>
+                      <span>Noter chaque soir les entrées et les sorties d'argent.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#EC663B] font-bold">3.</span>
-                      <span>Identifier les dépenses inutiles du mois.</span>
+                      <span>Identifier les dépenses inutiles qui font fuiter vos bénéfices.</span>
                     </li>
                   </ul>
                 </div>
@@ -351,23 +378,23 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
               <div className="p-3.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 flex flex-col justify-between">
                 <div>
                   <div className="text-[10px] font-bold text-[#B45309] uppercase tracking-wider mb-1">
-                    Mois 2 (30 – 60 jours)
+                    Mois 2
                   </div>
                   <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
-                    Sécuriser vos relations
+                    Sécuriser ses clients et ses papiers
                   </h4>
                   <ul className="space-y-1.5 text-[#374151]">
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#B45309] font-bold">1.</span>
-                      <span>Mettre par écrit les accords avec les clients.</span>
+                      <span>Donner des reçus écrits pour ne plus avoir d'impayés.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#B45309] font-bold">2.</span>
-                      <span>Lancer les démarches simples de régularisation.</span>
+                      <span>Lancer les démarches simples pour mettre en règle vos papiers.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#B45309] font-bold">3.</span>
-                      <span>Relancer poliment les anciens clients fidèles.</span>
+                      <span>Relancer poliment les anciens clients pour faire de nouvelles ventes.</span>
                     </li>
                   </ul>
                 </div>
@@ -377,23 +404,23 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
               <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#10B981]/30 flex flex-col justify-between">
                 <div>
                   <div className="text-[10px] font-bold text-[#047857] uppercase tracking-wider mb-1">
-                    Mois 3 (60 – 90 jours)
+                    Mois 3
                   </div>
                   <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
-                    Préparer l'expansion & le crédit
+                    Faire grandir son commerce
                   </h4>
                   <ul className="space-y-1.5 text-[#374151]">
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#047857] font-bold">1.</span>
-                      <span>Calculer votre vrai bénéfice net mensuel.</span>
+                      <span>Calculer son vrai bénéfice net à la fin du mois.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#047857] font-bold">2.</span>
-                      <span>Constituer un historique propre de trésorerie.</span>
+                      <span>Avoir un carnet de caisse propre pour rassurer les partenaires.</span>
                     </li>
                     <li className="flex items-start gap-1.5">
                       <span className="text-[#047857] font-bold">3.</span>
-                      <span>Préparer une demande de financement crédible.</span>
+                      <span>Réinvestir dans les produits qui se vendent le plus vite.</span>
                     </li>
                   </ul>
                 </div>
@@ -401,14 +428,14 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             </div>
           </div>
 
-          {/* CONTACT & REJOINDRE LA COMMUNAUTÉ */}
+          {/* CONTACT & COMMUNAUTÉ ALODO */}
           <div className="p-4 rounded-xl bg-[#FAFAFA] border border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs avoid-break">
             <div>
               <strong className="text-sm font-bold text-[#0A0A0A] block mb-0.5">
-                Besoin d'aide pour appliquer cette feuille de route ?
+                Besoin d'aide pour appliquer ce plan ?
               </strong>
               <p className="text-[#4B5563]">
-                Rejoignez le canal WhatsApp de la communauté ALODO MPME pour poser vos questions aux conseillers.
+                Rejoignez le groupe WhatsApp ALODO pour poser vos questions à tout moment.
               </p>
             </div>
 
@@ -418,19 +445,19 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
               rel="noopener noreferrer"
               className="px-4 py-2 rounded-xl bg-[#25D366] text-white font-bold text-xs inline-flex items-center gap-2 shrink-0 hover:opacity-90 transition-all shadow-xs"
             >
-              <span>Canal WhatsApp Officiel</span>
+              <span>Canal WhatsApp Direct</span>
               <span>→</span>
             </a>
           </div>
 
-          {/* PIED DE PAGE PROPRE */}
+          {/* PIED DE PAGE DISCRET */}
           <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between text-[10px] text-[#9CA3AF] avoid-break">
             <div>
-              <strong>ALODO TECH SARL</strong> · République du Bénin · partnership@alodotech.com
-              <div className="text-[9px] mt-0.5">Document confidentiel réservé au dirigeant de l'entreprise accompagnée.</div>
+              <strong>ALODO TECH</strong> · République du Bénin · Accompagnement de terrain
+              <div className="text-[9px] mt-0.5">Ce document appartient au chef d'entreprise.</div>
             </div>
             <div className="font-semibold text-[#00C2A8]">
-              ALODO MPME — Bâtissons votre avenir pas à pas
+              ALODO MPME — Avançons ensemble, pas à pas
             </div>
           </div>
 

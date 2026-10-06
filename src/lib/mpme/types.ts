@@ -35,6 +35,7 @@ export interface Company {
   mainDifficulties: string[];
   singleBiggestProblem: string;
   motivation: string;
+  leaderAvailability?: string;
 }
 
 export interface Application {

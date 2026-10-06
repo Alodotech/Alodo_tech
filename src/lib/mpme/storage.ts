@@ -256,6 +256,18 @@ export const MpmeStorage = {
     return true;
   },
 
+  deleteInternalNote(appId: string, noteId: string): boolean {
+    const list = this.getApplications();
+    const target = list.find((a) => a.id === appId);
+    if (!target || !target.internalNotes) return false;
+
+    target.internalNotes = target.internalNotes.filter((n) => n.id !== noteId);
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEYS.APPLICATIONS, JSON.stringify(list));
+    }
+    return true;
+  },
+
   saveDiagnosticProgress(answers: DiagnosticAnswer[]) {
     if (typeof window !== "undefined") {
       localStorage.setItem(STORAGE_KEYS.CURRENT_DIAGNOSTIC, JSON.stringify(answers));
