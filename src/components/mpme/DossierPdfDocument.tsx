@@ -1,11 +1,13 @@
 "use client";
 
-import { Application, DiagnosticReport } from "@/lib/mpme/types";
+import { useEffect } from "react";
+import { Application, DiagnosticReport, DiagnosticAnswer } from "@/lib/mpme/types";
 import { MpmeStorage } from "@/lib/mpme/storage";
+import { DIMENSIONS, QUESTIONS_V1 } from "@/lib/mpme/questions";
 
 interface DossierPdfDocumentProps {
   application: Application | null;
-  report: DiagnosticReport | null;
+  report?: DiagnosticReport | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -16,11 +18,21 @@ export default function DossierPdfDocument({
   isOpen,
   onClose,
 }: DossierPdfDocumentProps) {
-  if (!isOpen) return null;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
 
-  const handlePrint = () => {
-    window.print();
-  };
+  if (!isOpen) return null;
 
   const comp = application?.company;
   const activeReport =
@@ -28,20 +40,70 @@ export default function DossierPdfDocument({
     application?.diagnosticReport ||
     (typeof window !== "undefined" ? MpmeStorage.getLatestReport() : null);
 
+  const answers: DiagnosticAnswer[] =
+    application?.diagnosticAnswers ||
+    (typeof window !== "undefined" ? (MpmeStorage.getDiagnosticProgress() || []) : []) ||
+    [];
+
   const today = new Date().toLocaleDateString("fr-FR", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
 
+  const handlePrint = () => {
+    const prevTitle = document.title;
+    const compName = comp?.name ? comp.name.replace(/[^a-zA-Z0-9_-]/g, "_") : "Entreprise";
+    document.title = `Rapport_Officiel_ALODO_MPME_${compName}`;
+    window.print();
+    setTimeout(() => {
+      document.title = prevTitle;
+    }, 1000);
+  };
+
+  // Helper to retrieve the selected answer text and score
+  const getAnswerDetail = (questionId: string) => {
+    const q = QUESTIONS_V1.find((item) => item.id === questionId);
+    if (!q) return null;
+
+    const answered = answers.find((a) => a.questionId === questionId);
+    if (!answered || answered.value === undefined || answered.value === null) {
+      return {
+        question: q,
+        answeredText: "Non renseigné",
+        score: null,
+      };
+    }
+
+    const opt = q.options?.find((o) => o.value === String(answered.value));
+    return {
+      question: q,
+      answeredText: opt ? opt.label : String(answered.value),
+      score: opt ? opt.score : null,
+    };
+  };
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full my-8 overflow-hidden flex flex-col border border-[#EBEBEB]">
-        {/* Floating Topbar (Screen only) */}
-        <div className="p-4 bg-slate-900 text-white flex items-center justify-between print:hidden">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold">Dossier Officiel ALODO MPME & Diagnostic</span>
-            <span className="text-xs text-slate-400">• Format A4 certifié</span>
+    <div
+      className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-md overflow-y-auto p-2 sm:p-6 print:static print:inset-auto print:bg-white print:p-0 print:m-0 print:overflow-visible print:w-full print:block"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-2xl border border-[#EBEBEB] overflow-hidden my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:rounded-none print:max-w-none print:w-full">
+        
+        {/* Floating Topbar (Screen only - Sticky at top) */}
+        <div className="sticky top-0 z-50 p-4 bg-[#0A0A0A] text-white flex items-center justify-between border-b border-white/10 shadow-lg print:hidden shrink-0">
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo/logo.png"
+              alt="ALODO TECH"
+              style={{ height: "28px", width: "auto", filter: "brightness(0) invert(1)" }}
+            />
+            <div>
+              <span className="text-sm font-bold block">Dossier Officiel ALODO MPME & Audit Détaillé</span>
+              <span className="text-xs text-slate-300">Rapport complet avec les 20 réponses certifiées • Format A4</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -58,9 +120,10 @@ export default function DossierPdfDocument({
             </button>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-slate-800 text-slate-300 hover:text-white flex items-center justify-center text-xs"
+              className="px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+              title="Fermer (Échap)"
             >
-              ✕
+              <span>✕ Fermer</span>
             </button>
           </div>
         </div>
@@ -68,30 +131,29 @@ export default function DossierPdfDocument({
         {/* Printable Document Body */}
         <div
           id="printable-dossier"
-          className="p-8 sm:p-12 text-[#0A0A0A] bg-white font-sans space-y-8"
-          style={{ minHeight: "297mm" }}
+          className="p-8 sm:p-12 text-[#0A0A0A] bg-white font-sans space-y-8 print:p-6 print:space-y-6"
         >
           {/* Header Document */}
-          <div className="flex items-start justify-between border-b-2 border-[#0A0A0A] pb-6">
+          <div className="flex items-start justify-between border-b-2 border-[#0A0A0A] pb-6 avoid-break">
             <div className="flex items-center gap-3">
               <img
                 src="/logo/logo.png"
                 alt="ALODO TECH"
-                style={{ height: "36px", width: "auto" }}
+                style={{ height: "38px", width: "auto" }}
               />
               <div>
-                <div className="font-tech font-extrabold text-lg tracking-wider text-[#0A0A0A]">
+                <div className="font-tech font-extrabold text-xl tracking-wider text-[#0A0A0A]">
                   <span className="text-[#EC663B]">ALODO</span> TECH
                 </div>
                 <div className="text-[11px] font-bold text-[#6E6E73] uppercase tracking-widest">
-                  Programme National MPME V1 · Bénin
+                  Programme National MPME V1 · République du Bénin
                 </div>
               </div>
             </div>
 
             <div className="text-right">
-              <span className="text-[10px] font-mono bg-[#FAFAFA] border border-[#EBEBEB] px-3 py-1 rounded-full text-[#3A3A3C] font-bold block mb-1">
-                DOSSIER OFFICIEL COHORTE 1
+              <span className="text-[10px] font-mono bg-[#FAFAFA] border border-[#EBEBEB] px-3 py-1 rounded-full text-[#3A3A3C] font-bold inline-block mb-1">
+                DOSSIER OFFICIEL D'AUDIT 2026
               </span>
               <div className="text-xs text-[#6E6E73]">Émis le {today}</div>
               <div className="text-[11px] font-mono text-[#8E8E93]">
@@ -101,10 +163,10 @@ export default function DossierPdfDocument({
           </div>
 
           {/* Title banner */}
-          <div className="p-6 rounded-2xl bg-[#FFF5F2] border border-[#EC663B]/30 flex items-center justify-between">
+          <div className="p-6 rounded-2xl bg-[#FFF5F2] border border-[#EC663B]/30 flex items-center justify-between avoid-break">
             <div>
               <span className="text-xs font-bold text-[#EC663B] uppercase tracking-wider block mb-1">
-                Dossier de Synthèse Dirigeant
+                Dossier de Synthèse & Audit Exécutif
               </span>
               <h1 className="text-2xl font-extrabold text-[#0A0A0A]">
                 {comp?.name || "BioAgro Bénin"}
@@ -115,7 +177,7 @@ export default function DossierPdfDocument({
             </div>
 
             <div className="text-right">
-              <span className="text-xs font-semibold text-[#8E8E93] block">Statut Cohorte</span>
+              <span className="text-xs font-semibold text-[#8E8E93] block">Statut Candidature</span>
               <span className="text-sm font-extrabold text-[#EC663B] block">
                 {application?.status === "selected"
                   ? "Retenu dans le Top 20"
@@ -125,12 +187,12 @@ export default function DossierPdfDocument({
           </div>
 
           {/* SECTION 1 : CANDIDATURE COMPLETE */}
-          <div>
+          <div className="avoid-break">
             <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider mb-3 pb-1 border-b border-[#EBEBEB] flex items-center gap-2">
               <span className="text-[#EC663B]">1.</span> Fiche d'Identité & Profil Opérationnel
             </h2>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-3">
               <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] text-[#8E8E93] block">Ville d'implantation</span>
                 <span className="font-bold text-[#0A0A0A] mt-0.5 block">{comp?.city || "Cotonou"}</span>
@@ -139,7 +201,7 @@ export default function DossierPdfDocument({
               <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] text-[#8E8E93] block">Secteur d'activité</span>
                 <span className="font-bold text-[#0A0A0A] mt-0.5 block truncate">
-                  {comp?.sector || "Agriculture & Agroalimentaire"}
+                  {comp?.sector || "Commerce / Agro"}
                 </span>
               </div>
 
@@ -150,49 +212,49 @@ export default function DossierPdfDocument({
 
               <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] text-[#8E8E93] block">Effectif déclaré</span>
-                <span className="font-bold text-[#0A0A0A] mt-0.5 block">{comp?.employeesCount || "6 à 10"}</span>
+                <span className="font-bold text-[#0A0A0A] mt-0.5 block">{comp?.employeesCount || "3 à 5 personnes"}</span>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs mb-3">
               <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] text-[#8E8E93] block">Chiffre d'affaires mensuel</span>
                 <span className="font-bold text-[#0A0A0A] mt-0.5 block">
-                  {comp?.monthlyRevenue || "5M - 15M FCFA"}
+                  {comp?.monthlyRevenue || "Non précisé"}
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] text-[#8E8E93] block">Enregistrement RCCM / IFU</span>
-                <span className="font-bold text-emerald-700 mt-0.5 block">
+                <span className={`font-bold mt-0.5 block ${comp?.isFormalized ? "text-emerald-700" : "text-amber-700"}`}>
                   {comp?.isFormalized ? "✓ Oui (Formel)" : "Non / En cours"}
                 </span>
               </div>
 
               <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] text-[#8E8E93] block">Compte bancaire pro dédié</span>
-                <span className="font-bold text-emerald-700 mt-0.5 block">
+                <span className={`font-bold mt-0.5 block ${comp?.hasProBankAccount ? "text-emerald-700" : "text-amber-700"}`}>
                   {comp?.hasProBankAccount ? "✓ Oui" : "Non"}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+            <div className="space-y-2 text-xs">
+              <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] font-bold text-[#EC663B] uppercase tracking-wider block mb-1">
                   Problème prioritaire n°1 à résoudre dans les 3 mois :
                 </span>
                 <p className="text-xs text-[#0A0A0A] font-medium italic">
-                  "{comp?.singleBiggestProblem || "Structurer notre trésorerie pour faire face aux pics d'activité."}"
+                  "{comp?.singleBiggestProblem || "Développement commercial et accès aux facilités de crédit."}"
                 </p>
               </div>
 
-              <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
+              <div className="p-3 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB]">
                 <span className="text-[10px] font-bold text-[#3A3A3C] uppercase tracking-wider block mb-1">
                   Motivation pour rejoindre le Programme ALODO MPME :
                 </span>
                 <p className="text-xs text-[#6E6E73] leading-relaxed">
-                  {comp?.motivation || "Structurer nos opérations et préparer un dossier bancaire conforme pour accéder au crédit."}
+                  {comp?.motivation || "Structurer la gestion financière et opérationnelle pour accélérer la croissance."}
                 </p>
               </div>
             </div>
@@ -200,18 +262,18 @@ export default function DossierPdfDocument({
 
           {/* SECTION 2 : BILAN DU DIAGNOSTIC DE MATURITÉ */}
           {activeReport && (
-            <div>
+            <div className="avoid-break">
               <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider mb-3 pb-1 border-b border-[#EBEBEB] flex items-center gap-2">
-                <span className="text-[#EC663B]">2.</span> Bilan du Diagnostic de Maturité (Dimensions Clés)
+                <span className="text-[#EC663B]">2.</span> Synthèse Globale du Diagnostic & Finançabilité
               </h2>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 <div className="p-4 rounded-xl bg-gradient-to-br from-[#FFF5F2] to-white border border-[#EC663B]/30 text-center">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#EC663B] block">
                     Score Global de Maturité
                   </span>
                   <div className="text-4xl font-extrabold text-[#0A0A0A] my-1">
-                    {application?.diagnosticScore || activeReport.globalScore}
+                    {application?.diagnosticScore ?? activeReport.globalScore}
                     <span className="text-base font-normal text-[#8E8E93]">/100</span>
                   </div>
                   <span className="text-[11px] font-bold text-[#EC663B] block">
@@ -234,7 +296,7 @@ export default function DossierPdfDocument({
 
                 <div className="p-4 rounded-xl bg-white border border-[#EBEBEB]">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A3A3C] block mb-1">
-                    Orientation Stratégique
+                    Orientation Stratégique ALODO
                   </span>
                   <p className="text-xs font-bold text-[#0A0A0A] leading-tight">
                     {activeReport.alodoRecommendation}
@@ -242,17 +304,17 @@ export default function DossierPdfDocument({
                 </div>
               </div>
 
-              {/* 8 Dimensions Table */}
+              {/* 9 Dimensions Table */}
               <div className="border border-[#EBEBEB] rounded-xl overflow-hidden mb-4">
-                <div className="grid grid-cols-4 bg-[#FAFAFA] p-2 text-[10px] font-bold text-[#8E8E93] border-b border-[#EBEBEB]">
-                  <span className="col-span-2">Dimension Stratégique</span>
+                <div className="grid grid-cols-4 bg-[#FAFAFA] p-2.5 text-[10px] font-bold text-[#8E8E93] border-b border-[#EBEBEB]">
+                  <span className="col-span-2">Dimension Stratégique (9 Piliers)</span>
                   <span>Pondération</span>
                   <span>Score Obtenu</span>
                 </div>
                 {activeReport.dimensionScores.map((ds) => (
                   <div
                     key={ds.dimensionId}
-                    className="grid grid-cols-4 p-2 text-xs border-b border-[#F2F2F2] last:border-b-0 items-center"
+                    className="grid grid-cols-4 p-2.5 text-xs border-b border-[#F2F2F2] last:border-b-0 items-center"
                   >
                     <span className="col-span-2 font-medium text-[#0A0A0A]">{ds.title}</span>
                     <span className="text-[#6E6E73]">{ds.weight}%</span>
@@ -264,7 +326,7 @@ export default function DossierPdfDocument({
               </div>
 
               {/* Forces & Risques */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs mb-3">
                 <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block mb-2">
                     Points Forts Identifiés
@@ -296,7 +358,7 @@ export default function DossierPdfDocument({
 
           {/* SECTION 3 : FEUILLE DE ROUTE RECOMMANDÉE */}
           {activeReport && (
-            <div>
+            <div className="avoid-break">
               <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider mb-3 pb-1 border-b border-[#EBEBEB] flex items-center gap-2">
                 <span className="text-[#EC663B]">3.</span> Feuille de Route Opérationnelle 90 Jours
               </h2>
@@ -344,8 +406,116 @@ export default function DossierPdfDocument({
             </div>
           )}
 
+          {/* SECTION 4 : AUDIT DÉTAILLÉ DES 20 RÉPONSES INDIVIDUELLES */}
+          <div className="page-break-before pt-2">
+            <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider mb-3 pb-1 border-b border-[#EBEBEB] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[#EC663B]">4.</span> Audit Détaillé : Réponses aux 20 Questions Clés
+              </div>
+              <span className="text-[10px] font-bold text-[#6E6E73] bg-[#FAFAFA] px-2.5 py-0.5 rounded-full border border-[#EBEBEB]">
+                20 questions auditées
+              </span>
+            </h2>
+            <p className="text-xs text-[#6E6E73] mb-4">
+              Relevé officiel des déclarations fournies par le dirigeant d'entreprise lors du passage du diagnostic en ligne.
+            </p>
+
+            <div className="space-y-4">
+              {DIMENSIONS.map((dim, dimIdx) => {
+                const dimQuestions = QUESTIONS_V1.filter((q) => q.dimensionId === dim.id);
+                const dimScoreObj = activeReport?.dimensionScores.find((ds) => ds.dimensionId === dim.id);
+
+                return (
+                  <div
+                    key={dim.id}
+                    className="border border-[#EBEBEB] rounded-2xl p-4 bg-white avoid-break shadow-none"
+                  >
+                    {/* Dimension Header */}
+                    <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#F2F2F2]">
+                      <div className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[11px] font-bold flex items-center justify-center font-mono">
+                          {dimIdx + 1}
+                        </span>
+                        <h3 className="text-xs font-extrabold text-[#0A0A0A] uppercase tracking-wider">
+                          {dim.title}
+                        </h3>
+                        <span className="text-[10px] text-[#8E8E93]">({dim.weight}% du score)</span>
+                      </div>
+
+                      {dimScoreObj && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[#6E6E73]">{dimScoreObj.level}</span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              dimScoreObj.score >= 75
+                                ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                : dimScoreObj.score >= 50
+                                ? "bg-amber-50 text-amber-800 border border-amber-200"
+                                : "bg-rose-50 text-rose-800 border border-rose-200"
+                            }`}
+                          >
+                            {dimScoreObj.score}/100
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Questions in Dimension */}
+                    <div className="space-y-2.5">
+                      {dimQuestions.map((q, qIdx) => {
+                        const answerInfo = getAnswerDetail(q.id);
+                        const hasScore = typeof answerInfo?.score === "number";
+                        const score = answerInfo?.score ?? 0;
+
+                        return (
+                          <div
+                            key={q.id}
+                            className="p-2.5 rounded-xl bg-[#FAFAFA] border border-[#F2F2F2] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+                          >
+                            <div className="flex-1 pr-2">
+                              <div className="flex items-center gap-2 text-[10px] text-[#8E8E93] mb-0.5">
+                                <span className="font-mono font-bold text-[#3A3A3C]">Q{dimIdx + 1}.{qIdx + 1}</span>
+                                <span>•</span>
+                                <span>{q.subDimension}</span>
+                              </div>
+                              <p className="font-semibold text-[#0A0A0A] leading-snug">
+                                {q.text}
+                              </p>
+                              <div className="mt-1 flex items-center gap-1.5 text-xs text-[#3A3A3C]">
+                                <span className="text-[#EC663B] font-bold">↳ Réponse :</span>
+                                <span className="font-medium text-[#111827]">
+                                  {answerInfo?.answeredText || "Non renseigné"}
+                                </span>
+                              </div>
+                            </div>
+
+                            {hasScore && (
+                              <div className="shrink-0 self-start sm:self-center">
+                                <span
+                                  className={`px-2.5 py-1 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${
+                                    score >= 75
+                                      ? "bg-emerald-100/70 text-emerald-800"
+                                      : score >= 50
+                                      ? "bg-amber-100/70 text-amber-800"
+                                      : "bg-rose-100/70 text-rose-800"
+                                  }`}
+                                >
+                                  {score >= 75 ? "✓" : score >= 50 ? "•" : "!"} Note : {score}/100
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Footer Official Seal */}
-          <div className="pt-6 border-t-2 border-[#EBEBEB] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8E8E93] gap-4">
+          <div className="pt-6 border-t-2 border-[#EBEBEB] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8E8E93] gap-4 avoid-break">
             <div>
               <strong>ALODO TECH SARL</strong> · Cotonou, République du Bénin · contact@alodo.tech
               <div className="text-[10px] mt-0.5">
@@ -361,30 +531,6 @@ export default function DossierPdfDocument({
           </div>
         </div>
       </div>
-
-      {/* PRINT CSS STYLES FOR FLAWLESS A4 PDF EXPORT */}
-      <style jsx global>{`
-        @media print {
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-          body {
-            background: white !important;
-          }
-          .print\\:hidden {
-            display: none !important;
-          }
-          #printable-dossier {
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            box-shadow: none !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -48,6 +48,7 @@ export interface Application {
   diagnosticScore?: number;
   diagnosticLevel?: string;
   diagnosticReport?: DiagnosticReport;
+  diagnosticAnswers?: DiagnosticAnswer[];
 }
 
 export interface Cohort {

@@ -1,6 +1,7 @@
 "use client";
 
-import { Application, DiagnosticReport } from "@/lib/mpme/types";
+import { useEffect } from "react";
+import { Application, DiagnosticReport, DiagnosticAnswer } from "@/lib/mpme/types";
 import { MpmeStorage } from "@/lib/mpme/storage";
 
 interface RapportMpmePdfProps {
@@ -9,72 +10,99 @@ interface RapportMpmePdfProps {
   onClose: () => void;
 }
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Helpers pour traduire les réponses en langage humain de terrain ───────────
 
-function niveauClair(level: string): string {
-  switch (level) {
-    case "Très faible":       return "Entreprise en démarrage — beaucoup de structuration à faire";
-    case "Fragile":           return "Bases fragiles — des points essentiels restent à consolider";
-    case "En développement":  return "En bonne progression — quelques lacunes importantes à corriger";
-    case "Structuré":         return "Bien organisée — l'entreprise est prête à se développer";
-    case "Très structuré":    return "Excellente organisation — entreprise mature et solide";
-    default:                  return level;
+function getTerrainDiagnostique(application: Application, report: DiagnosticReport | null) {
+  const comp = application.company;
+  const answers: DiagnosticAnswer[] = application.diagnosticAnswers || [];
+
+  const defis: { titre: string; constat: string; solution: string }[] = [];
+  const atouts: string[] = [];
+
+  // 1. Trésorerie & Compte bancaire
+  if (!comp?.hasProBankAccount) {
+    defis.push({
+      titre: "Séparation argent personnel & argent du commerce",
+      constat: "Vos recettes professionnelles et vos dépenses familiales se mélangent encore (comptes personnels ou Mobile Money privé).",
+      solution: "Créer une poche ou un compte séparé dès le 1er mois pour savoir enfin exactement ce que votre commerce génère chaque soir.",
+    });
+  } else {
+    atouts.push("Vous avez déjà pris le bon réflexe de séparer vos finances personnelles de celles de l'entreprise.");
   }
+
+  // 2. Formalisation légale
+  if (!comp?.isFormalized) {
+    defis.push({
+      titre: "Reconnaissance administrative (RCCM / IFU)",
+      constat: "Votre activité n'est pas encore enregistrée officiellement auprès des institutions.",
+      solution: "Pas de panique : ALODO vous aide à régulariser vos papiers pas à pas sans démarches compliquées, afin de vous protéger et d'accéder aux marchés officiels.",
+    });
+  } else {
+    atouts.push("Votre entreprise est formellement enregistrée (IFU / RCCM), une base précieuse pour grandir.");
+  }
+
+  // 3. Suivi quotidien des chiffres
+  const fin1 = answers.find((a) => a.questionId === "fin_1")?.value;
+  if (fin1 === "none" || fin1 === "when_tight" || !fin1) {
+    defis.push({
+      titre: "Visibilité sur les entrées et sorties d'argent",
+      constat: "Vous gérez la trésorerie 'à vue' ou seulement quand il y a une urgence, ce qui crée du stress à chaque fin de mois.",
+      solution: "Mettre en place la règle des 5 minutes par jour : un cahier de caisse ou un outil simple pour noter chaque vente et chaque dépense.",
+    });
+  } else {
+    atouts.push("Vous avez l'habitude de suivre vos mouvements d'argent régulièrement.");
+  }
+
+  // 4. Accords et contrats
+  const form3 = answers.find((a) => a.questionId === "form_3")?.value;
+  if (form3 === "mostly_verbal" || form3 === "some_verbal") {
+    defis.push({
+      titre: "Accords oraux avec les clients et fournisseurs",
+      constat: "La majorité de vos ententes reposent sur la parole, ce qui vous expose à des impayés et des désaccords non protégés.",
+      solution: "Sécuriser vos relations avec des bons de commande, reçus et accords simples écrits pour ne plus perdre d'argent.",
+    });
+  }
+
+  // 5. Utilisation du numérique
+  const digi1 = answers.find((a) => a.questionId === "digi_1")?.value;
+  if (digi1 === "paper_only" || digi1 === "basic_whatsapp" || !digi1) {
+    defis.push({
+      titre: "Modernisation des outils de vente",
+      constat: "Vos opérations reposent encore beaucoup sur le papier et la mémoire, sans archivage numérique sécurisé.",
+      solution: "Adopter des outils simples sur votre téléphone (WhatsApp Business, catalogue numérique, facturation mobile) pour gagner du temps.",
+    });
+  }
+
+  // 6. Problème déclaré par le dirigeant
+  const mainProblem = comp?.singleBiggestProblem;
+
+  // Atouts complémentaires tirés du rapport si disponibles
+  if (report?.strengths && report.strengths.length > 0) {
+    report.strengths.slice(0, 2).forEach((s) => {
+      const clean = s.replace(/\s*\(Score:\s*[\d/]+\)/gi, "").replace(/\/100/g, "").replace(/\s*—\s*Base solide.*/gi, "").trim();
+      if (clean && !atouts.includes(clean)) atouts.push(clean);
+    });
+  }
+
+  return { defis, atouts, mainProblem };
 }
-
-function bgScore(score: number): string {
-  if (score >= 75) return "#D1FAE5";
-  if (score >= 50) return "#FEF9C3";
-  return "#FEE2E2";
-}
-
-function txScore(score: number): string {
-  if (score >= 75) return "#065F46";
-  if (score >= 50) return "#92400E";
-  return "#991B1B";
-}
-
-const DIMENSION_LABELS: Record<string, string> = {
-  formalisation:  "Enregistrement légal (RCCM, IFU…)",
-  finance:        "Santé financière & accès au financement",
-  comptabilite:   "Comptabilité & gestion de trésorerie",
-  fiscalite:      "Respect des obligations fiscales",
-  commercial:     "Activité commerciale & clientèle",
-  digitalisation: "Utilisation des outils numériques",
-  operations:     "Organisation interne & processus",
-  rh:             "Gestion de l'équipe & des ressources humaines",
-  financabilite:  "Bancarisation & crédit",
-};
-
-// Styles de base
-const BODY_FONT  = "'Poppins', 'Segoe UI', sans-serif";
-const TITLE_FONT = "'Oswald', 'Arial Narrow', sans-serif";
-
-// Titre de section réutilisable
-function SectionTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{
-      fontFamily: TITLE_FONT,
-      fontSize: "14px",
-      fontWeight: 700,
-      color: "#0A0A0A",
-      textTransform: "uppercase" as const,
-      letterSpacing: "0.08em",
-      borderBottom: "2px solid #E5E7EB",
-      paddingBottom: "6px",
-      marginBottom: "14px",
-    }}>
-      {children}
-    </div>
-  );
-}
-
-// ── Composant principal ───────────────────────────────────────────────────────
 
 export default function RapportMpmePdf({ application, isOpen, onClose }: RapportMpmePdfProps) {
-  if (!isOpen || !application) return null;
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen, onClose]);
 
-  const handlePrint = () => window.print();
+  if (!isOpen || !application) return null;
 
   const comp = application.company;
   const report: DiagnosticReport | null =
@@ -82,23 +110,43 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
     (typeof window !== "undefined" ? MpmeStorage.getLatestReport() : null);
 
   const today = new Date().toLocaleDateString("fr-FR", {
-    year: "numeric", month: "long", day: "numeric",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
 
-  const score = application.diagnosticScore ?? report?.globalScore ?? null;
-  const level = application.diagnosticLevel ?? report?.level ?? null;
+  const handlePrint = () => {
+    const prevTitle = document.title;
+    const compName = comp?.name ? comp.name.replace(/[^a-zA-Z0-9_-]/g, "_") : "Entreprise";
+    document.title = `Feuille_De_Route_MPME_${compName}`;
+    window.print();
+    setTimeout(() => {
+      document.title = prevTitle;
+    }, 1000);
+  };
+
+  const { defis, atouts, mainProblem } = getTerrainDiagnostique(application, report);
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-2 sm:p-4 bg-black/70 backdrop-blur-md overflow-y-auto">
-      <div className="bg-white rounded-3xl shadow-2xl max-w-3xl w-full my-8 overflow-hidden flex flex-col border border-[#EBEBEB]">
-
-        {/* ── Barre de contrôle (cachée à l'impression) ── */}
-        <div className="p-4 bg-[#0d2a1e] text-white flex items-center justify-between print:hidden shrink-0">
+    <div
+      className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-md overflow-y-auto p-2 sm:p-6 print:static print:inset-auto print:bg-white print:p-0 print:m-0 print:overflow-visible print:w-full print:block"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl border border-[#EBEBEB] overflow-hidden my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:rounded-none print:max-w-none print:w-full">
+        
+        {/* ── Barre d'action supérieure TOUJOURS VISIBLE (Sticky) ── */}
+        <div className="sticky top-0 z-50 p-4 bg-[#0A0A0A] text-white flex items-center justify-between border-b border-white/10 shadow-lg print:hidden shrink-0">
           <div className="flex items-center gap-3">
-            <img src="/logo/logo.png" alt="ALODO TECH" style={{ height: "28px", width: "auto", filter: "brightness(0) invert(1)" }} />
+            <img
+              src="/logo/logo.png"
+              alt="ALODO TECH"
+              style={{ height: "28px", width: "auto", filter: "brightness(0) invert(1)" }}
+            />
             <div>
-              <span className="text-sm font-bold block">Rapport MPME — Version Simplifiée</span>
-              <span className="text-xs text-slate-400">Destiné au dirigeant & partenaires</span>
+              <span className="text-sm font-bold block">Feuille de Route Dirigeant — Version Terrain</span>
+              <span className="text-xs text-emerald-400">100% pratique pour le chef d'entreprise • Format A4</span>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -115,300 +163,278 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             </button>
             <button
               onClick={onClose}
-              className="w-8 h-8 rounded-full bg-white/10 text-slate-300 hover:text-white flex items-center justify-center text-xs"
+              className="px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+              title="Fermer (Échap)"
             >
-              ✕
+              <span>✕ Fermer</span>
             </button>
           </div>
         </div>
 
-        {/* ── Corps du document imprimable ── */}
+        {/* ── Corps du document imprimable (A4) ── */}
         <div
           id="printable-rapport-mpme"
-          style={{ fontFamily: BODY_FONT, background: "#FFFFFF", color: "#1a1a1a", minHeight: "297mm" }}
+          className="p-8 sm:p-12 text-[#111827] bg-white font-sans space-y-6 print:p-6 print:space-y-5"
+          style={{ minHeight: "297mm" }}
         >
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
-            @media print {
-              @page { size: A4 portrait; margin: 10mm; }
-              .print\\:hidden { display: none !important; }
-              #printable-rapport-mpme { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            }
-          `}</style>
-
-          {/* ══ EN-TÊTE ══════════════════════════════════════════════════════ */}
-          <div style={{
-            background: "linear-gradient(135deg, #0A0A0A 0%, #1a3a2a 100%)",
-            padding: "28px 40px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "24px",
-          }}>
-            {/* Logo + identité */}
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-              <img
-                src="/logo/logo.png"
-                alt="ALODO TECH"
-                style={{ height: "48px", width: "auto", filter: "brightness(0) invert(1)" }}
-              />
+          {/* EN-TÊTE CHALEUREUX & INSTITUTIONNEL */}
+          <div className="flex items-center justify-between border-b-2 border-[#EC663B] pb-5 avoid-break">
+            <div className="flex items-center gap-3">
+              <img src="/logo/logo.png" alt="ALODO TECH" style={{ height: "42px", width: "auto" }} />
               <div>
-                <div style={{
-                  fontFamily: TITLE_FONT,
-                  fontSize: "22px",
-                  fontWeight: 700,
-                  color: "#FFFFFF",
-                  letterSpacing: "0.06em",
-                  lineHeight: 1.1,
-                }}>
-                  <span style={{ color: "#EC663B" }}>ALODO</span> TECH
+                <div className="text-xl font-bold tracking-tight text-[#0A0A0A]">
+                  <span className="text-[#EC663B]">ALODO</span> TECH
                 </div>
-                <div style={{ fontSize: "11px", color: "#A7F3D0", fontWeight: 500, letterSpacing: "0.05em", marginTop: "3px" }}>
-                  Programme National MPME · République du Bénin
+                <div className="text-xs font-semibold text-[#00C2A8] tracking-wider uppercase">
+                  Programme National d'Accompagnement MPME
                 </div>
               </div>
             </div>
 
-            {/* Titre du document */}
-            <div style={{ textAlign: "right" }}>
-              <div style={{
-                fontFamily: TITLE_FONT,
-                fontSize: "16px",
-                fontWeight: 700,
-                color: "#FFFFFF",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-              }}>
-                Rapport de Suivi MPME
-              </div>
-              <div style={{ fontSize: "12px", color: "#6EE7B7", marginTop: "4px" }}>Émis le {today}</div>
-              <div style={{ fontSize: "10px", color: "#9CA3AF", marginTop: "2px" }}>
-                Réf : {application.id}
-              </div>
+            <div className="text-right">
+              <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-[#FFF5F2] text-[#EC663B] border border-[#EC663B]/20 inline-block mb-1">
+                BILAN DE SITUATION & FEUILLE DE ROUTE
+              </span>
+              <div className="text-xs text-[#6B7280]">Émis le {today}</div>
             </div>
           </div>
 
-          {/* Bandeau orange "Entreprise" */}
-          <div style={{
-            background: "#EC663B",
-            padding: "14px 40px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "16px",
-          }}>
+          {/* FICHE DU DIRIGEANT & DE L'ENTREPRISE */}
+          <div className="p-5 rounded-2xl bg-[#FAFAFA] border border-[#E5E7EB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 avoid-break">
             <div>
-              <div style={{ fontFamily: TITLE_FONT, fontSize: "20px", fontWeight: 700, color: "#FFFFFF", letterSpacing: "0.04em" }}>
-                {comp?.name || "—"}
-              </div>
-              <div style={{ fontSize: "12px", color: "#FFE4D9", marginTop: "2px" }}>
-                Dirigeant(e) : <strong style={{ color: "#FFFFFF" }}>{comp?.leaderName || "—"}</strong>
+              <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider block mb-0.5">
+                Entreprise accompagnée
+              </span>
+              <h1 className="text-2xl font-extrabold text-[#0A0A0A] leading-tight">
+                {comp?.name || "Votre Entreprise"}
+              </h1>
+              <p className="text-xs text-[#4B5563] mt-1">
+                Dirigeant(e) : <strong>{comp?.leaderName || "Chère Dirigeante / Cher Dirigeant"}</strong>
                 {comp?.city ? ` · ${comp.city}` : ""}
                 {comp?.sector ? ` · ${comp.sector}` : ""}
-              </div>
+              </p>
             </div>
-            <div style={{
-              background: "rgba(255,255,255,0.15)",
-              borderRadius: "10px",
-              padding: "8px 14px",
-              textAlign: "center",
-              flexShrink: 0,
-            }}>
-              <div style={{ fontFamily: TITLE_FONT, fontSize: "11px", color: "#FFE4D9", letterSpacing: "0.06em", textTransform: "uppercase" }}>Statut</div>
-              <div style={{ fontSize: "13px", fontWeight: 700, color: "#FFFFFF", marginTop: "2px" }}>
-                {application.status === "selected" ? "Retenu — Top 20" : "Candidature déposée"}
+
+            <div className="bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-center shrink-0 shadow-xs">
+              <span className="text-[10px] font-bold text-[#6B7280] uppercase block">Engagement ALODO</span>
+              <span className="text-sm font-extrabold text-[#00C2A8] block mt-0.5">
+                Accompagnement Sur Mesure
+              </span>
+            </div>
+          </div>
+
+          {/* MOT D'INTRODUCTION BIENVEILLANT ALODO */}
+          <div className="p-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-[#1E3A8A] leading-relaxed avoid-break">
+            <strong className="block text-sm font-bold text-[#1D4ED8] mb-1">
+              👋 Le message de l'équipe ALODO : Vous n'êtes plus seul(e)
+            </strong>
+            <p>
+              Merci d'avoir pris le temps de faire ce diagnostic en toute honnêteté. 
+              Le Programme ALODO MPME a été créé spécialement pour <strong>les entrepreneurs du terrain qui font face à de vraies difficultés</strong> : 
+              argent mélangé, imprévus de caisse, manque de temps, documents administratifs en retard. 
+              Ce document n'est pas un examen ou une note d'école, mais un <strong>guide pratique</strong> pour régler vos blocages prioritaires, étape par étape.
+            </p>
+          </div>
+
+          {/* LE PROBLÈME MAJEUR QUE LE DIRIGEANT A PARTAGÉ */}
+          {mainProblem && (
+            <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] avoid-break">
+              <span className="text-[11px] font-bold text-[#B45309] uppercase tracking-wider block mb-1">
+                🎯 Ce qui vous empêche de dormir la nuit (votre priorité n°1 déclarée) :
+              </span>
+              <p className="text-sm font-bold text-[#92400E] italic">
+                "{mainProblem}"
+              </p>
+              <p className="text-[11px] text-[#B45309] mt-2">
+                → C'est exactement sur ce point que nos experts vont concentrer leurs premiers efforts avec vous.
+              </p>
+            </div>
+          )}
+
+          {/* VOS VRAIS DÉFIS ACTUELS (EN LANGAGE PARLÉ SANS SCORE) */}
+          <div className="space-y-3 avoid-break">
+            <div className="border-b border-[#E5E7EB] pb-2">
+              <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#EC663B]" />
+                Ce qui bloque aujourd'hui dans votre quotidien (et comment on le règle)
+              </h2>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Ces points sont tout à fait normaux pour une entreprise en croissance. Voici ce que nous allons corriger ensemble :
+              </p>
+            </div>
+
+            <div className="space-y-2.5">
+              {defis.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 rounded-xl bg-white border border-[#E5E7EB] shadow-xs text-xs space-y-1.5 avoid-break"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-[#FEE2E2] text-[#991B1B] text-[10px] font-bold flex items-center justify-center shrink-0">
+                      !
+                    </span>
+                    <h3 className="font-bold text-[#111827] text-xs">
+                      {item.titre}
+                    </h3>
+                  </div>
+
+                  <p className="text-[#4B5563] pl-7 leading-relaxed">
+                    <strong className="text-[#374151]">Le constat :</strong> {item.constat}
+                  </p>
+
+                  <div className="pl-7 pt-1 text-[#065F46] bg-[#ECFDF5] p-2 rounded-lg mt-1 flex items-start gap-1.5">
+                    <span className="font-bold shrink-0">💡 Solution ALODO :</span>
+                    <span>{item.solution}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* VOS FORCES SUR LESQUELLES NOUS ALLONS NOUS APPUYER */}
+          {atouts.length > 0 && (
+            <div className="p-4 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] avoid-break">
+              <h3 className="text-xs font-bold text-[#166534] uppercase tracking-wider mb-2 flex items-center gap-2">
+                <span className="text-emerald-600 font-bold">✓</span> Vos forces & vos points d'appui déjà en place
+              </h3>
+              <ul className="space-y-1 text-xs text-[#14532D]">
+                {atouts.map((atout, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <span className="text-emerald-600 font-bold">•</span>
+                    <span>{atout}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* PLAN D'ACTION SIMPLE PAS À PAS (SUR 90 JOURS) */}
+          <div className="space-y-3 avoid-break">
+            <div className="border-b border-[#E5E7EB] pb-2">
+              <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00C2A8]" />
+                Votre feuille de route concrète pour les 90 prochains jours
+              </h2>
+              <p className="text-xs text-[#6B7280] mt-0.5">
+                Des étapes réalistes, simples à suivre même si vous avez peu de temps chaque semaine :
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+              {/* MOIS 1 */}
+              <div className="p-3.5 rounded-xl bg-[#FFF5F2] border border-[#EC663B]/30 flex flex-col justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-[#EC663B] uppercase tracking-wider mb-1">
+                    Mois 1 (0 – 30 jours)
+                  </div>
+                  <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
+                    Stopper les fuites d'argent
+                  </h4>
+                  <ul className="space-y-1.5 text-[#374151]">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#EC663B] font-bold">1.</span>
+                      <span>Ouvrir une poche / compte dédié au commerce.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#EC663B] font-bold">2.</span>
+                      <span>Noter les ventes et dépenses chaque soir.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#EC663B] font-bold">3.</span>
+                      <span>Identifier les dépenses inutiles du mois.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* MOIS 2 */}
+              <div className="p-3.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 flex flex-col justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-[#B45309] uppercase tracking-wider mb-1">
+                    Mois 2 (30 – 60 jours)
+                  </div>
+                  <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
+                    Sécuriser vos relations
+                  </h4>
+                  <ul className="space-y-1.5 text-[#374151]">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#B45309] font-bold">1.</span>
+                      <span>Mettre par écrit les accords avec les clients.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#B45309] font-bold">2.</span>
+                      <span>Lancer les démarches simples de régularisation.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#B45309] font-bold">3.</span>
+                      <span>Relancer poliment les anciens clients fidèles.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* MOIS 3 */}
+              <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#10B981]/30 flex flex-col justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-[#047857] uppercase tracking-wider mb-1">
+                    Mois 3 (60 – 90 jours)
+                  </div>
+                  <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
+                    Préparer l'expansion & le crédit
+                  </h4>
+                  <ul className="space-y-1.5 text-[#374151]">
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#047857] font-bold">1.</span>
+                      <span>Calculer votre vrai bénéfice net mensuel.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#047857] font-bold">2.</span>
+                      <span>Constituer un historique propre de trésorerie.</span>
+                    </li>
+                    <li className="flex items-start gap-1.5">
+                      <span className="text-[#047857] font-bold">3.</span>
+                      <span>Préparer une demande de financement crédible.</span>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ── Contenu des sections ── */}
-          <div style={{ padding: "32px 40px", display: "flex", flexDirection: "column", gap: "28px" }}>
-
-            {/* ══ SCORE GLOBAL ══ */}
-            {score !== null && (
-              <div>
-                <SectionTitle>Résultat global du diagnostic</SectionTitle>
-                <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "stretch" }}>
-
-                  {/* Score */}
-                  <div style={{ background: bgScore(score), borderRadius: "14px", padding: "22px 28px", textAlign: "center", minWidth: "130px", flexShrink: 0 }}>
-                    <div style={{ fontFamily: TITLE_FONT, fontSize: "56px", fontWeight: 700, color: txScore(score), lineHeight: 1 }}>{score}</div>
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: txScore(score) }}>/ 100</div>
-                    <div style={{ fontSize: "10px", color: txScore(score), marginTop: "4px" }}>Score de maturité</div>
-                  </div>
-
-                  {/* Interprétation */}
-                  <div style={{ flex: 1, background: "#F9FAFB", borderRadius: "14px", padding: "18px 22px", minWidth: "200px" }}>
-                    <div style={{ fontFamily: TITLE_FONT, fontSize: "11px", fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>
-                      Ce que ça veut dire
-                    </div>
-                    <div style={{ fontSize: "14px", fontWeight: 600, color: "#0A0A0A", lineHeight: 1.5 }}>
-                      {level ? niveauClair(level) : "—"}
-                    </div>
-                    {report?.alodoRecommendation && (
-                      <div style={{ fontSize: "12px", color: "#374151", marginTop: "10px", lineHeight: 1.6, borderTop: "1px solid #E5E7EB", paddingTop: "8px" }}>
-                        <strong>Recommandation :</strong> {report.alodoRecommendation}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Crédit */}
-                  {report?.fundingReadiness && (
-                    <div style={{ background: "#EFF6FF", borderRadius: "14px", padding: "18px 22px", minWidth: "150px", flexShrink: 0 }}>
-                      <div style={{ fontFamily: TITLE_FONT, fontSize: "11px", fontWeight: 600, color: "#1D4ED8", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "6px" }}>
-                        Prêt pour un crédit ?
-                      </div>
-                      <div style={{ fontFamily: TITLE_FONT, fontSize: "40px", fontWeight: 700, color: "#1D4ED8", lineHeight: 1 }}>{report.fundingReadiness.score}</div>
-                      <div style={{ fontSize: "11px", color: "#3B82F6", fontWeight: 600 }}>/ 100</div>
-                      <div style={{ fontSize: "11px", color: "#374151", marginTop: "6px", lineHeight: 1.5 }}>
-                        {report.fundingReadiness.analysis}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* ══ TABLEAU DES DOMAINES ══ */}
-            {report?.dimensionScores && report.dimensionScores.length > 0 && (
-              <div>
-                <SectionTitle>Évaluation par domaine</SectionTitle>
-                <div style={{ fontSize: "12px", color: "#6B7280", marginBottom: "10px" }}>
-                  Chaque domaine est noté sur 100. En dessous de 50, c'est un point d'attention important.
-                </div>
-                <div style={{ borderRadius: "12px", overflow: "hidden", border: "1px solid #E5E7EB" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", background: "#F3F4F6", padding: "10px 14px" }}>
-                    {["Domaine", "Note /100", "Appréciation"].map((h) => (
-                      <span key={h} style={{ fontFamily: TITLE_FONT, fontSize: "10px", fontWeight: 600, color: "#6B7280", textTransform: "uppercase", letterSpacing: "0.06em", textAlign: h !== "Domaine" ? "center" : undefined }}>
-                        {h}
-                      </span>
-                    ))}
-                  </div>
-                  {report.dimensionScores.map((ds, i) => (
-                    <div key={ds.dimensionId} style={{ display: "grid", gridTemplateColumns: "1fr 80px 110px", padding: "10px 14px", fontSize: "12px", borderTop: "1px solid #F3F4F6", background: i % 2 === 0 ? "#FFFFFF" : "#FAFAFA", alignItems: "center" }}>
-                      <span style={{ fontWeight: 500, color: "#111827" }}>
-                        {DIMENSION_LABELS[ds.dimensionId] || ds.title}
-                      </span>
-                      <span style={{ textAlign: "center", fontFamily: TITLE_FONT, fontWeight: 700, fontSize: "16px", color: txScore(ds.score) }}>
-                        {ds.score}
-                      </span>
-                      <span style={{ display: "block", textAlign: "center", fontSize: "10px", fontFamily: TITLE_FONT, fontWeight: 600, padding: "3px 0", borderRadius: "99px", background: bgScore(ds.score), color: txScore(ds.score) }}>
-                        {ds.score >= 75 ? "Bon" : ds.score >= 50 ? "À améliorer" : "Insuffisant"}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ══ POINTS FORTS & RISQUES ══ */}
-            {report && (report.strengths?.length > 0 || report.topRisks?.length > 0) && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
-                {report.strengths?.length > 0 && (
-                  <div style={{ background: "#F0FDF4", borderRadius: "12px", padding: "16px 18px", border: "1px solid #BBF7D0" }}>
-                    <div style={{ fontFamily: TITLE_FONT, fontSize: "11px", fontWeight: 600, color: "#166534", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>
-                      Ce qui fonctionne bien
-                    </div>
-                    <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "6px" }}>
-                      {report.strengths.map((s, i) => (
-                        <li key={i} style={{ fontSize: "12px", color: "#14532D", display: "flex", gap: "6px", alignItems: "flex-start" }}>
-                          <span style={{ color: "#16A34A", fontWeight: 700, flexShrink: 0 }}>✓</span><span>{s}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {report.topRisks?.length > 0 && (
-                  <div style={{ background: "#FFF7ED", borderRadius: "12px", padding: "16px 18px", border: "1px solid #FED7AA" }}>
-                    <div style={{ fontFamily: TITLE_FONT, fontSize: "11px", fontWeight: 600, color: "#9A3412", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>
-                      Points à corriger en priorité
-                    </div>
-                    <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "6px" }}>
-                      {report.topRisks.map((r, i) => (
-                        <li key={i} style={{ fontSize: "12px", color: "#7C2D12", display: "flex", gap: "6px", alignItems: "flex-start" }}>
-                          <span style={{ color: "#EA580C", fontWeight: 700, flexShrink: 0 }}>!</span><span>{r}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ══ PLAN D'ACTION 90 JOURS ══ */}
-            {report?.actionPlan && (
-              <div>
-                <SectionTitle>Que faire dans les 90 prochains jours ?</SectionTitle>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-                  {[
-                    { label: "Mois 1  (0 – 30 j.)", items: report.actionPlan.days30, color: "#EC663B", bg: "#FFF5F2" },
-                    { label: "Mois 2  (30 – 60 j.)", items: report.actionPlan.days60, color: "#D97706", bg: "#FFFBEB" },
-                    { label: "Mois 3  (60 – 90 j.)", items: report.actionPlan.days90, color: "#10B981", bg: "#F0FDF4" },
-                  ].map(({ label, items, color, bg }) => (
-                    <div key={label} style={{ background: bg, borderRadius: "12px", padding: "14px 16px", borderTop: `3px solid ${color}` }}>
-                      <div style={{ fontFamily: TITLE_FONT, fontSize: "11px", fontWeight: 600, color, textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "8px" }}>
-                        {label}
-                      </div>
-                      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: "5px" }}>
-                        {items.map((a, i) => (
-                          <li key={i} style={{ fontSize: "11px", color: "#374151", display: "flex", gap: "5px", alignItems: "flex-start" }}>
-                            <span style={{ color, fontWeight: 700, flexShrink: 0 }}>→</span>{a}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* ══ INFORMATIONS COMPLÉMENTAIRES ══ */}
+          {/* CONTACT & REJOINDRE LA COMMUNAUTÉ */}
+          <div className="p-4 rounded-xl bg-[#FAFAFA] border border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs avoid-break">
             <div>
-              <SectionTitle>Informations déclarées par l'entreprise</SectionTitle>
-              <div style={{ background: "#F9FAFB", borderRadius: "12px", padding: "16px 20px" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "12px" }}>
-                  <div><span style={{ color: "#6B7280" }}>Nombre d'employés : </span><strong>{comp?.employeesCount || "—"}</strong></div>
-                  <div><span style={{ color: "#6B7280" }}>Chiffre d'affaires mensuel : </span><strong>{comp?.monthlyRevenue || "—"}</strong></div>
-                  <div><span style={{ color: "#6B7280" }}>Enregistrement légal (RCCM/IFU) : </span>
-                    <strong style={{ color: comp?.isFormalized ? "#16A34A" : "#DC2626" }}>
-                      {comp?.isFormalized ? "Oui" : "Non / En cours"}
-                    </strong>
-                  </div>
-                  <div><span style={{ color: "#6B7280" }}>Compte bancaire professionnel : </span>
-                    <strong style={{ color: comp?.hasProBankAccount ? "#16A34A" : "#DC2626" }}>
-                      {comp?.hasProBankAccount ? "Oui" : "Non"}
-                    </strong>
-                  </div>
-                </div>
-                {comp?.singleBiggestProblem && (
-                  <div style={{ marginTop: "10px", padding: "10px 14px", background: "#FFFFFF", borderRadius: "8px", border: "1px solid #E5E7EB" }}>
-                    <span style={{ fontFamily: TITLE_FONT, fontSize: "10px", fontWeight: 600, color: "#EC663B", textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                      Problème principal à résoudre :{" "}
-                    </span>
-                    <span style={{ fontSize: "12px", color: "#374151", fontStyle: "italic" }}>
-                      "{comp.singleBiggestProblem}"
-                    </span>
-                  </div>
-                )}
-              </div>
+              <strong className="text-sm font-bold text-[#0A0A0A] block mb-0.5">
+                Besoin d'aide pour appliquer cette feuille de route ?
+              </strong>
+              <p className="text-[#4B5563]">
+                Rejoignez le canal WhatsApp de la communauté ALODO MPME pour poser vos questions aux conseillers.
+              </p>
             </div>
 
-            {/* ══ PIED DE PAGE ══ */}
-            <div style={{ paddingTop: "20px", borderTop: "1px solid #E5E7EB", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div style={{ fontSize: "10px", color: "#9CA3AF" }}>
-                <strong style={{ color: "#374151" }}>ALODO TECH SARL</strong> · Cotonou, République du Bénin · contact@alodo.tech
-                <div style={{ marginTop: "3px" }}>Document confidentiel — Programme National MPME · Cohorte 1 · {today}</div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <img src="/logo/logo.png" alt="ALODO TECH" style={{ height: "22px", width: "auto", opacity: 0.5 }} />
-                <span style={{ fontFamily: TITLE_FONT, fontSize: "11px", fontWeight: 600, color: "#00C2A8", letterSpacing: "0.05em" }}>
-                  Rapport MPME Simplifié
-                </span>
-              </div>
-            </div>
+            <a
+              href="https://whatsapp.com/channel/0029VbDTqIa0lwgh8GZWuS1k"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-xl bg-[#25D366] text-white font-bold text-xs inline-flex items-center gap-2 shrink-0 hover:opacity-90 transition-all shadow-xs"
+            >
+              <span>Canal WhatsApp Officiel</span>
+              <span>→</span>
+            </a>
+          </div>
 
-          </div>{/* fin padding */}
-        </div>{/* fin corps */}
+          {/* PIED DE PAGE PROPRE */}
+          <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between text-[10px] text-[#9CA3AF] avoid-break">
+            <div>
+              <strong>ALODO TECH SARL</strong> · République du Bénin · partnership@alodotech.com
+              <div className="text-[9px] mt-0.5">Document confidentiel réservé au dirigeant de l'entreprise accompagnée.</div>
+            </div>
+            <div className="font-semibold text-[#00C2A8]">
+              ALODO MPME — Bâtissons votre avenir pas à pas
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

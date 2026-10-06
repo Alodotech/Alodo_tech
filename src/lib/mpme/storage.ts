@@ -273,6 +273,10 @@ export const MpmeStorage = {
     }
   },
 
+  getDiagnosticAnswers(): DiagnosticAnswer[] {
+    return this.getDiagnosticProgress();
+  },
+
   submitDiagnostic(companyName: string, answers: DiagnosticAnswer[], companyId?: string): DiagnosticReport {
     const report = calculateDiagnosticScore(companyName, answers);
     if (typeof window !== "undefined") {

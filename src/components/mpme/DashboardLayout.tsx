@@ -170,7 +170,7 @@ export default function DashboardLayout({
           1. IMMOBILE LATERAL SIDEBAR (DESKTOP)
           Fixed to viewport: "ne doit pas bouger, ça doit être planté"
           ========================================================================= */}
-      <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-72 bg-white border-r border-[#EBEBEB] flex-col justify-between z-30 overflow-y-auto">
+      <aside className="hidden lg:flex fixed top-0 left-0 bottom-0 w-72 bg-white border-r border-[#EBEBEB] flex-col justify-between z-30 overflow-y-auto print:hidden">
         <div>
           {/* Brand Header */}
           <div className="p-6 border-b border-[#F2F2F2]">
@@ -299,9 +299,9 @@ export default function DashboardLayout({
       {/* =========================================================================
           2. MAIN CONTENT WRAPPER (WITH lg:pl-72 TO ACCOMMODATE FIXED SIDEBAR)
           ========================================================================= */}
-      <div className="flex flex-col min-h-screen lg:pl-72">
+      <div className="flex flex-col min-h-screen lg:pl-72 print:pl-0 print:min-h-0 print:block">
         {/* Topbar */}
-        <header className="h-16 bg-white border-b border-[#EBEBEB] px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20">
+        <header className="h-16 bg-white border-b border-[#EBEBEB] px-4 sm:px-8 flex items-center justify-between sticky top-0 z-20 print:hidden">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Toggle */}
             <button
@@ -461,7 +461,7 @@ export default function DashboardLayout({
         )}
 
         {/* Main Content Area */}
-        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-4 sm:p-8 max-w-7xl w-full mx-auto print:p-0 print:m-0 print:max-w-none print:w-full">
           {children}
         </main>
       </div>

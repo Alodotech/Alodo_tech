@@ -22,8 +22,8 @@
   --grey-700: #3A3A3C;
 
   /* Type */
-  --font-sans: 'Poppins', system-ui, sans-serif;
-  --font-tech: 'Oswald', sans-serif;
+  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
+  --font-tech: 'Poppins', system-ui, -apple-system, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
 
   /* Layout */
@@ -92,16 +92,16 @@ button { font: inherit; cursor: pointer; }
 h1, h2, h3, h4 {
   font-family: var(--font-tech);
   margin: 0;
-  letter-spacing: 0.01em;
-  line-height: 1.1;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
   font-weight: 700;
   color: var(--black);
 }
 .display {
   font-size: clamp(38px, 6.4vw, 72px);
   font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 1.05;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
   text-wrap: balance;
 }
 .h1 { font-size: clamp(34px, 5vw, 56px); font-weight: 700; text-wrap: balance; }
@@ -121,6 +121,7 @@ h1, h2, h3, h4 {
 .body p { color: var(--grey-700); }
 .muted { color: var(--grey-500); }
 .mono { font-family: var(--font-mono); }
+.font-tech { font-family: var(--font-tech); }
 
 /* ---------- Layout ---------- */
 .container {
@@ -656,3 +657,36 @@ section.tight { padding: calc(var(--section-y) * 0.6) 0; }
 .logo-strip .logo:hover { opacity: 1; filter: grayscale(0); }
 @media (max-width: 900px) { .logo-strip { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 480px) { .logo-strip { grid-template-columns: repeat(2, 1fr); } }
+
+/* ===========================================================
+   A4 PRINT & PDF EXPORT STYLES
+   =========================================================== */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm;
+  }
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+  }
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  .page-break-before {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+}
+

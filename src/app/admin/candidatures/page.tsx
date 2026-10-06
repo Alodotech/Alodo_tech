@@ -324,7 +324,8 @@ export default function AdminCandidaturesPage() {
         diagnostics (
           global_score,
           diagnostic_level,
-          report_data
+          report_data,
+          answers
         )
       `);
 
@@ -342,6 +343,7 @@ export default function AdminCandidaturesPage() {
           diagnosticScore: diag?.global_score,
           diagnosticLevel: diag?.diagnostic_level,
           diagnosticReport: diag?.report_data,
+          diagnosticAnswers: diag?.answers,
           company: {
             id: company?.id,
             name: company?.name,
@@ -659,7 +661,7 @@ export default function AdminCandidaturesPage() {
       adminSubTab={adminTab} 
       onSelectAdminTab={(tab) => setAdminTab(tab === "top20" ? "top20" : "leaders")}
     >
-      <div className="space-y-6 animate-in fade-in duration-150">
+      <div className="space-y-6 animate-in fade-in duration-150 print:hidden">
 
         {/* =========================================================================
             1. EXECUTIVE COMMAND HEADER (LIGHT THEME IDENTICAL TO CANDIDATE DASHBOARD)
@@ -1539,17 +1541,19 @@ export default function AdminCandidaturesPage() {
                       type="button"
                       onClick={() => setPdfModalApp(inspectingApp)}
                       className="px-4 py-2 rounded-xl bg-[#0A0A0A] hover:bg-[#EC663B] text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+                      title="Rapport d'audit complet avec notes chiffrées, 9 dimensions et 20 réponses pour les administrateurs et partenaires"
                     >
                       <DownloadIcon className="w-3.5 h-3.5" />
-                      <span>Rapport PDF Officiel</span>
+                      <span>Rapport Audit Admin</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setRapportMpmeApp(inspectingApp)}
                       className="px-4 py-2 rounded-xl bg-[#00C2A8] hover:bg-[#009e8a] text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+                      title="Feuille de route humaine et bienveillante pour le chef d'entreprise (0% jargon, sans note chiffrée, axée sur les solutions)"
                     >
                       <DownloadIcon className="w-3.5 h-3.5" />
-                      <span>Rapport MPME</span>
+                      <span>Rapport Dirigeant MPME</span>
                     </button>
                   </div>
 
