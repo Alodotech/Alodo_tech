@@ -75,7 +75,7 @@ export default function Home() {
             <div className="reveal">
             </div>
             <h1 className="display reveal" data-delay="1">
-              L'infrastructure <span className="accent">digitale</span> et IA de l'économie réelle.
+              L'infrastructure <span className="accent">digitale</span> et l'IA de l'économie réelle.
             </h1>
             <p className="lead reveal" data-delay="2" style={{ maxWidth: "760px", marginTop: "24px" }}>
               ALODO TECH est une entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle. Nous concevons des solutions de pointe pour moderniser les écosystèmes financiers et propulser le continent dans l'ère de la donnée.
@@ -94,7 +94,7 @@ export default function Home() {
                 <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>2</span> Produits Phares
               </div>
               <div className="meta-item">
-                Présence <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Panafricaine</span>
+                Une présence <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Panafricaine</span>
               </div>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function Home() {
                 <p className="lead reveal" data-delay="2" style={{ marginTop: "24px", maxWidth: "480px" }}>
                   Au carrefour de la finance et de l'intelligence artificielle, notre vision est de bâtir des infrastructures robustes. De l'inclusion des MPME avec notre solution ALODO, à l'analyse prédictive avancée avec COINAI, nous redéfinissons les standards technologiques.
                 </p>
-                <div className="actions reveal" data-delay="3" style={{ marginTop: "32px" }}>
+                <div className="actions reveal" data-delay="3" style={{ marginTop: "32px", display: "flex", gap: "10px"}}>
                   <Link href="/about" className="btn dark">Notre mission</Link>
                   <Link href="/about" className="btn outline">Notre équipe</Link>
                 </div>

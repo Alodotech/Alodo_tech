@@ -105,12 +105,13 @@ export default function Careers() {
         {/* Spontaneous */}
         <section id="spontaneous" className="bg-dark">
           <div className="container">
-            <div className="cta-banner reveal" style={{ background: "transparent", padding: 0 }}>
+            <div className="cta-banner reveal" style={{ background: "transparent", padding: 10 }}>
               <div>
                 <span className="eyebrow" style={{ color: "rgba(255,255,255,0.6)" }}>Rejoignez l'équipe</span>
                 <h2 className="h2" style={{ marginTop: "12px", maxWidth: "22ch" }}>Candidature spontanée</h2>
                 <p className="muted" style={{ margin: "16px 0 0", maxWidth: "44ch" }}>
-                  Nous sommes toujours à la recherche de talents (Ingénieurs, Data Scientists, Ops) pour construire l'infrastructure digitale de demain. Écrivez-nous pour nous parler de vous.
+                  Nous sommes toujours à la recherche de talents (Ingénieurs, Data Scientists, Ops) 
+                  pour construire l'infrastructure digitale de demain. Écrivez-nous pour nous parler de vous.
                 </p>
               </div>
               <div className="actions">

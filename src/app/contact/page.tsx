@@ -230,7 +230,7 @@ export default function Contact() {
               </div>
               <div className="promise-card reveal" data-delay="1">
                 <div className="v">2 langues</div>
-                <div className="l">Français · English — répondez dans votre langue.</div>
+                <div className="l">Français · Anglais — répondez dans votre langue.</div>
               </div>
               <div className="promise-card reveal" data-delay="2">
                 <div className="v">Sans bullshit</div>
