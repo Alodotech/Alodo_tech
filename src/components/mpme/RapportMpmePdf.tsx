@@ -10,106 +10,208 @@ interface RapportMpmePdfProps {
   onClose: () => void;
 }
 
-// ── Traduction en langage 100% humain et concret de terrain (zéro jargon, zéro score, zéro pourcentage) ──
+interface DimensionData {
+  id: string;
+  num: string;
+  title: string;
+  niveau: "solide" | "moyen" | "vigilance";
+  observation: string;
+  constat: string;
+  action: string;
+}
 
-function getTerrainDiagnostique(application: Application, _report: DiagnosticReport | null) {
+function computeReportContent(application: Application, _report: DiagnosticReport | null) {
   const comp = application.company;
   const answers: DiagnosticAnswer[] = application.diagnosticAnswers || [];
 
-  const defis: { titre: string; constat: string; solution: string }[] = [];
-  const atouts: string[] = [];
+  const getAns = (qId: string) => answers.find((a) => a.questionId === qId)?.value;
 
-  // 1. Gestion de la caisse & séparation des poches
-  if (!comp?.hasProBankAccount) {
-    defis.push({
-      titre: "Séparer l'argent de la maison et l'argent du commerce",
-      constat: "Vos recettes de vente et vos dépenses de famille se mélangent encore dans la même poche ou sur le même compte Mobile Money.",
-      solution: "Créer un numéro Mobile Money ou un compte dédié uniquement au commerce dès le premier mois, pour savoir exactement ce que votre activité vous rapporte chaque soir.",
-    });
-  } else {
-    atouts.push("Vous avez déjà le réflexe de séparer vos finances personnelles de l'argent de votre commerce.");
-  }
+  // 1. FORMALISATION
+  const isForm = comp?.isFormalized || getAns("form_1") === "fully_registered";
+  const dim1: DimensionData = {
+    id: "formalisation",
+    num: "01",
+    title: "FORMALISATION",
+    niveau: isForm ? "solide" : "vigilance",
+    observation: isForm
+      ? "Cadre juridique et administratif globalement en place."
+      : "Formalisation en cours, statut juridique à finaliser.",
+    constat: isForm
+      ? "L'activité dispose d'un cadre juridique établi. Les documents administratifs essentiels sont à maintenir à jour."
+      : "L'activité n'est pas encore totalement enregistrée. Les formalités d'immatriculation sont à engager.",
+    action: isForm
+      ? "Maintenir un suivi régulier des obligations et documents de l'entreprise."
+      : "Finaliser l'enregistrement officiel (RCCM, IFU) avec l'accompagnement ALODO.",
+  };
 
-  // 2. Les papiers officiels sans tracas
-  if (!comp?.isFormalized) {
-    defis.push({
-      titre: "Mettre les papiers officiels en règle, sans stress",
-      constat: "Votre activité n'est pas encore enregistrée au registre du commerce ou aux impôts, ce qui peut vous faire peur en cas de contrôle.",
-      solution: "L'équipe ALODO vous accompagne étape par étape pour régulariser vos papiers simplement, sans tracasserie, pour travailler l'esprit tranquille et vendre à de grands clients.",
-    });
-  } else {
-    atouts.push("Votre entreprise est déjà enregistrée officiellement, une vraie force pour rassurer vos partenaires.");
-  }
+  // 2. FISCALITÉ & CONFORMITÉ
+  const dim2: DimensionData = {
+    id: "fiscalite",
+    num: "02",
+    title: "FISCALITÉ & CONFORMITÉ",
+    niveau: "moyen",
+    observation: "Suivi existant, mais certaines échéances doivent être mieux anticipées.",
+    constat: "Le suivi fiscal existe, mais certaines échéances nécessitent davantage d'anticipation.",
+    action: "Mettre en place un calendrier des obligations et échéances.",
+  };
 
-  // 3. Suivi quotidien des ventes et des dépenses (la règle des 5 minutes)
-  const fin1 = answers.find((a) => a.questionId === "fin_1")?.value;
-  if (fin1 === "none" || fin1 === "when_tight" || !fin1) {
-    defis.push({
-      titre: "Savoir exactement ce qui rentre et ce qui sort chaque jour",
-      constat: "Vous gérez la caisse de tête ou seulement quand l'argent commence à manquer, ce qui apporte des angoisses imprévues à chaque fin de mois.",
-      solution: "La règle simple des 5 minutes par jour : un petit carnet de caisse ou une note sur téléphone pour inscrire chaque vente et chaque dépense avant de dormir.",
-    });
-  } else {
-    atouts.push("Vous avez l'habitude de noter et suivre vos rentrées d'argent avec rigueur.");
-  }
+  // 3. FINANCE
+  const fin1 = getAns("fin_1");
+  const hasCashTrack = fin1 === "daily_weekly";
+  const dim3: DimensionData = {
+    id: "finance",
+    num: "03",
+    title: "FINANCE",
+    niveau: hasCashTrack ? "solide" : "vigilance",
+    observation: hasCashTrack
+      ? "Suivi régulier de trésorerie en place, marges à consolider."
+      : "Le suivi de trésorerie et des marges doit être renforcé.",
+    constat: hasCashTrack
+      ? "Les flux financiers sont documentés, mais le calcul des marges par produit peut être affiné."
+      : "Les flux financiers sont connus, mais la trésorerie n'est pas suivie selon un rythme régulier.",
+    action: "Mettre en place un tableau mensuel de trésorerie et de calcul des marges.",
+  };
 
-  // 4. Connaissance du bénéfice réel sur chaque vente
-  const fin2 = answers.find((a) => a.questionId === "fin_2")?.value;
-  if (fin2 === "none" || fin2 === "estimated" || !fin2) {
-    defis.push({
-      titre: "Calculer son vrai bénéfice sur chaque produit ou service",
-      constat: "Vous vendez régulièrement, mais à la fin du mois vous ne savez pas exactement combien il vous reste en bénéfice net après avoir payé les charges et le transport.",
-      solution: "Calculer votre coût de revient réel pour fixer vos prix avec certitude et être sûr de dégager un bénéfice net sur chaque vente.",
-    });
-  } else {
-    atouts.push("Vous connaissez bien vos marges et ce que chaque vente vous rapporte réellement.");
-  }
+  // 4. COMPTABILITÉ
+  const dim4: DimensionData = {
+    id: "comptabilite",
+    num: "04",
+    title: "COMPTABILITÉ",
+    niveau: "moyen",
+    observation: "Informations disponibles mais encore peu exploitées pour décider.",
+    constat: "Les informations comptables existent, mais elles sont encore peu utilisées pour orienter les décisions.",
+    action: "Suivre régulièrement les indicateurs clés de l'activité.",
+  };
 
-  // 5. Les impayés et la protection des livraisons
-  const form3 = answers.find((a) => a.questionId === "form_3")?.value;
-  const fin3 = answers.find((a) => a.questionId === "fin_3")?.value;
-  if (form3 === "mostly_verbal" || form3 === "some_verbal" || fin3 === "high_delay") {
-    defis.push({
-      titre: "Éviter les impayés et les retards de paiement",
-      constat: "Beaucoup de ventes ou livraisons reposent uniquement sur la parole verbale, ce qui entraîne des retards de paiement ou des dettes difficiles à récupérer.",
-      solution: "Sécuriser vos ventes avec un reçu simple, un bon de commande ou un message de confirmation écrit, et demander une avance avant toute commande importante.",
-    });
-  } else {
-    atouts.push("Vous avez l'habitude de garder des traces écrites de vos accords commerciaux.");
-  }
+  // 5. COMMERCIAL
+  const dim5: DimensionData = {
+    id: "commercial",
+    num: "05",
+    title: "COMMERCIAL",
+    niveau: "solide",
+    observation: "Activité commerciale régulière et clientèle existante.",
+    constat: "L'entreprise dispose d'une activité commerciale régulière et d'une clientèle existante.",
+    action: "Renforcer le suivi des ventes, clients et marges.",
+  };
 
-  // 6. Utiliser le téléphone pour vendre et fidéliser
-  const digi1 = answers.find((a) => a.questionId === "digi_1")?.value;
-  if (digi1 === "paper_only" || digi1 === "basic_whatsapp" || !digi1) {
-    defis.push({
-      titre: "Utiliser son téléphone comme un vrai commercial",
-      constat: "Vos opérations se font encore sur papier volant ou de mémoire, sans sauvegarde organisée des numéros de vos clients.",
-      solution: "Installer WhatsApp Business, créer un catalogue photo de vos produits et garder le contact avec vos anciens clients pour qu'ils reviennent commander chez vous.",
-    });
-  } else {
-    atouts.push("Vous utilisez déjà les outils sur smartphone pour communiquer et vendre à vos clients.");
-  }
+  // 6. DIGITALISATION
+  const dim6: DimensionData = {
+    id: "digitalisation",
+    num: "06",
+    title: "DIGITALISATION",
+    niveau: "moyen",
+    observation: "Quelques outils utilisés, mais plusieurs tâches restent manuelles.",
+    constat: "Plusieurs tâches restent manuelles malgré la disponibilité d'outils numériques.",
+    action: "Identifier les tâches pouvant être simplifiées ou automatisées.",
+  };
 
-  // 7. Organisation de l'équipe et transmission
-  const rh1 = answers.find((a) => a.questionId === "rh_1")?.value;
-  if (rh1 === "all_on_founder" || rh1 === "informal_tasks") {
-    defis.push({
-      titre: "Ne plus tout porter seul sur ses épaules",
-      constat: "Tout repose sur vous du matin au soir : si vous êtes absent ou malade, l'activité s'arrête ou tourne au ralenti.",
-      solution: "Former un collaborateur ou apprenti de confiance sur les tâches simples pour vous libérer du temps et pouvoir vous reposer.",
-    });
-  }
+  // 7. OPÉRATIONS
+  const dim7: DimensionData = {
+    id: "operations",
+    num: "07",
+    title: "OPÉRATIONS",
+    niveau: "moyen",
+    observation: "Organisation fonctionnelle, avec des procédures encore peu formalisées.",
+    constat: "L'activité fonctionne, mais certaines pratiques reposent encore sur les habitudes de l'équipe.",
+    action: "Formaliser les principales procédures de production et de livraison.",
+  };
 
-  // 8. Problème prioritaire déclaré par le dirigeant
-  const mainProblem = comp?.singleBiggestProblem;
+  // 8. RESSOURCES HUMAINES
+  const dim8: DimensionData = {
+    id: "rh",
+    num: "08",
+    title: "RESSOURCES HUMAINES",
+    niveau: "solide",
+    observation: "Équipe adaptée à la taille actuelle de l'activité.",
+    constat: "L'équipe correspond aux besoins actuels de l'entreprise.",
+    action: "Clarifier les rôles, responsabilités et objectifs de chaque membre.",
+  };
 
-  // Atouts naturels complémentaires
-  if (atouts.length === 0) {
-    atouts.push("Votre courage entrepreneurial et votre présence active auprès de vos clients.");
-    atouts.push("Une activité commerciale vivante avec des produits ou services qui répondent à un vrai besoin.");
-  }
+  // 9. FINANÇABILITÉ
+  const dim9: DimensionData = {
+    id: "financabilite",
+    num: "09",
+    title: "FINANÇABILITÉ",
+    niveau: "vigilance",
+    observation: "Préparation insuffisante pour présenter rapidement un dossier solide.",
+    constat: "La préparation actuelle ne permet pas encore de présenter rapidement un dossier complet.",
+    action: "Structurer progressivement les pièces et informations nécessaires.",
+  };
 
-  return { defis: defis.slice(0, 5), atouts, mainProblem };
+  const dimensions = [dim1, dim2, dim3, dim4, dim5, dim6, dim7, dim8, dim9];
+
+  // Actions prioritaires
+  const actionsPrioritaires = [
+    {
+      priorite: "Haute",
+      couleur: "#DC2626",
+      action: "Mettre en place un suivi mensuel de trésorerie",
+      objectif: "Anticiper les besoins et tensions de trésorerie.",
+      echeance: "0–30 jours",
+    },
+    {
+      priorite: "Haute",
+      couleur: "#DC2626",
+      action: "Structurer les données financières et comptables clés",
+      objectif: "Décider à partir d'informations fiables.",
+      echeance: "0–30 jours",
+    },
+    {
+      priorite: "Moyenne",
+      couleur: "#EC663B",
+      action: "Formaliser les principales procédures",
+      objectif: "Réduire les erreurs et les dépendances.",
+      echeance: "30–60 jours",
+    },
+    {
+      priorite: "Moyenne",
+      couleur: "#EC663B",
+      action: "Préparer un dossier de financement de base",
+      objectif: "Être prêt à saisir une opportunité de financement.",
+      echeance: "60–90 jours",
+    },
+  ];
+
+  return { dimensions, actionsPrioritaires };
+}
+
+// ── Composant Footer Officiel répété sur chaque page A4 ──
+function PageFooter({ pageNum }: { pageNum: number }) {
+  return (
+    <div className="pt-2.5 border-t border-[#E5E7EB] flex items-center justify-between text-[9px] text-[#6B7280] mt-auto shrink-0 select-none">
+      <div className="font-semibold text-[#0A0A0A] tracking-wider uppercase">
+        ALODO TECH — ALODO MPME
+      </div>
+      <div className="text-center font-medium leading-tight">
+        <span className="block text-[#4B5563]">Cotonou N° RCCM RB/ABC/26 B 12180</span>
+        <span className="block text-[#00C2A8] font-bold text-[8.5px] mt-0.5 tracking-wide">www.alodotech.com</span>
+      </div>
+      <div className="text-right font-medium">
+        Page {pageNum}
+      </div>
+    </div>
+  );
+}
+
+// ── Composant Header Officiel répété sur les pages intérieures ──
+function PageHeader() {
+  return (
+    <div className="flex items-center justify-between pb-3 border-b border-[#E5E7EB] mb-6 shrink-0 select-none">
+      <div className="flex items-center gap-2.5">
+        <img
+          src="/logo/logo.png"
+          alt="ALODO TECH"
+          className="h-6 w-auto"
+        />
+        <span className="text-xs font-bold tracking-tight text-[#0A0A0A]">
+          <span className="text-[#EC663B]">ALODO</span> TECH
+        </span>
+      </div>
+      <div className="text-[10px] text-[#6B7280] font-semibold uppercase tracking-wider">
+        Rapport de diagnostic — ALODO MPME
+      </div>
+    </div>
+  );
 }
 
 export default function RapportMpmePdf({ application, isOpen, onClose }: RapportMpmePdfProps) {
@@ -140,10 +242,12 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
     day: "numeric",
   });
 
+  const refCode = `ALODO-MPME-${application.id ? application.id.slice(0, 3).toUpperCase() : "001"}`;
+
   const handlePrint = () => {
     const prevTitle = document.title;
     const compName = comp?.name ? comp.name.replace(/[^a-zA-Z0-9_-]/g, "_") : "Entreprise";
-    document.title = `Feuille_De_Route_MPME_${compName}`;
+    document.title = `Rapport_Diagnostic_ALODO_MPME_${compName}`;
     document.body.classList.add("printing-mpme-pdf");
     window.print();
     setTimeout(() => {
@@ -152,316 +256,471 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
     }, 1000);
   };
 
-  const { defis, atouts, mainProblem } = getTerrainDiagnostique(application, report);
+  const { dimensions, actionsPrioritaires } = computeReportContent(application, report);
 
   return (
     <div
-      className="fixed inset-0 z-[110] bg-black/80 backdrop-blur-md overflow-y-auto p-2 sm:p-6 print:static print:inset-auto print:bg-white print:p-0 print:m-0 print:overflow-visible print:w-full print:block"
+      className="fixed inset-0 z-[110] bg-[#1E293B]/80 backdrop-blur-md overflow-y-auto p-2 sm:p-6 print:static print:inset-auto print:bg-white print:p-0 print:m-0 print:overflow-visible print:w-full print:block"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className="max-w-3xl mx-auto bg-white rounded-3xl shadow-2xl border border-[#EBEBEB] overflow-hidden my-2 sm:my-6 print:my-0 print:border-none print:shadow-none print:rounded-none print:max-w-none print:w-full">
-        
-        {/* ── BARRE D'ACTION SUPÉRIEURE (ÉCRAN SEULEMENT) ── */}
-        <div className="sticky top-0 z-50 p-4 bg-[#0A0A0A] text-white flex items-center justify-between border-b border-white/10 shadow-lg print:hidden shrink-0">
-          <div className="flex items-center gap-3">
-            <img
-              src="/logo/logo.png"
-              alt="ALODO TECH"
-              style={{ height: "28px", width: "auto", filter: "brightness(0) invert(1)" }}
-            />
-            <div>
-              <span className="text-sm font-bold block">Feuille de Route & Guide Pratique MPME</span>
-              <span className="text-xs text-emerald-400">Document remis au dirigeant • Zéro jargon technique, zéro score • Format A4</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handlePrint}
-              className="px-5 py-2.5 bg-[#00C2A8] hover:bg-[#009e8a] text-white font-bold text-xs rounded-full shadow-md flex items-center gap-2 transition-all cursor-pointer"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span>Télécharger en PDF</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 text-white flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
-              title="Fermer"
-            >
-              <span>✕ Fermer</span>
-            </button>
+      {/* ── BARRE FLOTTANTE D'ACTION (ÉCRAN SEULEMENT) ── */}
+      <div className="max-w-4xl mx-auto sticky top-2 z-50 p-4 bg-[#0A0A0A] text-white rounded-2xl flex items-center justify-between border border-white/10 shadow-2xl mb-6 print:hidden">
+        <div className="flex items-center gap-3">
+          <img
+            src="/logo/logo.png"
+            alt="ALODO TECH"
+            style={{ height: "26px", width: "auto", filter: "brightness(0) invert(1)" }}
+          />
+          <div>
+            <span className="text-sm font-bold block text-white font-tech">ALODO MPME — Rapport Officiel</span>
+            <span className="text-xs text-emerald-400 font-medium">6 Pages A4 • Zéro jargon, zéro pourcentage</span>
           </div>
         </div>
 
-        {/* ── CORPS DU DOCUMENT IMPRIMABLE (A4) ── */}
-        <div
-          id="printable-rapport-mpme"
-          className="p-8 sm:p-12 text-[#111827] bg-white font-sans space-y-6 print:p-6 print:space-y-5"
-          style={{ minHeight: "297mm" }}
-        >
-          {/* EN-TÊTE OFFICIEL ET CHALEUREUX */}
-          <div className="flex items-center justify-between border-b-2 border-[#EC663B] pb-5 avoid-break">
-            <div className="flex items-center gap-3">
-              <img src="/logo/logo.png" alt="ALODO TECH" style={{ height: "42px", width: "auto" }} />
-              <div>
-                <div className="text-xl font-bold tracking-tight text-[#0A0A0A]">
-                  <span className="text-[#EC663B]">ALODO</span> TECH
-                </div>
-                <div className="text-xs font-semibold text-[#00C2A8] tracking-wider uppercase">
-                  Programme National d'Accompagnement des Entreprises
-                </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handlePrint}
+            className="px-5 py-2.5 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all cursor-pointer active:scale-95"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span>Télécharger / Imprimer en PDF</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="px-3.5 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer"
+            title="Fermer"
+          >
+            <span>✕ Fermer</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ── CONTENEUR MULTI-PAGES A4 ── */}
+      <div className="max-w-4xl mx-auto space-y-8 print:space-y-0 print:m-0 print:p-0 print:max-w-none print:w-full">
+
+        {/* =========================================================================
+            PAGE 1 : PAGE DE GARDE / COUVERTURE
+            ========================================================================= */}
+        <div className="pdf-page bg-white p-8 sm:p-14 rounded-2xl shadow-xl print:rounded-none print:shadow-none print:p-0 print:border-none min-h-[297mm] flex flex-col justify-between border border-[#E5E7EB]">
+          {/* Logo en haut */}
+          <div className="text-center pt-8">
+            <img
+              src="/logo/logo.png"
+              alt="ALODO TECH"
+              className="h-14 w-auto mx-auto mb-3"
+            />
+            <div className="text-xs font-bold text-[#6B7280] tracking-widest uppercase">
+              ALODO TECH
+            </div>
+          </div>
+
+          {/* Titre & Sous-titre */}
+          <div className="text-center my-auto py-12">
+            <h1 className="text-4xl sm:text-5xl font-black text-[#0A0A0A] font-tech tracking-tight mb-3">
+              <span className="text-[#EC663B]">ALODO</span> MPME
+            </h1>
+            <p className="text-base sm:text-lg text-[#4B5563] font-medium">
+              Rapport de diagnostic de votre entreprise
+            </p>
+
+            {/* Tableau d'identification */}
+            <div className="max-w-lg mx-auto mt-12 border border-[#E5E7EB] rounded-xl overflow-hidden shadow-2xs text-left">
+              <div className="grid grid-cols-3 p-3.5 border-b border-[#F3F4F6] bg-[#FAFAFA]">
+                <span className="font-bold text-xs text-[#0A0A0A]">Entreprise</span>
+                <span className="col-span-2 text-xs font-bold text-[#111827] uppercase">
+                  {comp?.name || "ENTREPRISE"}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 p-3.5 border-b border-[#F3F4F6] bg-white">
+                <span className="font-bold text-xs text-[#0A0A0A]">Dirigeant</span>
+                <span className="col-span-2 text-xs text-[#374151]">
+                  {comp?.leaderName || "Nom du dirigeant"}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 p-3.5 border-b border-[#F3F4F6] bg-[#FAFAFA]">
+                <span className="font-bold text-xs text-[#0A0A0A]">Date du diagnostic</span>
+                <span className="col-span-2 text-xs text-[#374151]">
+                  {today}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 p-3.5 bg-white">
+                <span className="font-bold text-xs text-[#0A0A0A]">Référence</span>
+                <span className="col-span-2 text-xs font-mono font-bold text-[#EC663B]">
+                  {refCode}
+                </span>
               </div>
             </div>
 
-            <div className="text-right">
-              <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-[#FFF5F2] text-[#EC663B] border border-[#EC663B]/20 inline-block mb-1">
-                GUIDE PRATIQUE DE L'ENTREPRISE
-              </span>
-              <div className="text-xs text-[#6B7280]">Émis le {today}</div>
+            {/* Slogan officiel */}
+            <div className="mt-14 text-xs font-bold text-[#4B5563] tracking-widest uppercase">
+              ÉVALUER • COMPRENDRE • PRIORISER • AGIR
             </div>
           </div>
 
-          {/* FICHE DE L'ENTREPRISE ACCOMPAGNÉE */}
-          <div className="p-5 rounded-2xl bg-[#FAFAFA] border border-[#E5E7EB] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 avoid-break">
-            <div>
-              <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wider block mb-0.5">
-                Dossier Pratique d'Accompagnement
-              </span>
-              <h1 className="text-2xl font-extrabold text-[#0A0A0A] leading-tight">
-                {comp?.name || "Votre Entreprise"}
-              </h1>
-              <p className="text-xs text-[#4B5563] mt-1">
-                Dirigeant(e) : <strong>{comp?.leaderName || "Chère Dirigeante / Cher Dirigeant"}</strong>
-                {comp?.city ? ` · ${comp.city}` : ""}
-                {comp?.sector ? ` · ${comp.sector}` : ""}
-              </p>
-            </div>
+          <PageFooter pageNum={1} />
+        </div>
 
-            <div className="bg-white border border-[#E5E7EB] rounded-xl px-4 py-3 text-center shrink-0 shadow-xs">
-              <span className="text-[10px] font-bold text-[#6B7280] uppercase block">Mission ALODO</span>
-              <span className="text-sm font-extrabold text-[#00C2A8] block mt-0.5">
-                Accompagnement de Terrain
-              </span>
-            </div>
-          </div>
+        {/* =========================================================================
+            PAGE 2 : 1. VOTRE ENTREPRISE EN UN COUP D'ŒIL
+            ========================================================================= */}
+        <div className="pdf-page bg-white p-8 sm:p-14 rounded-2xl shadow-xl print:rounded-none print:shadow-none print:p-0 print:border-none min-h-[297mm] flex flex-col justify-between border border-[#E5E7EB]">
+          <div>
+            <PageHeader />
 
-          {/* MOT D'INTRODUCTION BIENVEILLANT ALODO (ZÉRO JARGON, ZÉRO SCORE) */}
-          <div className="p-4 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-[#1E3A8A] leading-relaxed avoid-break">
-            <strong className="block text-sm font-bold text-[#1D4ED8] mb-1">
-              👋 Le message de l'équipe ALODO : Vous n'êtes plus seul(e)
-            </strong>
-            <p>
-              Merci d'avoir partagé la situation de votre entreprise en toute franchise. 
-              Le Programme ALODO a été créé pour <strong>les entrepreneurs du quotidien qui se battent avec de vraies réalités</strong> : 
-              argent de la maison mélangé avec la caisse, clients qui tardent à payer, imprévus financiers, manque de temps. 
-              Ici, il n'y a <strong>aucune note, aucun jugement, aucun calcul compliqué</strong> : juste des solutions simples et réalistes pour débloquer votre activité pas à pas.
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech mb-2">
+              1. Votre entreprise en un coup d'œil
+            </h2>
+            <p className="text-xs text-[#4B5563] leading-relaxed mb-5">
+              Le diagnostic ALODO MPME analyse l'entreprise à travers 9 dimensions afin d'identifier ses forces, ses points de vigilance et ses priorités d'action.
             </p>
+
+            {/* Tableau des 9 dimensions */}
+            <div className="border border-[#0F172A] rounded-xl overflow-hidden mb-6">
+              <div className="grid grid-cols-12 bg-[#0F172A] text-white p-2.5 text-[10px] font-bold uppercase tracking-wider">
+                <span className="col-span-2 text-center">Niveau</span>
+                <span className="col-span-3">Dimension</span>
+                <span className="col-span-7">Observation synthétique</span>
+              </div>
+
+              {dimensions.map((d) => (
+                <div
+                  key={d.id}
+                  className="grid grid-cols-12 p-2.5 text-xs border-b border-[#E5E7EB] last:border-b-0 items-center bg-white hover:bg-slate-50/50"
+                >
+                  <div className="col-span-2 flex items-center justify-center">
+                    <span
+                      className={`w-3.5 h-3.5 rounded-xs shrink-0 ${
+                        d.niveau === "solide"
+                          ? "bg-emerald-600"
+                          : d.niveau === "moyen"
+                          ? "bg-[#EC663B]"
+                          : "bg-amber-600"
+                      }`}
+                      title={d.niveau}
+                    />
+                  </div>
+                  <span className="col-span-3 font-semibold text-[#0A0A0A] text-xs">
+                    {d.title.charAt(0) + d.title.slice(1).toLowerCase()}
+                  </span>
+                  <span className="col-span-7 text-xs text-[#4B5563] leading-tight">
+                    {d.observation}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Lecture rapide */}
+            <div className="space-y-2 text-xs pt-1">
+              <h3 className="font-extrabold text-sm text-[#0A0A0A] mb-1">
+                Lecture rapide
+              </h3>
+              <p className="text-[#374151] leading-relaxed">
+                <strong>Points forts :</strong> formalisation, activité commerciale et équipe.
+              </p>
+              <p className="text-[#374151] leading-relaxed">
+                <strong>Points de vigilance :</strong> trésorerie, exploitation des données comptables, organisation et digitalisation.
+              </p>
+              <p className="text-[#374151] leading-relaxed">
+                <strong>Priorités :</strong> renforcer le pilotage financier, structurer les processus et préparer la capacité de financement.
+              </p>
+            </div>
           </div>
 
-          {/* LA PRIORITÉ N°1 EXPRIMÉE PAR LE DIRIGEANT */}
-          {mainProblem && (
-            <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] avoid-break">
-              <span className="text-[11px] font-bold text-[#B45309] uppercase tracking-wider block mb-1">
-                🎯 Ce qui vous préoccupe le plus en ce moment (votre priorité déclarée) :
-              </span>
-              <p className="text-sm font-bold text-[#92400E] italic">
-                "{mainProblem}"
-              </p>
-              <p className="text-[11px] text-[#B45309] mt-2">
-                → C'est exactement par ce point que nos conseillers vont commencer leur travail à vos côtés.
-              </p>
-            </div>
-          )}
+          <PageFooter pageNum={2} />
+        </div>
 
-          {/* VOS VRAIS DÉFIS DU QUOTIDIEN ET LES SOLUTIONS PRATIQUES */}
-          <div className="space-y-3 avoid-break">
-            <div className="border-b border-[#E5E7EB] pb-2">
-              <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#EC663B]" />
-                Ce qui bloque aujourd'hui (et comment on le règle ensemble)
-              </h2>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Ces difficultés sont tout à fait normales quand un commerce grandit. Voici les solutions concrètes :
-              </p>
-            </div>
+        {/* =========================================================================
+            PAGE 3 : 2. CE QUE NOUS RETENONS DE VOTRE DIAGNOSTIC
+            ========================================================================= */}
+        <div className="pdf-page bg-white p-8 sm:p-14 rounded-2xl shadow-xl print:rounded-none print:shadow-none print:p-0 print:border-none min-h-[297mm] flex flex-col justify-between border border-[#E5E7EB]">
+          <div>
+            <PageHeader />
 
-            <div className="space-y-2.5">
-              {defis.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="p-3.5 rounded-xl bg-white border border-[#E5E7EB] shadow-xs text-xs space-y-1.5 avoid-break"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="w-5 h-5 rounded-full bg-[#FEE2E2] text-[#991B1B] text-[10px] font-bold flex items-center justify-center shrink-0">
-                      !
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech mb-5">
+              2. Ce que nous retenons de votre diagnostic
+            </h2>
+
+            <div className="space-y-4">
+              {/* VOS POINTS FORTS */}
+              <div className="p-4 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0]">
+                <div className="text-xs font-black text-[#15803D] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <span>✓</span> VOS POINTS FORTS
+                </div>
+                <ul className="space-y-1.5 text-xs text-[#166534]">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Activité commerciale déjà installée avec clientèle active.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Cadre juridique globalement structuré.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Équipe adaptée au fonctionnement actuel de l'entreprise.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* VOS POINTS DE VIGILANCE */}
+              <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A]">
+                <div className="text-xs font-black text-[#B45309] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <span>■</span> VOS POINTS DE VIGILANCE
+                </div>
+                <ul className="space-y-1.5 text-xs text-[#92400E]">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Trésorerie suivie de manière irrégulière.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Données comptables encore peu utilisées pour piloter l'activité.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">•</span>
+                    <span>Plusieurs opérations reposent encore sur des pratiques non formalisées.</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* VOS PRIORITÉS */}
+              <div className="p-4 rounded-xl bg-[#FFF5F2] border border-[#FECACA]">
+                <div className="text-xs font-black text-[#EC663B] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <span>!</span> VOS PRIORITÉS
+                </div>
+                <ol className="space-y-1.5 text-xs text-[#991B1B]">
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">1.</span>
+                    <span>Mettre en place un suivi simple et régulier de la trésorerie.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">2.</span>
+                    <span>Formaliser les principales procédures de fonctionnement.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="font-bold">3.</span>
+                    <span>Constituer progressivement les éléments nécessaires à un futur dossier de financement.</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* CE QUE CELA SIGNIFIE */}
+              <div className="pt-4">
+                <h3 className="font-extrabold text-sm text-[#0A0A0A] mb-1.5">
+                  Ce que cela signifie
+                </h3>
+                <p className="text-xs text-[#4B5563] leading-relaxed">
+                  L'entreprise dispose de bases solides pour poursuivre son développement. Le principal enjeu n'est pas de tout changer, mais de renforcer quelques fonctions clés pour gagner en visibilité, en organisation et en capacité d'anticipation.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <PageFooter pageNum={3} />
+        </div>
+
+        {/* =========================================================================
+            PAGE 4 : 3. ANALYSE SYNTHÉTIQUE DES 9 DIMENSIONS (PARTIE 1)
+            ========================================================================= */}
+        <div className="pdf-page bg-white p-8 sm:p-14 rounded-2xl shadow-xl print:rounded-none print:shadow-none print:p-0 print:border-none min-h-[297mm] flex flex-col justify-between border border-[#E5E7EB]">
+          <div>
+            <PageHeader />
+
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech mb-4">
+              3. Analyse synthétique des 9 dimensions
+            </h2>
+
+            <div className="border border-[#E5E7EB] rounded-xl divide-y divide-[#E5E7EB] overflow-hidden text-xs">
+              {dimensions.slice(0, 5).map((dim) => (
+                <div key={dim.id} className="p-3 bg-white">
+                  <div className="grid grid-cols-12 gap-2 mb-1.5">
+                    <span className="col-span-3 font-bold text-[#0A0A0A] uppercase tracking-wider text-[11px]">
+                      DIMENSION
                     </span>
-                    <h3 className="font-bold text-[#111827] text-xs">
-                      {item.titre}
-                    </h3>
+                    <span className="col-span-9 font-bold text-[#EC663B] text-[11px]">
+                      {dim.num} — {dim.title}
+                    </span>
                   </div>
 
-                  <p className="text-[#4B5563] pl-7 leading-relaxed">
-                    <strong className="text-[#374151]">Ce qui se passe :</strong> {item.constat}
-                  </p>
+                  <div className="grid grid-cols-12 gap-2 mb-1">
+                    <span className="col-span-3 font-bold text-[#0A0A0A] text-[11px]">
+                      CONSTAT
+                    </span>
+                    <p className="col-span-9 text-[#4B5563] leading-tight">
+                      {dim.constat}
+                    </p>
+                  </div>
 
-                  <div className="pl-7 pt-1 text-[#065F46] bg-[#ECFDF5] p-2 rounded-lg mt-1 flex items-start gap-1.5">
-                    <span className="font-bold shrink-0">💡 Ce qu'on va faire avec ALODO :</span>
-                    <span>{item.solution}</span>
+                  <div className="grid grid-cols-12 gap-2">
+                    <span className="col-span-3 font-bold text-[#0A0A0A] text-[11px]">
+                      ACTION
+                    </span>
+                    <p className="col-span-9 font-semibold text-[#065F46] leading-tight">
+                      {dim.action}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* VOS FORCES DÉJÀ PRÉSENTES */}
-          {atouts.length > 0 && (
-            <div className="p-4 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] avoid-break">
-              <h3 className="text-xs font-bold text-[#166534] uppercase tracking-wider mb-2 flex items-center gap-2">
-                <span className="text-emerald-600 font-bold">✓</span> Vos forces & les atouts solides de votre commerce
-              </h3>
-              <ul className="space-y-1 text-xs text-[#14532D]">
-                {atouts.map((atout, i) => (
-                  <li key={i} className="flex items-start gap-2">
-                    <span className="text-emerald-600 font-bold">•</span>
-                    <span>{atout}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* PLAN D'ACTION SIMPLE ET RÉALISTE SUR 3 MOIS */}
-          <div className="space-y-3 avoid-break">
-            <div className="border-b border-[#E5E7EB] pb-2">
-              <h2 className="text-sm font-extrabold text-[#0A0A0A] uppercase tracking-wider flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#00C2A8]" />
-                Votre plan pas à pas pour les 3 prochains mois
-              </h2>
-              <p className="text-xs text-[#6B7280] mt-0.5">
-                Des étapes claires, faisables même si vos journées sont très chargées :
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-              {/* MOIS 1 */}
-              <div className="p-3.5 rounded-xl bg-[#FFF5F2] border border-[#EC663B]/30 flex flex-col justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-[#EC663B] uppercase tracking-wider mb-1">
-                    Mois 1
-                  </div>
-                  <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
-                    Mettre de l'ordre dans la caisse
-                  </h4>
-                  <ul className="space-y-1.5 text-[#374151]">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#EC663B] font-bold">1.</span>
-                      <span>Ouvrir une poche ou un compte séparé pour le commerce.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#EC663B] font-bold">2.</span>
-                      <span>Noter chaque soir les entrées et les sorties d'argent.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#EC663B] font-bold">3.</span>
-                      <span>Identifier les dépenses inutiles qui font fuiter vos bénéfices.</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* MOIS 2 */}
-              <div className="p-3.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 flex flex-col justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-[#B45309] uppercase tracking-wider mb-1">
-                    Mois 2
-                  </div>
-                  <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
-                    Sécuriser ses clients et ses papiers
-                  </h4>
-                  <ul className="space-y-1.5 text-[#374151]">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#B45309] font-bold">1.</span>
-                      <span>Donner des reçus écrits pour ne plus avoir d'impayés.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#B45309] font-bold">2.</span>
-                      <span>Lancer les démarches simples pour mettre en règle vos papiers.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#B45309] font-bold">3.</span>
-                      <span>Relancer poliment les anciens clients pour faire de nouvelles ventes.</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* MOIS 3 */}
-              <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#10B981]/30 flex flex-col justify-between">
-                <div>
-                  <div className="text-[10px] font-bold text-[#047857] uppercase tracking-wider mb-1">
-                    Mois 3
-                  </div>
-                  <h4 className="font-extrabold text-[#0A0A0A] mb-2 text-xs">
-                    Faire grandir son commerce
-                  </h4>
-                  <ul className="space-y-1.5 text-[#374151]">
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#047857] font-bold">1.</span>
-                      <span>Calculer son vrai bénéfice net à la fin du mois.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#047857] font-bold">2.</span>
-                      <span>Avoir un carnet de caisse propre pour rassurer les partenaires.</span>
-                    </li>
-                    <li className="flex items-start gap-1.5">
-                      <span className="text-[#047857] font-bold">3.</span>
-                      <span>Réinvestir dans les produits qui se vendent le plus vite.</span>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* CONTACT & COMMUNAUTÉ ALODO */}
-          <div className="p-4 rounded-xl bg-[#FAFAFA] border border-[#E5E7EB] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs avoid-break">
-            <div>
-              <strong className="text-sm font-bold text-[#0A0A0A] block mb-0.5">
-                Besoin d'aide pour appliquer ce plan ?
-              </strong>
-              <p className="text-[#4B5563]">
-                Rejoignez le groupe WhatsApp ALODO pour poser vos questions à tout moment.
-              </p>
-            </div>
-
-            <a
-              href="https://whatsapp.com/channel/0029VbDTqIa0lwgh8GZWuS1k"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 py-2 rounded-xl bg-[#25D366] text-white font-bold text-xs inline-flex items-center gap-2 shrink-0 hover:opacity-90 transition-all shadow-xs"
-            >
-              <span>Canal WhatsApp Direct</span>
-              <span>→</span>
-            </a>
-          </div>
-
-          {/* PIED DE PAGE DISCRET */}
-          <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-between text-[10px] text-[#9CA3AF] avoid-break">
-            <div>
-              <strong>ALODO TECH</strong> · République du Bénin · Accompagnement de terrain
-              <div className="text-[9px] mt-0.5">Ce document appartient au chef d'entreprise.</div>
-            </div>
-            <div className="font-semibold text-[#00C2A8]">
-              ALODO MPME — Avançons ensemble, pas à pas
-            </div>
-          </div>
-
+          <PageFooter pageNum={4} />
         </div>
+
+        {/* =========================================================================
+            PAGE 5 : 3. ANALYSE SYNTHÉTIQUE DES 9 DIMENSIONS (PARTIE 2)
+            ========================================================================= */}
+        <div className="pdf-page bg-white p-8 sm:p-14 rounded-2xl shadow-xl print:rounded-none print:shadow-none print:p-0 print:border-none min-h-[297mm] flex flex-col justify-between border border-[#E5E7EB]">
+          <div>
+            <PageHeader />
+
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech mb-4">
+              3. Analyse synthétique des 9 dimensions (suite)
+            </h2>
+
+            <div className="border border-[#E5E7EB] rounded-xl divide-y divide-[#E5E7EB] overflow-hidden text-xs mb-6">
+              {dimensions.slice(5).map((dim) => (
+                <div key={dim.id} className="p-3 bg-white">
+                  <div className="grid grid-cols-12 gap-2 mb-1.5">
+                    <span className="col-span-3 font-bold text-[#0A0A0A] uppercase tracking-wider text-[11px]">
+                      DIMENSION
+                    </span>
+                    <span className="col-span-9 font-bold text-[#EC663B] text-[11px]">
+                      {dim.num} — {dim.title}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-2 mb-1">
+                    <span className="col-span-3 font-bold text-[#0A0A0A] text-[11px]">
+                      CONSTAT
+                    </span>
+                    <p className="col-span-9 text-[#4B5563] leading-tight">
+                      {dim.constat}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-12 gap-2">
+                    <span className="col-span-3 font-bold text-[#0A0A0A] text-[11px]">
+                      ACTION
+                    </span>
+                    <p className="col-span-9 font-semibold text-[#065F46] leading-tight">
+                      {dim.action}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Encadré d'orientation méthodologique */}
+            <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155] leading-relaxed">
+              <strong className="block text-[#0F172A] font-bold mb-1">
+                Approche méthodologique ALODO
+              </strong>
+              <p>
+                Chaque action recommandée ci-dessus s'inscrit dans un ordre logique d'exécution. Les ajustements opérationnels et administratifs préparent la capacité de l'entreprise à absorber la croissance sans fragiliser sa trésorerie quotidienne.
+              </p>
+            </div>
+          </div>
+
+          <PageFooter pageNum={5} />
+        </div>
+
+        {/* =========================================================================
+            PAGE 6 : 4. VOS PRIORITÉS D'ACTION
+            ========================================================================= */}
+        <div className="pdf-page bg-white p-8 sm:p-14 rounded-2xl shadow-xl print:rounded-none print:shadow-none print:p-0 print:border-none min-h-[297mm] flex flex-col justify-between border border-[#E5E7EB]">
+          <div>
+            <PageHeader />
+
+            <h2 className="text-xl sm:text-2xl font-extrabold text-[#0A0A0A] font-tech mb-2">
+              4. Vos priorités d'action
+            </h2>
+            <p className="text-xs text-[#4B5563] leading-relaxed mb-5">
+              Les actions ci-dessous sont classées selon leur niveau d'urgence et leur impact potentiel sur le fonctionnement de l'entreprise.
+            </p>
+
+            {/* Tableau des priorités d'action */}
+            <div className="border border-[#0F172A] rounded-xl overflow-hidden mb-6 text-xs">
+              <div className="grid grid-cols-12 bg-[#0F172A] text-white p-2.5 text-[10px] font-bold uppercase tracking-wider">
+                <span className="col-span-2">Priorité</span>
+                <span className="col-span-4">Action</span>
+                <span className="col-span-4">Objectif</span>
+                <span className="col-span-2 text-right">Échéance</span>
+              </div>
+
+              {actionsPrioritaires.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="grid grid-cols-12 p-2.5 border-b border-[#E5E7EB] last:border-b-0 items-center bg-white hover:bg-slate-50/50"
+                >
+                  <div className="col-span-2 flex items-center gap-1.5 font-bold text-[#0A0A0A]">
+                    <span
+                      className="w-2.5 h-2.5 rounded-xs shrink-0"
+                      style={{ backgroundColor: item.couleur }}
+                    />
+                    <span>{item.priorite}</span>
+                  </div>
+                  <span className="col-span-4 font-semibold text-[#111827]">
+                    {item.action}
+                  </span>
+                  <span className="col-span-4 text-[#4B5563]">
+                    {item.objectif}
+                  </span>
+                  <span className="col-span-2 text-right font-medium text-[#0A0A0A]">
+                    {item.echeance}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* Votre prochaine étape */}
+            <div className="mb-5">
+              <h3 className="font-extrabold text-sm text-[#0A0A0A] mb-2">
+                Votre prochaine étape
+              </h3>
+              <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <div className="font-extrabold text-xs text-[#0F172A] uppercase tracking-wider mb-1">
+                  COMMENCER PAR L'ESSENTIEL
+                </div>
+                <p className="text-xs text-[#475569] leading-relaxed">
+                  Ne cherchez pas à tout corriger en même temps. Commencez par les priorités identifiées, mesurez les progrès et réévaluez régulièrement la situation de l'entreprise.
+                </p>
+              </div>
+            </div>
+
+            {/* Conclusion */}
+            <div className="space-y-2 mb-6">
+              <h3 className="font-extrabold text-sm text-[#0A0A0A]">
+                Conclusion
+              </h3>
+              <p className="text-xs text-[#4B5563] leading-relaxed">
+                Votre entreprise présente des bases encourageantes. Le diagnostic fait surtout ressortir un besoin de renforcement du pilotage financier, de formalisation des pratiques et de préparation à la croissance.
+              </p>
+              <p className="text-xs text-[#4B5563] leading-relaxed">
+                Ce rapport constitue un point de départ pour vous permettre de mieux comprendre votre entreprise et de prendre des décisions plus éclairées.
+              </p>
+            </div>
+
+            {/* Signature & Devise */}
+            <div className="pt-2 text-center">
+              <div className="font-black text-base tracking-wider text-[#0A0A0A] font-tech mb-1">
+                <span className="text-[#EC663B]">ALODO</span> TECH
+              </div>
+              <div className="text-[11px] font-bold text-[#6B7280] tracking-widest uppercase">
+                Évaluer • Comprendre • Prioriser • Agir
+              </div>
+            </div>
+          </div>
+
+          <PageFooter pageNum={6} />
+        </div>
+
       </div>
     </div>
   );
