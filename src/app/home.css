@@ -1,8 +1,42 @@
 /* ---------- Home hero ---------- */
 .hero {
   position: relative;
-  padding: clamp(80px, 11vw, 140px) 0 clamp(64px, 9vw, 120px);
+  padding: clamp(48px, 8vw, 112px) 0 clamp(40px, 7vw, 96px);
   overflow: hidden;
+}
+
+.hero-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(28px, 4vw, 56px);
+}
+
+.hero-copy,
+.hero-map {
+  min-width: 0;
+}
+
+.hero-copy {
+  container-type: inline-size;
+}
+
+.hero-copy .lead {
+  max-width: 42rem;
+}
+
+.hero-map {
+  width: 100%;
+}
+
+.hero-meta {
+  margin-top: 40px;
+  display: flex;
+  gap: 28px 40px;
+  flex-wrap: wrap;
+  color: var(--grey-700);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .hero .container {
@@ -34,7 +68,8 @@
 }
 
 .hero h1 {
-  max-width: 14ch;
+  max-width: min(13ch, 100%);
+  font-size: clamp(32px, 10.5cqi, 68px);
 }
 
 .hero h1 .accent {
@@ -108,29 +143,48 @@
   }
 }
 
-/* Africa constellation graphic */
-.hero-art {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  mask-image: linear-gradient(to right, transparent 0%, black 40%, black 100%);
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40%, black 100%);
+@media (max-width: 1024px) {
+  .hero-layout {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+
+  .hero h1 {
+    max-width: 16ch;
+  }
+
+  .hero-map {
+    max-width: 720px;
+    margin-inline: auto;
+  }
 }
 
-.hero-art svg {
-  position: absolute;
-  right: -4%;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 58%;
-  height: auto;
-  opacity: .92;
-}
+@media (max-width: 720px) {
+  .hero {
+    padding-top: 32px;
+  }
 
-@media (max-width: 900px) {
-  .hero-art {
-    opacity: .25;
+  .hero h1 {
+    max-width: none;
+  }
+
+  .hero .actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hero .actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero-meta {
+    gap: 16px 24px;
+    margin-top: 28px;
+  }
+
+  .hero-map {
+    max-width: none;
   }
 }
 

@@ -4,24 +4,41 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import dynamic from "next/dynamic";
+import AfricaMap from "@/components/AfricaMap";
 import "./home.css";
-
-const Hero3DMap = dynamic(() => import("@/components/Hero3DMap"), { ssr: false });
 
 export default function Home() {
   useEffect(() => {
-    // 2. Reveal logic
-    const revealEls = document.querySelectorAll(".reveal");
+    const revealEls = Array.from(document.querySelectorAll(".reveal"));
+    const mark = (el: Element) => el.classList.add("in");
+    const inView = (el: Element) => {
+      const rect = el.getBoundingClientRect();
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      return rect.height > 0 && rect.top < vh - 24 && rect.bottom > 0;
+    };
+    const scan = () => {
+      revealEls.forEach((el) => {
+        if (!el.classList.contains("in") && inView(el)) mark(el);
+      });
+    };
+
+    scan();
     const revealIo = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
-          e.target.classList.add("in");
+          mark(e.target);
           revealIo.unobserve(e.target);
         }
       });
-    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
-    revealEls.forEach(e => revealIo.observe(e));
+    }, { threshold: 0.05, rootMargin: "0px 0px -24px 0px" });
+    const frame = requestAnimationFrame(() => {
+      revealEls.forEach((el) => {
+        if (!el.classList.contains("in")) revealIo.observe(el);
+      });
+      scan();
+    });
+    window.addEventListener("scroll", scan, { passive: true });
+    window.addEventListener("resize", scan);
 
     // 3. CountUp logic
     const countEls = document.querySelectorAll("[data-count]");
@@ -56,6 +73,9 @@ export default function Home() {
     countEls.forEach(e => countIo.observe(e));
 
     return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", scan);
+      window.removeEventListener("resize", scan);
       revealIo.disconnect();
       countIo.disconnect();
     };
@@ -68,34 +88,33 @@ export default function Home() {
       <main data-screen-label="01 Home">
         {/* ============ HERO ============ */}
         <section className="hero">
-          <div className="hero-art" aria-hidden="true" style={{ pointerEvents: "none" }}>
-            <Hero3DMap />
-          </div>
-          <div className="container">
-            <div className="reveal">
-            </div>
-            <h1 className="display reveal" data-delay="1">
-              L'infrastructure <span className="accent">digitale</span> et l'IA de l'économie réelle.
-            </h1>
-            <p className="lead reveal" data-delay="2" style={{ maxWidth: "760px", marginTop: "24px" }}>
-              ALODO TECH est une entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle. Nous concevons des solutions de pointe pour moderniser les écosystèmes financiers et propulser le continent dans l'ère de la donnée.
-            </p>
-            <div className="actions reveal" data-delay="3" style={{ marginTop: "36px" }}>
-              <Link href="/products" className="btn primary">Découvrir Nos produits <span className="arrow">→</span></Link>
-              <Link href="/partners" className="btn outline">Devenir partenaire</Link>
-            </div>
+          <div className="container hero-layout">
+            <div className="hero-copy">
+              <h1 className="display">
+                L'infrastructure <span className="accent">digitale</span> et l'IA de l'économie réelle.
+              </h1>
+              <p className="lead" style={{ marginTop: "24px" }}>
+                ALODO TECH est une entreprise technologique spécialisée dans la transformation digitale, la Fintech et l'Intelligence Artificielle. Nous concevons des solutions de pointe pour moderniser les écosystèmes financiers et propulser le continent dans l'ère de la donnée.
+              </p>
+              <div className="actions" style={{ marginTop: "36px" }}>
+                <Link href="/products" className="btn primary">Découvrir Nos produits <span className="arrow">→</span></Link>
+                <Link href="/partners" className="btn outline">Devenir partenaire</Link>
+              </div>
 
-            {/* Statistiques Dynamiques */}
-            <div className="hero-meta reveal" data-delay="4" style={{ marginTop: "56px", display: "flex", gap: "40px", flexWrap: "wrap", color: "var(--grey-700)", fontSize: "14px", fontWeight: "500" }}>
-              <div className="meta-item">
-                <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Fintech</span> & <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>IA</span>
+              <div className="hero-meta">
+                <div className="meta-item">
+                  <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Fintech</span> & <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>IA</span>
+                </div>
+                <div className="meta-item">
+                  <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>2</span> Produits Phares
+                </div>
+                <div className="meta-item">
+                  Une présence <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Panafricaine</span>
+                </div>
               </div>
-              <div className="meta-item">
-                <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>2</span> Produits Phares
-              </div>
-              <div className="meta-item">
-                Une présence <span style={{ color: "var(--primary)", fontFamily: "var(--font-tech)", fontWeight: "700", fontSize: "16px" }}>Panafricaine</span>
-              </div>
+            </div>
+            <div className="hero-map">
+              <AfricaMap />
             </div>
           </div>
         </section>

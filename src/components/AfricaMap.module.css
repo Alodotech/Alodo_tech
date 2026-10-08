@@ -1,0 +1,78 @@
+.root {
+  --map-orange: var(--primary, #ff6a13);
+  --map-orange-deep: var(--primary-600, #d84c05);
+  --map-ink: #1d1d1d;
+  width: 100%;
+  max-width: 100%;
+  background: transparent;
+  font-family: var(--font-sans, "Poppins", "Avenir Next", "Segoe UI", system-ui, sans-serif);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  max-height: min(92vh, 760px);
+}
+
+.arc {
+  fill: none;
+  stroke: var(--map-orange);
+  stroke-width: 3;
+  stroke-dasharray: 14 10;
+  animation: march 2.2s linear infinite;
+}
+
+@keyframes march {
+  to { stroke-dashoffset: -24; }
+}
+
+.tag polygon { fill: var(--map-orange-deep); }
+.tag text {
+  fill: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.label line { stroke: var(--map-orange); stroke-width: 1.4; }
+.label circle { fill: var(--map-orange); }
+.label text {
+  font-size: 12.5px;
+  font-weight: 600;
+  fill: var(--map-ink);
+}
+
+.benin text {
+  font-size: 14px;
+  font-weight: 700;
+  fill: var(--map-orange-deep);
+}
+.benin circle { r: 6; }
+
+@media (max-width: 1024px) {
+  .svg {
+    max-height: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .root {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  .svg {
+    width: 680px;
+    max-width: none;
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .arc { animation: none; }
+}
