@@ -111,8 +111,12 @@ export default function AdminSettingsPage() {
       window.location.href = "/admin/login";
       return;
     }
+    const isWhitelisted =
+      user.email === "germaindandji03@gmail.com" ||
+      user.email === "germaindandji04@gmail.com" ||
+      user.email?.endsWith("@alodotech.com");
     const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
-    if (!admin) {
+    if (!admin && !isWhitelisted) {
       await supabase.auth.signOut();
       window.location.href = "/admin/login?error=unauthorized";
       return;

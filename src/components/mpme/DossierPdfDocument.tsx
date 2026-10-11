@@ -517,18 +517,31 @@ export default function DossierPdfDocument({
           </div>
 
           {/* Footer Official Seal */}
-          <div className="pt-6 border-t-2 border-[#EBEBEB] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8E8E93] gap-4 avoid-break">
+          <div className="pt-4 border-t-2 border-[#EBEBEB] flex flex-col sm:flex-row items-center justify-between text-[11px] text-[#8E8E93] gap-4 avoid-break">
             <div>
-              <strong>ALODO TECH SARL</strong> · Cotonou, République du Bénin · contact@alodo.tech
-              <div className="text-[10px] mt-0.5">
+              <div className="font-tech font-extrabold text-sm text-[#0A0A0A] mb-0.5">
+                <span className="text-[#EC663B]">ALODO</span> TECH SARL
+              </div>
+              <div>Cotonou, République du Bénin · contact@alodo.tech</div>
+              <div className="text-[10px] mt-0.5 text-[#9CA3AF]">
                 Document strictement confidentiel généré via la Plateforme ALODO MPME.
               </div>
             </div>
 
-            <div className="text-right">
-              <span className="font-mono text-[10px] px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
-                ✓ CERTIFIÉ ALODO MPME 2026
-              </span>
+            <div className="flex items-center gap-4">
+              <img
+                src="/images/cachet-alodo.png"
+                alt="Cachet officiel ALODO TECH"
+                className="h-20 w-auto object-contain select-none"
+              />
+              <div className="text-right">
+                <span className="font-mono text-[10px] px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold block mb-1">
+                  ✓ CERTIFIÉ ALODO MPME 2026
+                </span>
+                <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider block">
+                  Direction Générale · CEO
+                </span>
+              </div>
             </div>
           </div>
         </div>

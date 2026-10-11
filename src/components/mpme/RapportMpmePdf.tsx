@@ -695,7 +695,7 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
             </div>
 
             {/* Conclusion */}
-            <div className="space-y-2 mb-6">
+            <div className="space-y-1.5 mb-4">
               <h3 className="font-extrabold text-sm text-[#0A0A0A]">
                 Conclusion
               </h3>
@@ -707,13 +707,32 @@ export default function RapportMpmePdf({ application, isOpen, onClose }: Rapport
               </p>
             </div>
 
-            {/* Signature & Devise */}
-            <div className="pt-2 text-center">
-              <div className="font-black text-base tracking-wider text-[#0A0A0A] font-tech mb-1">
-                <span className="text-[#EC663B]">ALODO</span> TECH
+            {/* Validation officielle, Cachet & Signature CEO */}
+            <div className="pt-2 border-t border-[#E5E7EB] flex items-center justify-between">
+              <div>
+                <div className="font-black text-base tracking-wider text-[#0A0A0A] font-tech mb-0.5">
+                  <span className="text-[#EC663B]">ALODO</span> TECH
+                </div>
+                <div className="text-[10px] font-bold text-[#6B7280] tracking-widest uppercase mb-1">
+                  Évaluer • Comprendre • Prioriser • Agir
+                </div>
+                <p className="text-[10px] text-[#9CA3AF] max-w-xs leading-tight">
+                  Document officiel émis par la Direction Générale ALODO TECH dans le cadre du Programme National MPME.
+                </p>
               </div>
-              <div className="text-[11px] font-bold text-[#6B7280] tracking-widest uppercase">
-                Évaluer • Comprendre • Prioriser • Agir
+
+              <div className="flex flex-col items-center text-center">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#4B5563] mb-0.5">
+                  Direction Générale
+                </span>
+                <img
+                  src="/images/cachet-alodo.png"
+                  alt="Cachet et Signature CEO ALODO TECH"
+                  className="h-24 w-auto object-contain select-none"
+                />
+                <span className="text-[9px] font-bold text-[#6B7280] uppercase tracking-wider">
+                  Chief Executive Officer
+                </span>
               </div>
             </div>
           </div>

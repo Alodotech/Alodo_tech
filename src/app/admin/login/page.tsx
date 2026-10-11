@@ -25,12 +25,17 @@ function AdminLoginInner() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user && user.email) {
+        const isWhitelisted =
+          user.email === "germaindandji03@gmail.com" ||
+          user.email === "germaindandji04@gmail.com" ||
+          user.email.endsWith("@alodotech.com");
+
         const { data: admin } = await supabase
           .from("admins")
           .select("id")
           .eq("email", user.email)
           .single();
-        if (admin) {
+        if (admin || isWhitelisted) {
           router.replace("/admin/candidatures");
         }
       }
@@ -44,7 +49,7 @@ function AdminLoginInner() {
     setErrorMessage(null);
     try {
       const supabase = createClient();
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      const redirectTo = `${window.location.origin}/auth/callback?next=/admin/candidatures`;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo },

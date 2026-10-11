@@ -125,12 +125,17 @@ export default function DashboardLayout({
       if (user) {
         let isAdmin = false;
         if (user.email) {
+          const isWhitelisted =
+            user.email === "germaindandji03@gmail.com" ||
+            user.email === "germaindandji04@gmail.com" ||
+            user.email.endsWith("@alodotech.com");
+
           const { data: adminRecord } = await supabase
             .from("admins")
             .select("id")
             .eq("email", user.email)
             .single();
-          isAdmin = !!adminRecord;
+          isAdmin = !!adminRecord || isWhitelisted;
         }
 
         setUser({
