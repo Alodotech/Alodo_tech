@@ -84,6 +84,10 @@
   background: linear-gradient(135deg, #050505, #111);
 }
 
+.p-visual.mpme {
+  background: linear-gradient(135deg, #0A0A0A, #161616);
+}
+
 /* Mockups inside visual */
 .mockup-box {
   width: 200px;
@@ -126,6 +130,45 @@
   background: var(--primary);
   border-radius: 4px 4px 0 0;
   animation: grow 2s infinite alternate ease-in-out;
+}
+
+.mockup-score {
+  width: 200px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.score-kicker {
+  font-size: 10px;
+  color: var(--grey-500);
+  font-family: var(--font-tech);
+  letter-spacing: 0.12em;
+}
+
+.score-val {
+  font-family: var(--font-mono);
+  font-size: 40px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--black);
+}
+
+.score-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.score-rows span {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--primary);
 }
 
 @keyframes grow {

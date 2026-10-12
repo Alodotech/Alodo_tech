@@ -6,6 +6,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import "./products.css";
 
+/** ALODO et COINAI restent dans le code, masqués tant que ce drapeau est faux. */
+const SHOW_OTHER_PRODUCTS = false;
+
 export default function ProductsPage() {
   useEffect(() => {
     const revealEls = document.querySelectorAll(".reveal");
@@ -43,6 +46,8 @@ export default function ProductsPage() {
           <div className="container">
             <div className="p-list">
 
+              {SHOW_OTHER_PRODUCTS && (
+              <>
               {/* ALODO */}
               <div className="p-card reveal">
                 <div className="p-content">
@@ -95,6 +100,40 @@ export default function ProductsPage() {
                     <div className="bar"></div>
                     <div className="bar" style={{ height: "60%" }}></div>
                     <div className="bar" style={{ height: "85%" }}></div>
+                  </div>
+                </div>
+              </div>
+              </>
+              )}
+
+              {/* ALODO MPME */}
+              <div className="p-card reveal" data-delay="2">
+                <div className="p-content">
+                  <div className="p-tag">PROGRAMME · DIAGNOSTIC</div>
+                  <h2 className="h1">ALODO MPME</h2>
+                  <p className="lead">
+                    Le diagnostic de maturité pour les micro, petites et moyennes entreprises.
+                    Une évaluation sur 9 dimensions qui identifie les forces, les points de vigilance
+                    et les actions prioritaires pour grandir.
+                  </p>
+                  <ul className="p-features">
+                    <li>Diagnostic gratuit sur 9 dimensions</li>
+                    <li>Score de maturité et profil détaillé</li>
+                    <li>Feuille de route personnalisée</li>
+                  </ul>
+                  <div className="actions">
+                    <Link href="/mpme" className="btn primary">Explorer ALODO MPME</Link>
+                  </div>
+                </div>
+                <div className="p-visual mpme">
+                  <div className="mockup-score">
+                    <div className="score-kicker">MATURITÉ</div>
+                    <div className="score-val">78</div>
+                    <div className="score-rows" aria-hidden="true">
+                      <span style={{ width: "82%" }} />
+                      <span style={{ width: "64%" }} />
+                      <span style={{ width: "91%" }} />
+                    </div>
                   </div>
                 </div>
               </div>
