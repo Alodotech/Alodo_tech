@@ -7,6 +7,9 @@ import Footer from "@/components/Footer";
 import AfricaMap from "@/components/AfricaMap";
 import "./home.css";
 
+/** ALODO et COINAI restent dans le code, masqués tant que ce drapeau est faux. */
+const SHOW_HOME_PROJECTS = false;
+
 export default function Home() {
   useEffect(() => {
     const revealEls = Array.from(document.querySelectorAll(".reveal"));
@@ -138,6 +141,36 @@ export default function Home() {
             </div>
 
             <div className="product-cards">
+              <Link href="/mpme" className="mpme-band reveal">
+                <div className="mpme-band-hero">
+                  <p className="mpme-band-kicker">Programme</p>
+                  <h3>ALODO<br />MPME</h3>
+                  <p className="mpme-band-deck">Le diagnostic de maturité des petites entreprises.</p>
+                </div>
+                <div className="mpme-band-detail">
+                  <p className="mpme-band-lead">
+                    Neuf dimensions du fonctionnement — formalisation, finance, gouvernance —
+                    pour voir les forces, les points de vigilance et les premières actions.
+                    À la fin : un score, un profil, une feuille de route.
+                  </p>
+                  <ul className="mpme-band-facts">
+                    <li><b>9</b><span>Dimensions d’analyse</span></li>
+                    <li><b>90 j</b><span>Feuille de route</span></li>
+                    <li><b>Gratuit</b><span>Diagnostic</span></li>
+                  </ul>
+                  <div className="mpme-band-foot">
+                    <div className="mpme-band-score">
+                      <span>Exemple de score</span>
+                      <strong>78</strong>
+                      <em>maturité</em>
+                    </div>
+                    <span className="mpme-band-go" aria-hidden="true">→</span>
+                  </div>
+                </div>
+              </Link>
+
+              {SHOW_HOME_PROJECTS && (
+              <>
               {/* ALODO card */}
               <Link href="/products/alodo" className="product-card reveal">
                 <div className="label">Projet ALODO · Fintech</div>
@@ -204,6 +237,8 @@ export default function Home() {
                 </div>
                 <span className="read">Découvrir le projet COINAI <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 7h8M7 3l4 4-4 4" /></svg></span>
               </Link>
+              </>
+              )}
             </div>
           </div>
         </section>
