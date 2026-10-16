@@ -1,6 +1,7 @@
 import { useId } from "react";
 import styles from "./AfricaMap.module.css";
 import { AFRICA_PATH } from "./africa-path";
+import { useLang } from "@/i18n/LanguageProvider";
 
 // Décalage de la carte dans le viewBox (laisse la place aux étiquettes à gauche)
 const SX = 170;
@@ -43,15 +44,23 @@ export default function AfricaMap({
   title = "Carte de l'Afrique avec Madagascar. Les pays de la CEDEAO sont étiquetés. Des lignes partent du Bénin vers le reste du continent : digitalisation, intelligence artificielle, économie.",
 }: Props) {
   const uid = useId().replace(/:/g, "");
+  const { lang } = useLang();
+  const en = lang === "en";
+  const tags = en
+    ? { digital: "Digitalisation", ai: "Artificial intelligence", economy: "Economy" }
+    : { digital: "Digitalisation", ai: "Intelligence artificielle", economy: "Économie" };
+  const titleText = en
+    ? "Map of Africa with Madagascar. ECOWAS countries are labeled. Lines run from Benin across the continent: digitalisation, artificial intelligence, economy."
+    : title;
 
   return (
     <div className={`${styles.root} ${className ?? ""}`}>
       <div className={styles.desktop}>
-        <MapSvg uid={`${uid}-d`} title={title} variant="desktop" />
+        <MapSvg uid={`${uid}-d`} title={titleText} variant="desktop" tags={tags} />
       </div>
       <div className={styles.mobile}>
-        <MapSvg uid={`${uid}-m`} title={title} variant="mobile" />
-        <ul className={styles.legend} aria-label="Pays de la CEDEAO">
+        <MapSvg uid={`${uid}-m`} title={titleText} variant="mobile" tags={tags} />
+        <ul className={styles.legend} aria-label={en ? "ECOWAS countries" : "Pays de la CEDEAO"}>
           {LEGEND.map((c) => (
             <li key={c.name} className={c.name === "Bénin" ? styles.chipBenin : styles.chip}>
               <span className={styles.dot} aria-hidden="true" />
@@ -68,10 +77,12 @@ function MapSvg({
   uid,
   title,
   variant,
+  tags,
 }: {
   uid: string;
   title: string;
   variant: "desktop" | "mobile";
+  tags: { digital: string; ai: string; economy: string };
 }) {
   const id = (name: string) => `${name}-${uid}`;
   const ref = (name: string) => `url(#${id(name)})`;
@@ -109,15 +120,15 @@ function MapSvg({
 
         {mobile ? (
           <>
-            <Tag x={168} y={88} w={200} h={34} label="Digitalisation" />
-            <Tag x={248} y={228} w={292} h={34} label="Intelligence artificielle" />
-            <Tag x={228} y={322} w={140} h={34} label="Économie" />
+            <Tag x={168} y={88} w={200} h={34} label={tags.digital} />
+            <Tag x={248} y={228} w={292} h={34} label={tags.ai} />
+            <Tag x={228} y={322} w={140} h={34} label={tags.economy} />
           </>
         ) : (
           <>
-            <Tag x={194} y={104} w={120} h={24} label="Digitalisation" />
-            <Tag x={293} y={248} w={154} h={24} label="Intelligence artificielle" />
-            <Tag x={255} y={336} w={88} h={24} label="Économie" />
+            <Tag x={194} y={104} w={120} h={24} label={tags.digital} />
+            <Tag x={293} y={248} w={154} h={24} label={tags.ai} />
+            <Tag x={255} y={336} w={88} h={24} label={tags.economy} />
           </>
         )}
 

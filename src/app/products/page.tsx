@@ -4,12 +4,15 @@ import { useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useLang } from "@/i18n/LanguageProvider";
 import "./products.css";
 
 /** ALODO et COINAI restent dans le code, masqués tant que ce drapeau est faux. */
 const SHOW_OTHER_PRODUCTS = false;
 
 export default function ProductsPage() {
+  const { lang } = useLang();
+  const en = lang === "en";
   useEffect(() => {
     const revealEls = document.querySelectorAll(".reveal");
     const revealIo = new IntersectionObserver((entries) => {
@@ -31,13 +34,14 @@ export default function ProductsPage() {
       <main className="products-listing">
         <section className="products-hero">
           <div className="container">
-            <span className="eyebrow reveal">Portfolio Technologique</span>
+            <span className="eyebrow reveal">{en ? "Technology portfolio" : "Portfolio Technologique"}</span>
             <h1 className="display reveal" data-delay="1" style={{ marginTop: "16px" }}>
-              Bâtir le futur de l'Afrique digitale.
+              {en ? "Building the future of digital Africa." : "Bâtir le futur de l'Afrique digitale."}
             </h1>
             <p className="lead reveal" data-delay="2" style={{ maxWidth: "600px", marginTop: "24px" }}>
-              ALODO TECH conçoit et déploie des infrastructures intégrées pour relever les défis
-              des marchés émergents, de l'inclusion financière à l'intelligence artificielle.
+              {en
+                ? "ALODO TECH designs and deploys integrated infrastructure for the challenges of emerging markets, from financial inclusion to artificial intelligence."
+                : "ALODO TECH conçoit et déploie des infrastructures intégrées pour relever les défis des marchés émergents, de l'inclusion financière à l'intelligence artificielle."}
             </p>
           </div>
         </section>
@@ -109,25 +113,25 @@ export default function ProductsPage() {
               {/* ALODO MPME */}
               <div className="p-card reveal" data-delay="2">
                 <div className="p-content">
-                  <div className="p-tag">PROGRAMME · DIAGNOSTIC</div>
+                  <div className="p-tag">{en ? "PROGRAM · DIAGNOSTIC" : "PROGRAMME · DIAGNOSTIC"}</div>
                   <h2 className="h1">ALODO MPME</h2>
                   <p className="lead">
-                    Le diagnostic de maturité pour les micro, petites et moyennes entreprises.
-                    Une évaluation sur 9 dimensions qui identifie les forces, les points de vigilance
-                    et les actions prioritaires pour grandir.
+                    {en
+                      ? "The maturity diagnostic for micro, small and medium enterprises. An assessment across 9 dimensions that identifies strengths, watchpoints and the priority actions needed to grow."
+                      : "Le diagnostic de maturité pour les micro, petites et moyennes entreprises. Une évaluation sur 9 dimensions qui identifie les forces, les points de vigilance et les actions prioritaires pour grandir."}
                   </p>
                   <ul className="p-features">
-                    <li>Diagnostic gratuit sur 9 dimensions</li>
-                    <li>Score de maturité et profil détaillé</li>
-                    <li>Feuille de route personnalisée</li>
+                    <li>{en ? "Free diagnostic across 9 dimensions" : "Diagnostic gratuit sur 9 dimensions"}</li>
+                    <li>{en ? "Maturity score and detailed profile" : "Score de maturité et profil détaillé"}</li>
+                    <li>{en ? "Personalized roadmap" : "Feuille de route personnalisée"}</li>
                   </ul>
                   <div className="actions">
-                    <Link href="/mpme" className="btn primary">Explorer ALODO MPME</Link>
+                    <Link href="/mpme" className="btn primary">{en ? "Explore ALODO MPME" : "Explorer ALODO MPME"}</Link>
                   </div>
                 </div>
                 <div className="p-visual mpme">
                   <div className="mockup-score">
-                    <div className="score-kicker">MATURITÉ</div>
+                    <div className="score-kicker">{en ? "MATURITY" : "MATURITÉ"}</div>
                     <div className="score-val">78</div>
                     <div className="score-rows" aria-hidden="true">
                       <span style={{ width: "82%" }} />
@@ -145,9 +149,9 @@ export default function ProductsPage() {
         <section className="cta-alt reveal">
           <div className="container">
             <div className="cta-content">
-              <h2>Vous avez un besoin spécifique ?</h2>
-              <p>Nos experts vous accompagnent dans la mise en œuvre de solutions sur mesure.</p>
-              <Link href="/contact" className="btn outline">Parlons-en</Link>
+              <h2>{en ? "Have a specific need?" : "Vous avez un besoin spécifique ?"}</h2>
+              <p>{en ? "Our experts help you implement tailored solutions." : "Nos experts vous accompagnent dans la mise en œuvre de solutions sur mesure."}</p>
+              <Link href="/contact" className="btn outline">{en ? "Let's talk" : "Parlons-en"}</Link>
             </div>
           </div>
         </section>
