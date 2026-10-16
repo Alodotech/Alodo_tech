@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { isListedAdmin } from "@/utils/supabase/isAdmin";
 import { Cohort } from "@/lib/mpme/types";
 import DashboardLayout from "@/components/mpme/DashboardLayout";
 
@@ -111,12 +112,7 @@ export default function AdminSettingsPage() {
       window.location.href = "/admin/login";
       return;
     }
-    const isWhitelisted =
-      user.email === "germaindandji03@gmail.com" ||
-      user.email === "germaindandji04@gmail.com" ||
-      user.email?.endsWith("@alodotech.com");
-    const { data: admin } = await supabase.from('admins').select('id').eq('email', user.email).single();
-    if (!admin && !isWhitelisted) {
+    if (!(await isListedAdmin(supabase, user.email))) {
       await supabase.auth.signOut();
       window.location.href = "/admin/login?error=unauthorized";
       return;

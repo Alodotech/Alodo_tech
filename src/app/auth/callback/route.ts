@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { isListedAdmin } from '@/utils/supabase/isAdmin'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
@@ -32,24 +33,18 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error && data?.user) {
-      const user = data.user
-      const isWhitelisted =
-        user.email === "germaindandji03@gmail.com" ||
-        user.email === "germaindandji04@gmail.com" ||
-        (user.email ? user.email.endsWith("@alodotech.com") : false)
+      const allowed = await isListedAdmin(supabase, data.user.email)
 
-      const { data: admin } = await supabase
-        .from('admins')
-        .select('id')
-        .eq('email', user.email)
-        .single()
-
-      if (admin || isWhitelisted) {
+      if (allowed) {
         return response
       }
 
       await supabase.auth.signOut()
-      return NextResponse.redirect(`${origin}/admin/login?error=unauthorized`)
+      const denied = NextResponse.redirect(`${origin}/admin/login?error=unauthorized`)
+      response.cookies.getAll().forEach((cookie) => {
+        denied.cookies.set(cookie.name, cookie.value)
+      })
+      return denied
     }
 
     if (error) {

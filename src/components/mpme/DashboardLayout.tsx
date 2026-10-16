@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Application } from "@/lib/mpme/types";
 import { createClient } from "@/utils/supabase/client";
+import { isListedAdmin } from "@/utils/supabase/isAdmin";
 
 // ============================================================================
 // CLEAN PROFESSIONAL VECTOR SVG ICONS (NO EMOJIS)
@@ -123,20 +124,7 @@ export default function DashboardLayout({
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        let isAdmin = false;
-        if (user.email) {
-          const isWhitelisted =
-            user.email === "germaindandji03@gmail.com" ||
-            user.email === "germaindandji04@gmail.com" ||
-            user.email.endsWith("@alodotech.com");
-
-          const { data: adminRecord } = await supabase
-            .from("admins")
-            .select("id")
-            .eq("email", user.email)
-            .single();
-          isAdmin = !!adminRecord || isWhitelisted;
-        }
+        const isAdmin = await isListedAdmin(supabase, user.email);
 
         setUser({
           email: user.email,
