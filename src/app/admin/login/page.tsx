@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { createClient } from "@/utils/supabase/client";
+import { isListedAdmin } from "@/utils/supabase/isAdmin";
 
 function AdminLoginInner() {
   const router = useRouter();
@@ -24,20 +25,8 @@ function AdminLoginInner() {
     const checkSession = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.email) {
-        const isWhitelisted =
-          user.email === "germaindandji03@gmail.com" ||
-          user.email === "germaindandji04@gmail.com" ||
-          user.email.endsWith("@alodotech.com");
-
-        const { data: admin } = await supabase
-          .from("admins")
-          .select("id")
-          .eq("email", user.email)
-          .single();
-        if (admin || isWhitelisted) {
-          router.replace("/admin/candidatures");
-        }
+      if (user && (await isListedAdmin(supabase, user.email))) {
+        router.replace("/admin/candidatures");
       }
     };
     checkSession();

@@ -9,6 +9,7 @@ import { Application, Cohort, DiagnosticAnswer, DiagnosticReport } from "@/lib/m
 import { DIMENSIONS, QUESTIONS_V1 } from "@/lib/mpme/questions";
 import { calculateDiagnosticScore } from "@/lib/mpme/scoring";
 import { createClient } from "@/utils/supabase/client";
+import { isListedAdmin } from "@/utils/supabase/isAdmin";
 
 // ============================================================================
 // ICONS
@@ -189,13 +190,7 @@ export default function AdminCandidatesDirectoryView() {
         return;
       }
 
-      const { data: adminRecord } = await supabase
-        .from("admins")
-        .select("id")
-        .eq("email", user.email)
-        .single();
-
-      if (!adminRecord && !user.email?.endsWith("@alodotech.com") && user.email !== "germaindandji03@gmail.com") {
+      if (!(await isListedAdmin(supabase, user.email))) {
         await supabase.auth.signOut();
         window.location.href = "/admin/login?error=unauthorized";
         return;
@@ -203,11 +198,10 @@ export default function AdminCandidatesDirectoryView() {
 
       setAdminEmail(user.email || "Console Gouverneur ALODO TECH");
       setIsAuthorized(true);
+      refreshData();
     }).catch(() => {
-      setIsAuthorized(true);
+      window.location.href = "/admin/login?error=unauthorized";
     });
-
-    refreshData();
   }, []);
 
   const refreshData = async () => {

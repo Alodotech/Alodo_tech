@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useLang } from "@/i18n/LanguageProvider";
 
 const NAV_LINKS = [
   { href: "/", label: { fr: "Accueil", en: "Home" }, key: "home" },
@@ -18,14 +19,12 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar({ activeKey }: { activeKey?: string }) {
-  const [lang, setLang] = useState("fr");
+  const { lang, setLang } = useLang();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const pathname = usePathname();
 
   useEffect(() => {
-    const savedLang = localStorage.getItem("alodo-lang") || "fr";
-    setLang(savedLang);
     if (typeof window !== "undefined") {
       const user = localStorage.getItem("alodo_mpme_user");
       if (user) {
@@ -34,10 +33,8 @@ export default function Navbar({ activeKey }: { activeKey?: string }) {
     }
   }, [pathname]);
 
-  const toggleLang = (newLang: string) => {
-    localStorage.setItem("alodo-lang", newLang);
+  const toggleLang = (newLang: "fr" | "en") => {
     setLang(newLang);
-    window.location.reload();
   };
 
   return (

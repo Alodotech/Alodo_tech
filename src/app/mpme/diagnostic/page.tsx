@@ -8,6 +8,8 @@ import Footer from "@/components/Footer";
 import { QUESTIONS_V1, DIMENSIONS } from "@/lib/mpme/questions";
 import { DiagnosticAnswer } from "@/lib/mpme/types";
 import { MpmeStorage } from "@/lib/mpme/storage";
+import { useLang } from "@/i18n/LanguageProvider";
+import { DIM_TITLE_EN, QUESTIONS_EN, REVENUE_EN, SECTOR_EN, STAFF_EN } from "@/i18n/diagnosticEn";
 
 const BENIN_CITIES = [
   "Cotonou",
@@ -115,6 +117,8 @@ const REVENUE_BRACKETS = [
 
 function DiagnosticContent() {
   const router = useRouter();
+  const { lang } = useLang();
+  const en = lang === "en";
 
   // Phase: "company" -> "questions" -> "confirmation"
   const [phase, setPhase] = useState<"company" | "questions" | "confirmation">("company");
@@ -177,31 +181,31 @@ function DiagnosticContent() {
     setErrorMsg("");
 
     if (!formData.name.trim()) {
-      setErrorMsg("Veuillez renseigner le nom de votre entreprise.");
+      setErrorMsg(en ? "Please enter your business name." : "Veuillez renseigner le nom de votre entreprise.");
       return;
     }
     if (!formData.leaderName.trim()) {
-      setErrorMsg("Veuillez renseigner le nom et prénom du dirigeant.");
+      setErrorMsg(en ? "Please enter the owner's full name." : "Veuillez renseigner le nom et prénom du dirigeant.");
       return;
     }
     if (!formData.phone.trim()) {
-      setErrorMsg("Veuillez renseigner votre numéro de téléphone.");
+      setErrorMsg(en ? "Please enter your phone number." : "Veuillez renseigner votre numéro de téléphone.");
       return;
     }
     if (!formData.whatsapp.trim()) {
-      setErrorMsg("Veuillez renseigner votre numéro WhatsApp.");
+      setErrorMsg(en ? "Please enter your WhatsApp number." : "Veuillez renseigner votre numéro WhatsApp.");
       return;
     }
     if (!formData.email.trim()) {
-      setErrorMsg("Veuillez renseigner votre adresse email.");
+      setErrorMsg(en ? "Please enter your email address." : "Veuillez renseigner votre adresse email.");
       return;
     }
     if (formData.city === "Autre commune / ville" && !customCity.trim()) {
-      setErrorMsg("Veuillez préciser le nom de votre ville ou commune.");
+      setErrorMsg(en ? "Please specify your city or town." : "Veuillez préciser le nom de votre ville ou commune.");
       return;
     }
     if (formData.sector === "Autre secteur" && !customSector.trim()) {
-      setErrorMsg("Veuillez préciser votre secteur d'activité.");
+      setErrorMsg(en ? "Please specify your sector." : "Veuillez préciser votre secteur d'activité.");
       return;
     }
 
@@ -294,7 +298,7 @@ function DiagnosticContent() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       console.error(err);
-      setErrorMsg(err.message || "Une erreur est survenue lors de l'envoi.");
+      setErrorMsg(err.message || (en ? "Something went wrong while sending." : "Une erreur est survenue lors de l'envoi."));
     } finally {
       setIsSubmitting(false);
     }
@@ -318,13 +322,15 @@ function DiagnosticContent() {
           <div className="bg-white p-6 sm:p-10 rounded-3xl border border-[#EBEBEB] shadow-sm">
             <div className="text-center mb-8">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-[#EC663B]/10 text-[#EC663B] mb-3">
-                Étape 1 sur 2 • Profil de l'entreprise
+                {en ? "Step 1 of 2 • Business profile" : "Étape 1 sur 2 • Profil de l'entreprise"}
               </span>
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A0A0A]">
-                Diagnostic de Maturité MPME
+                {en ? "MSME maturity diagnostic" : "Diagnostic de Maturité MPME"}
               </h1>
               <p className="text-[#6E6E73] text-xs sm:text-sm mt-2 max-w-lg mx-auto">
-                Renseignez les coordonnées de votre entreprise ci-dessous, puis poursuivez avec les 20 questions pour obtenir votre évaluation complète.
+                {en
+                  ? "Enter your business details below, then continue with the 20 questions to get your full assessment."
+                  : "Renseignez les coordonnées de votre entreprise ci-dessous, puis poursuivez avec les 20 questions pour obtenir votre évaluation complète."}
               </p>
             </div>
 
@@ -340,14 +346,14 @@ function DiagnosticContent() {
                 <div className="flex items-center gap-2 pb-1.5 border-b border-[#F2F2F2]">
                   <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[10px] font-extrabold flex items-center justify-center">1</span>
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A0A0A]">
-                    Identité de l'entreprise
+                    {en ? "Business identity" : "Identité de l'entreprise"}
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Nom de l'entreprise <span className="text-[#EC663B]">*</span>
+                      {en ? "Business name" : "Nom de l'entreprise"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <input
                       type="text"
@@ -361,7 +367,7 @@ function DiagnosticContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Nom et Prénom du dirigeant <span className="text-[#EC663B]">*</span>
+                      {en ? "Owner's full name" : "Nom et Prénom du dirigeant"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <input
                       type="text"
@@ -380,14 +386,14 @@ function DiagnosticContent() {
                 <div className="flex items-center gap-2 pb-1.5 border-b border-[#F2F2F2]">
                   <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[10px] font-extrabold flex items-center justify-center">2</span>
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A0A0A]">
-                    Contact & Localisation
+                    {en ? "Contact & location" : "Contact & Localisation"}
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Adresse Email <span className="text-[#EC663B]">*</span>
+                      {en ? "Email address" : "Adresse Email"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <input
                       type="email"
@@ -401,7 +407,7 @@ function DiagnosticContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Numéro WhatsApp <span className="text-[#EC663B]">*</span>
+                      {en ? "WhatsApp number" : "Numéro WhatsApp"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <input
                       type="tel"
@@ -415,7 +421,7 @@ function DiagnosticContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Téléphone d'appel <span className="text-[#EC663B]">*</span>
+                      {en ? "Phone number" : "Téléphone d'appel"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <input
                       type="tel"
@@ -429,7 +435,7 @@ function DiagnosticContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Ville principale d'activité <span className="text-[#EC663B]">*</span>
+                      {en ? "Main city of activity" : "Ville principale d'activité"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <select
                       value={formData.city}
@@ -438,7 +444,7 @@ function DiagnosticContent() {
                     >
                       {BENIN_CITIES.map((c) => (
                         <option key={c} value={c}>
-                          {c}
+                          {c === "Autre commune / ville" && en ? "Other city / town" : c}
                         </option>
                       ))}
                     </select>
@@ -446,7 +452,7 @@ function DiagnosticContent() {
                     {formData.city === "Autre commune / ville" && (
                       <div className="mt-2.5 animate-in fade-in duration-200">
                         <label className="block text-[11px] font-semibold text-[#3A3A3C] mb-1">
-                          Précisez votre ville / commune <span className="text-[#EC663B]">*</span>
+                          {en ? "Specify your city / town" : "Précisez votre ville / commune"} <span className="text-[#EC663B]">*</span>
                         </label>
                         <input
                           type="text"
@@ -467,14 +473,14 @@ function DiagnosticContent() {
                 <div className="flex items-center gap-2 pb-1.5 border-b border-[#F2F2F2]">
                   <span className="w-5 h-5 rounded-full bg-[#EC663B]/10 text-[#EC663B] text-[10px] font-extrabold flex items-center justify-center">3</span>
                   <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#0A0A0A]">
-                    Profil & Dimensionnement
+                    {en ? "Profile & size" : "Profil & Dimensionnement"}
                   </h3>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Secteur d'activité <span className="text-[#EC663B]">*</span>
+                      {en ? "Sector" : "Secteur d'activité"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <select
                       value={formData.sector}
@@ -483,7 +489,7 @@ function DiagnosticContent() {
                     >
                       {SECTORS.map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {en ? (SECTOR_EN[s] ?? s) : s}
                         </option>
                       ))}
                     </select>
@@ -491,7 +497,7 @@ function DiagnosticContent() {
                     {formData.sector === "Autre secteur" && (
                       <div className="mt-2.5 animate-in fade-in duration-200">
                         <label className="block text-[11px] font-semibold text-[#3A3A3C] mb-1">
-                          Précisez votre secteur d'activité <span className="text-[#EC663B]">*</span>
+                          {en ? "Specify your sector" : "Précisez votre secteur d'activité"} <span className="text-[#EC663B]">*</span>
                         </label>
                         <input
                           type="text"
@@ -507,7 +513,7 @@ function DiagnosticContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Année de création <span className="text-[#EC663B]">*</span>
+                      {en ? "Year founded" : "Année de création"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <input
                       type="number"
@@ -522,24 +528,24 @@ function DiagnosticContent() {
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Nombre d'employés <span className="text-[#EC663B]">*</span>
+                      {en ? "Number of employees" : "Nombre d'employés"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <select
                       value={formData.employeesCount}
                       onChange={(e) => setFormData({ ...formData, employeesCount: e.target.value })}
                       className="w-full bg-[#FAFAFA] border border-[#D1D1D6] rounded-xl px-3.5 py-2.5 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B] focus:bg-white focus:ring-2 focus:ring-[#EC663B]/10 transition-all"
                     >
-                      <option value="1 à 2 personnes">1 à 2 personnes</option>
-                      <option value="3 à 5 personnes">3 à 5 personnes</option>
-                      <option value="6 à 10 personnes">6 à 10 personnes</option>
-                      <option value="11 à 25 personnes">11 à 25 personnes</option>
-                      <option value="Plus de 25 personnes">Plus de 25 personnes</option>
+                      {Object.keys(STAFF_EN).map((value) => (
+                        <option key={value} value={value}>
+                          {en ? STAFF_EN[value] : value}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-[#3A3A3C] mb-1.5">
-                      Chiffre d'affaires mensuel moyen <span className="text-[#EC663B]">*</span>
+                      {en ? "Average monthly revenue" : "Chiffre d'affaires mensuel moyen"} <span className="text-[#EC663B]">*</span>
                     </label>
                     <select
                       value={formData.monthlyRevenue}
@@ -548,7 +554,7 @@ function DiagnosticContent() {
                     >
                       {REVENUE_BRACKETS.map((r) => (
                         <option key={r} value={r}>
-                          {r}
+                          {en ? (REVENUE_EN[r] ?? r) : r}
                         </option>
                       ))}
                     </select>
@@ -561,11 +567,13 @@ function DiagnosticContent() {
                   type="submit"
                   className="w-full py-4 bg-[#EC663B] hover:bg-[#d4562e] text-white font-bold rounded-2xl text-sm shadow-xl shadow-[#EC663B]/25 transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-2xl hover:-translate-y-0.5"
                 >
-                  <span>Poursuivre vers les 20 questions du diagnostic</span>
+                  <span>{en ? "Continue to the 20 diagnostic questions" : "Poursuivre vers les 20 questions du diagnostic"}</span>
                   <span>→</span>
                 </button>
                 <p className="text-center text-[11px] text-[#8E8E93] mt-2.5">
-                  Étape 1 sur 2 • Temps estimé : 4 à 5 minutes • Vos réponses restent strictement confidentielles
+                  {en
+                    ? "Step 1 of 2 • About 4 to 5 minutes • Your answers stay strictly confidential"
+                    : "Étape 1 sur 2 • Temps estimé : 4 à 5 minutes • Vos réponses restent strictement confidentielles"}
                 </p>
               </div>
             </form>
@@ -580,19 +588,21 @@ function DiagnosticContent() {
             {/* Same Header with Title */}
             <div className="text-center mb-6">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0A0A0A]">
-                Diagnostic MPME
+                {en ? "MSME diagnostic" : "Diagnostic MPME"}
               </h1>
               <p className="text-[#6E6E73] text-xs sm:text-sm mt-2 max-w-lg mx-auto">
-                Évaluez la maturité de votre entreprise sur les dimensions stratégiques clés.
+                {en
+                  ? "Assess how mature your business is across the key strategic dimensions."
+                  : "Évaluez la maturité de votre entreprise sur les dimensions stratégiques clés."}
               </p>
 
               {/* Progress Bar inside Header */}
               <div className="mt-5 max-w-md mx-auto">
                 <div className="flex items-center justify-between text-xs text-[#6E6E73] mb-1.5 font-medium">
                   <span className="text-[#EC663B] font-semibold uppercase tracking-wider">
-                    {currentDimension?.title} · Question {currentIndex + 1} sur {QUESTIONS_V1.length}
+                    {(en && currentDimension ? DIM_TITLE_EN[currentDimension.id] : currentDimension?.title)} · {en ? "Question" : "Question"} {currentIndex + 1} {en ? "of" : "sur"} {QUESTIONS_V1.length}
                   </span>
-                  <span className="font-bold text-[#0A0A0A]">{progressPercent}% complété</span>
+                  <span className="font-bold text-[#0A0A0A]">{progressPercent}% {en ? "complete" : "complété"}</span>
                 </div>
                 <div className="w-full h-2 bg-[#F2F2F2] rounded-full overflow-hidden">
                   <div
@@ -615,14 +625,14 @@ function DiagnosticContent() {
                 className="inline-block px-3 py-1 rounded-full bg-[#FAFAFA] border border-[#EBEBEB] text-xs font-mono text-[#6E6E73]"
                 style={{ marginBottom: "14px" }}
               >
-                Sous-dimension : {currentQuestion.subDimension}
+                {en ? "Sub-dimension" : "Sous-dimension"} : {en ? (QUESTIONS_EN[currentQuestion.id]?.sub ?? currentQuestion.subDimension) : currentQuestion.subDimension}
               </div>
 
               <h2
                 className="text-lg sm:text-xl font-bold text-[#0A0A0A]"
                 style={{ marginTop: "6px", marginBottom: "26px", lineHeight: "1.4" }}
               >
-                {currentQuestion.text}
+                {en ? (QUESTIONS_EN[currentQuestion.id]?.text ?? currentQuestion.text) : currentQuestion.text}
               </h2>
 
               {/* Options with clean generous breathing room */}
@@ -649,7 +659,7 @@ function DiagnosticContent() {
                         {isSelected && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </div>
                       <span className="text-sm leading-relaxed text-[#2C2C2E]">
-                        {opt.label}
+                        {en ? (QUESTIONS_EN[currentQuestion.id]?.options[opt.value] ?? opt.label) : opt.label}
                       </span>
                     </button>
                   );
@@ -666,7 +676,9 @@ function DiagnosticContent() {
                   onClick={handlePrev}
                   className="px-5 py-3 rounded-full bg-[#FAFAFA] border border-[#D1D1D6] text-xs sm:text-sm font-semibold text-[#0A0A0A] hover:bg-[#F2F2F2] transition-colors cursor-pointer"
                 >
-                  {currentIndex === 0 ? "← Modifier profil entreprise" : "← Précédent"}
+                  {currentIndex === 0
+                    ? (en ? "← Edit business profile" : "← Modifier profil entreprise")
+                    : (en ? "← Previous" : "← Précédent")}
                 </button>
 
                 {currentIndex < QUESTIONS_V1.length - 1 ? (
@@ -676,7 +688,7 @@ function DiagnosticContent() {
                     disabled={!currentAnswer}
                     className="px-7 py-3 bg-[#EC663B] hover:bg-[#d4562e] disabled:opacity-40 text-xs sm:text-sm font-bold text-white rounded-full transition-all shadow-md shadow-[#EC663B]/20 cursor-pointer"
                   >
-                    Suivante →
+                    {en ? "Next →" : "Suivante →"}
                   </button>
                 ) : (
                   <button
@@ -685,7 +697,9 @@ function DiagnosticContent() {
                     disabled={!isComplete || isSubmitting}
                     className="px-8 py-3.5 bg-gradient-to-r from-[#EC663B] to-[#00C2A8] text-white font-extrabold text-sm sm:text-base rounded-full shadow-lg disabled:opacity-50 transition-all cursor-pointer"
                   >
-                    {isSubmitting ? "Envoi du diagnostic..." : "Valider mon diagnostic →"}
+                    {isSubmitting
+                      ? (en ? "Sending the diagnostic..." : "Envoi du diagnostic...")
+                      : (en ? "Submit my diagnostic →" : "Valider mon diagnostic →")}
                   </button>
                 )}
               </div>
@@ -703,15 +717,17 @@ function DiagnosticContent() {
             </div>
 
             <span className="text-xs uppercase tracking-widest text-[#00C2A8] font-bold">
-              Dossier & Diagnostic Bien Reçus
+              {en ? "File & diagnostic received" : "Dossier & Diagnostic Bien Reçus"}
             </span>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold mt-2 mb-4 text-[#0A0A0A]">
-              Merci, {formData.name} !
+              {en ? "Thank you" : "Merci"}, {formData.name} !
             </h1>
 
             <p className="text-sm text-[#6E6E73] mb-6 leading-relaxed">
-              Votre diagnostic de maturité a été enregistré avec succès. Nos experts examinent actuellement les éléments de votre profil sur les dimensions stratégiques.
+              {en
+                ? "Your maturity diagnostic has been saved. Our team is reviewing your profile across the strategic dimensions."
+                : "Votre diagnostic de maturité a été enregistré avec succès. Nos experts examinent actuellement les éléments de votre profil sur les dimensions stratégiques."}
             </p>
 
             {/* INVITATION À REJOINDRE LA COMMUNAUTÉ / CHAÎNE WHATSAPP */}
@@ -726,10 +742,12 @@ function DiagnosticContent() {
 
               <div>
                 <h3 className="text-base font-extrabold text-[#0A0A0A]">
-                  Rejoignez la Communauté des MPME d'ALODO
+                  {en ? "Join the ALODO MSME community" : "Rejoignez la Communauté des MPME d'ALODO"}
                 </h3>
                 <p className="text-xs sm:text-sm text-[#4A4A4F] mt-1.5 max-w-md mx-auto leading-relaxed">
-                  Pour suivre la suite du programme, les annonces officielles, les opportunités d'accompagnement et les prochains ateliers, rejoignez notre chaîne WhatsApp officielle.
+                  {en
+                    ? "To follow the rest of the program, official announcements, support opportunities and upcoming workshops, join our official WhatsApp channel."
+                    : "Pour suivre la suite du programme, les annonces officielles, les opportunités d'accompagnement et les prochains ateliers, rejoignez notre chaîne WhatsApp officielle."}
                 </p>
               </div>
 
@@ -745,7 +763,7 @@ function DiagnosticContent() {
                     alt=""
                     className="w-5 h-5"
                   />
-                  <span>Rejoindre la Chaîne WhatsApp →</span>
+                  <span>{en ? "Join the WhatsApp channel →" : "Rejoindre la Chaîne WhatsApp →"}</span>
                 </a>
               </div>
             </div>
@@ -755,12 +773,12 @@ function DiagnosticContent() {
                 href="/mpme"
                 className="py-3 px-6 bg-white hover:bg-[#F5F5F7] text-[#0A0A0A] font-semibold border border-[#D1D1D6] rounded-full text-xs sm:text-sm transition-all text-center"
               >
-                Retour à l'accueil du programme
+                {en ? "Back to the program" : "Retour à l'accueil du programme"}
               </Link>
             </div>
 
             <div className="mt-6 pt-6 border-t border-[#EBEBEB] text-xs text-[#8E8E93]">
-              Une question ? Contactez notre équipe par email à <strong>partnership@alodotech.com</strong>
+              {en ? "A question? Email our team at" : "Une question ? Contactez notre équipe par email à"} <strong>partnership@alodotech.com</strong>
             </div>
           </div>
         )}
@@ -771,18 +789,23 @@ function DiagnosticContent() {
   );
 }
 
+function DiagnosticFallback() {
+  const { lang } = useLang();
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-sans">
+      <div className="text-center p-8">
+        <div className="w-8 h-8 border-2 border-[#EC663B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+        <p className="text-xs sm:text-sm text-[#6E6E73]">
+          {lang === "en" ? "Loading the diagnostic..." : "Chargement du diagnostic..."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function DiagnosticPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen bg-[#FAFAFA] flex items-center justify-center font-sans">
-          <div className="text-center p-8">
-            <div className="w-8 h-8 border-2 border-[#EC663B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-            <p className="text-xs sm:text-sm text-[#6E6E73]">Chargement du diagnostic...</p>
-          </div>
-        </div>
-      }
-    >
+    <Suspense fallback={<DiagnosticFallback />}>
       <DiagnosticContent />
     </Suspense>
   );

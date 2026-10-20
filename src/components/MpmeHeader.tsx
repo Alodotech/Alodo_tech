@@ -4,10 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { useLang } from "@/i18n/LanguageProvider";
 
 export default function MpmeHeader() {
   const pathname = usePathname();
   const router = useRouter();
+  const { lang, setLang } = useLang();
+  const en = lang === "en";
   const [user, setUser] = useState<{ email?: string; name?: string; provider?: string } | null>(null);
 
   useEffect(() => {
@@ -35,8 +38,8 @@ export default function MpmeHeader() {
   };
 
   const links = [
-    { href: "/mpme", label: "Le Programme" },
-    { href: "/mpme/diagnostic", label: "Diagnostic" },
+    { href: "/mpme", label: en ? "The program" : "Le Programme" },
+    { href: "/mpme/diagnostic", label: en ? "Diagnostic" : "Diagnostic" },
   ];
 
   return (
@@ -73,13 +76,17 @@ export default function MpmeHeader() {
           })}
         </nav>
 
-        {/* Action Button */}
+        {/* Action Button & Lang toggle */}
         <div className="flex items-center gap-3">
+          <div className="lang">
+            <button className={lang === "fr" ? "on" : ""} onClick={() => setLang("fr")}>FR</button>
+            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+          </div>
           <Link
             href="/mpme/diagnostic"
             className="text-xs font-bold text-white bg-[#EC663B] hover:bg-[#d4562e] transition-all px-5 py-2 rounded-full shadow-sm"
           >
-            Faire le Diagnostic
+            {en ? "Take the diagnostic" : "Faire le Diagnostic"}
           </Link>
         </div>
       </div>

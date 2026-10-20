@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useLang } from "@/i18n/LanguageProvider";
 
 export default function Footer() {
-  const lang = "fr";
+  const { lang } = useLang();
 
   const T = lang === "fr" ? {
     tag: "Infrastructure financière & digitale pour les marchés émergents.",

@@ -2,9 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useLang } from "@/i18n/LanguageProvider";
 
 export default function CandidatureRedirectPage() {
   const router = useRouter();
+  const { lang } = useLang();
 
   useEffect(() => {
     router.replace("/mpme/diagnostic");
@@ -15,7 +17,7 @@ export default function CandidatureRedirectPage() {
       <div className="text-center p-8">
         <div className="w-8 h-8 border-2 border-[#EC663B] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
         <p className="text-xs sm:text-sm text-[#6E6E73]">
-          Chargement du formulaire de diagnostic unifié...
+          {lang === "en" ? "Loading the diagnostic form..." : "Chargement du formulaire de diagnostic unifié..."}
         </p>
       </div>
     </div>
