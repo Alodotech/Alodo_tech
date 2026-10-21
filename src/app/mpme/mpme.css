@@ -72,6 +72,61 @@
   margin: 36px auto 0 auto;
 }
 
+/* MPME Action Buttons */
+.mpme-main-cta {
+  cursor: pointer;
+  font-size: 16px;
+  padding: 16px 36px;
+  height: auto;
+  min-height: 52px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.mpme-video-cta {
+  cursor: pointer;
+  font-size: 15px;
+  padding: 15px 26px;
+  height: auto;
+  min-height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-decoration: none;
+  border-radius: 999px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  color: #1F2937;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.mpme-video-cta:hover {
+  background: #F9FAFB;
+  border-color: #D1D5DB;
+}
+
+.mpme-video-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(236, 102, 59, 0.12);
+  color: #EC663B;
+  flex-shrink: 0;
+}
+
 /* Stat row */
 .mpme-stats {
   width: 100%;
@@ -383,17 +438,30 @@
     width: 100%;
     gap: 12px;
     padding: 0 16px;
+    box-sizing: border-box;
   }
 
   .mpme-hero-actions .btn,
-  .mpme-hero-actions button {
-    width: 100%;
-    max-width: 100%;
-    text-align: center;
-    font-size: 14px !important;
-    padding: 14px 20px !important;
+  .mpme-hero-actions button,
+  .mpme-hero-actions a,
+  .mpme-main-cta,
+  .mpme-video-cta,
+  .cta-box button,
+  .cta-box .btn {
+    width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+    font-size: 15px !important;
+    padding: 14px 18px !important;
     white-space: normal !important;
-    word-break: break-word;
+    word-break: break-word !important;
+    line-height: 1.35 !important;
+    height: auto !important;
+    min-height: 48px !important;
+    box-sizing: border-box !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
   }
 
   .mpme-hero h1 {
@@ -417,19 +485,20 @@
 /* CTA Box */
 @media (max-width: 640px) {
   .cta-box {
-    padding: 36px 20px;
+    padding: 36px 16px !important;
     border-radius: 20px;
     margin: 0 8px;
+    box-sizing: border-box;
   }
 
   .cta-box h2 {
     font-size: clamp(22px, 6vw, 32px);
   }
 
-  .cta-box .mpme-hero-actions,
-  .cta-box > div[style] {
-    flex-direction: column;
-    width: 100%;
+  .cta-box-actions {
+    width: 100% !important;
+    padding: 0 !important;
+    box-sizing: border-box;
   }
 }
 

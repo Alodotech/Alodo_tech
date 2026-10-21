@@ -47,68 +47,44 @@ export default function MpmeLandingPage() {
             </div>
 
             {/* Display Headline */}
-            <h1 style={{ textAlign: "center", margin: "0 auto", maxWidth: "920px" }}>
+            <h1 style={{ textAlign: "center", margin: "0 auto 32px auto", maxWidth: "920px" }}>
               {en ? <><span className="accent">Structure</span> your business. Strengthen your ability to grow.</> : <><span className="accent">Structurez</span> votre entreprise. Renforcez votre capacité à grandir.</>}
             </h1>
 
-            {/* Breathable Lead Paragraph */}
-            <p className="lead" style={{ textAlign: "center", margin: "24px auto 0 auto", maxWidth: "760px" }}>
-              {en
-                ? "ALODO's MSME Program assesses how mature your business is across the main dimensions of how it operates, so you can see strengths, watchpoints and the priority actions to take."
-                : "Le Programme MPME d’ALODO évalue la maturité de votre entreprise sur les principales dimensions de son fonctionnement afin d’identifier ses forces, ses points de vigilance et les actions prioritaires à engager."}
-            </p>
-            
-            <p style={{ textAlign: "center", marginTop: "16px", fontSize: "15px", color: "#6E6E73", fontWeight: 500 }}>
-              {en ? "Free diagnostic • 9 dimensions • Personalized roadmap" : "Diagnostic gratuit • 9 dimensions d’analyse • Feuille de route personnalisée"}
-            </p>
+            {/* Video Embedded directly in the Hero */}
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                maxWidth: "880px",
+                margin: "0 auto 36px auto",
+                borderRadius: "20px",
+                overflow: "hidden",
+                boxShadow: "0 20px 45px -15px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(0, 0, 0, 0.08)",
+                background: "#000000",
+                aspectRatio: "16 / 9",
+              }}
+            >
+              <video
+                controls
+                playsInline
+                preload="metadata"
+                poster="/assets/videos/poster-diagnostic.jpg"
+                style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
+              >
+                <source src="/assets/videos/alodo-diagnostic-v11.mp4" type="video/mp4" />
+                {en ? "Your browser does not support the video tag." : "Votre navigateur ne supporte pas la lecture de vidéos."}
+              </video>
+            </div>
 
-            {/* Action Buttons */}
-            <div className="mpme-hero-actions" style={{ display: "flex", gap: "14px", flexWrap: "wrap", justifyContent: "center", alignItems: "center", margin: "36px auto 0 auto" }}>
+            {/* Action Button */}
+            <div className="mpme-hero-actions" style={{ margin: "0 auto" }}>
               <button
                 onClick={handleHeroApply}
-                className="btn primary"
-                style={{ cursor: "pointer", fontSize: "16px", padding: "16px 36px" }}
+                className="btn primary mpme-main-cta"
               >
                 {en ? "Start my diagnostic →" : "Démarrer mon diagnostic →"}
               </button>
-
-              <a
-                href="#presentation-video"
-                style={{
-                  cursor: "pointer",
-                  fontSize: "15px",
-                  padding: "15px 26px",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  textDecoration: "none",
-                  borderRadius: "12px",
-                  border: "1px solid #E5E7EB",
-                  background: "#FFFFFF",
-                  color: "#1F2937",
-                  fontWeight: 600,
-                  boxShadow: "0 2px 6px rgba(0,0,0,0.04)",
-                  transition: "all 0.2s ease"
-                }}
-              >
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "28px",
-                    height: "28px",
-                    borderRadius: "50%",
-                    background: "rgba(236, 102, 59, 0.12)",
-                    color: "#EC663B",
-                  }}
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="6 4 20 12 6 20 6 4" />
-                  </svg>
-                </span>
-                {en ? "Watch the video (1 min)" : "Voir la vidéo (1 min)"}
-              </a>
             </div>
 
             {/* Key Metrics / Stat Bar */}
@@ -129,50 +105,6 @@ export default function MpmeLandingPage() {
                 <div className="num">90 Jours</div>
                 <div className="label">{en ? "Personalized roadmap" : "Feuille de route personnalisée"}</div>
               </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================================
-            1.5 PRÉSENTATION VIDÉO DU PROGRAMME
-            ========================================================================= */}
-        <section id="presentation-video" className="bg-white" style={{ padding: "72px 0 80px 0", borderBottom: "1px solid var(--grey-100)" }}>
-          <div className="container" style={{ maxWidth: "1000px" }}>
-            <div className="section-head" style={{ textAlign: "center", maxWidth: "760px", margin: "0 auto 36px auto" }}>
-              <div>
-                <span className="eyebrow teal">{en ? "Video presentation" : "Présentation Vidéo"}</span>
-                <h2>{en ? "Understand the MSME Program in 1 minute" : "Comprendre le Programme MPME en 1 minute"}</h2>
-              </div>
-              <p className="lead" style={{ margin: "16px auto 0 auto" }}>
-                {en
-                  ? "Discover how the ALODO diagnostic evaluates your business maturity and guides your growth roadmap."
-                  : "Découvrez en images comment le diagnostic ALODO évalue la maturité de votre entreprise et guide votre feuille de route."}
-              </p>
-            </div>
-
-            <div
-              style={{
-                position: "relative",
-                width: "100%",
-                maxWidth: "920px",
-                margin: "0 auto",
-                borderRadius: "20px",
-                overflow: "hidden",
-                boxShadow: "0 20px 45px -15px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.06)",
-                background: "#000000",
-                aspectRatio: "16 / 9",
-              }}
-            >
-              <video
-                controls
-                playsInline
-                preload="metadata"
-                poster="/assets/videos/poster-diagnostic.jpg"
-                style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
-              >
-                <source src="/assets/videos/alodo-diagnostic-v11.mp4" type="video/mp4" />
-                {en ? "Your browser does not support the video tag." : "Votre navigateur ne supporte pas la lecture de vidéos."}
-              </video>
             </div>
           </div>
         </section>
@@ -456,11 +388,10 @@ export default function MpmeLandingPage() {
                   ? "See your maturity level, identify your priorities and, if you want, take the next steps with ALODO."
                   : "Découvrez votre niveau de maturité, identifiez vos priorités et, si vous le souhaitez, engagez les prochaines étapes avec ALODO."}
               </p>
-              <div style={{ marginTop: "32px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+              <div className="cta-box-actions" style={{ marginTop: "32px", display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
                 <button
                   onClick={handleHeroApply}
-                  className="btn primary"
-                  style={{ cursor: "pointer", fontSize: "16px", padding: "16px 36px" }}
+                  className="btn primary mpme-main-cta"
                 >
                   {en ? "Join the MSME Program →" : "Participer au Programme MPME →"}
                 </button>
