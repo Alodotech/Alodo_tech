@@ -237,7 +237,11 @@ export default function AdminOverviewView() {
     setCohort(c);
   };
 
-  const handleUpdateStatus = async (appId: string, status: Application["status"]) => {
+  const handleUpdateStatus = async (
+    appId: string, 
+    status: Application["status"], 
+    shouldSendEmail: boolean = false
+  ) => {
     const supabase = createClient();
     const { error } = await supabase
       .from("applications")
@@ -249,7 +253,7 @@ export default function AdminOverviewView() {
     }
 
     const target = applications.find((a) => a.id === appId);
-    if (target?.company?.email && status === "selected") {
+    if (shouldSendEmail && target?.company?.email && status === "selected") {
       fetch("/api/send-dashboard-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

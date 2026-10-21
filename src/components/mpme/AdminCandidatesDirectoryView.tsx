@@ -154,6 +154,15 @@ function BarChartIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
+function MailIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+      <polyline points="22,6 12,13 2,6" />
+    </svg>
+  );
+}
+
 export default function AdminCandidatesDirectoryView() {
   const [cohort, setCohort] = useState<Cohort | null>(null);
   const [applications, setApplications] = useState<Application[]>([]);
@@ -178,6 +187,12 @@ export default function AdminCandidatesDirectoryView() {
   const [confirmReleaseModal, setConfirmReleaseModal] = useState<{
     app: Application;
     targetStatus: Application["status"];
+  } | null>(null);
+
+  // Confirmation Modal before admitting an enterprise to Top 20 (and sending email)
+  const [confirmAdmissionModal, setConfirmAdmissionModal] = useState<{
+    app: Application;
+    shouldSendEmail: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -334,7 +349,11 @@ export default function AdminCandidatesDirectoryView() {
     setCohort(c);
   };
 
-  const handleUpdateStatus = async (appId: string, status: Application["status"]) => {
+  const handleUpdateStatus = async (
+    appId: string, 
+    status: Application["status"], 
+    shouldSendEmail: boolean = true
+  ) => {
     const supabase = createClient();
     const { error } = await supabase
       .from("applications")
@@ -347,7 +366,7 @@ export default function AdminCandidatesDirectoryView() {
     }
 
     const target = applications.find((a) => a.id === appId);
-    if (target?.company?.email && status === "selected") {
+    if (shouldSendEmail && target?.company?.email && status === "selected") {
       fetch("/api/send-dashboard-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -363,7 +382,9 @@ export default function AdminCandidatesDirectoryView() {
     setStatusFeedback({
       msg: `Statut actualisé : ${
         status === "selected"
-          ? "Admis au Top 20 (Cohorte 1)"
+          ? shouldSendEmail && target?.company?.email
+            ? "Admis au Top 20 • Email officiel envoyé"
+            : "Admis au Top 20 (Cohorte 1)"
           : status === "under_review"
           ? "Dossier déjà analysé"
           : "Placé en attente"
@@ -375,12 +396,17 @@ export default function AdminCandidatesDirectoryView() {
     await refreshData();
   };
 
-  // Safe handler that prompts for confirmation before releasing a retained Top 20 company
+  // Safe handler that prompts for confirmation before changing status
   const requestStatusChange = (app: Application, targetStatus: Application["status"]) => {
     if (app.status === "selected" && targetStatus !== "selected") {
+      // Libération de place Top 20 -> Demande confirmation
       setConfirmReleaseModal({ app, targetStatus });
+    } else if (targetStatus === "selected" && app.status !== "selected") {
+      // Admission au Top 20 -> Demande confirmation avant d'envoyer l'email
+      setConfirmAdmissionModal({ app, shouldSendEmail: true });
     } else {
-      handleUpdateStatus(app.id, targetStatus);
+      // Modification classique sans email (ex: en attente <-> déjà analysé)
+      handleUpdateStatus(app.id, targetStatus, false);
       if (inspectingApp && inspectingApp.id === app.id) {
         setInspectingApp({ ...inspectingApp, status: targetStatus });
       }
@@ -872,6 +898,107 @@ export default function AdminCandidatesDirectoryView() {
                 className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-rose-600/20 active:scale-95"
               >
                 <span>Confirmer la libération</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          MODAL DE CONFIRMATION AVANT ADMISSION AU TOP 20 & ENVOI D'EMAIL
+          ========================================================================= */}
+      {confirmAdmissionModal && (
+        <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 print:hidden">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-emerald-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
+                <MailIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-100/60 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                  Confirmation d'admission
+                </span>
+                <h3 className="text-lg font-extrabold text-[#0A0A0A] font-tech mt-1">
+                  Admettre au Top 20 & Envoyer l'email
+                </h3>
+              </div>
+            </div>
+
+            <div className="space-y-4 mb-6">
+              <p className="text-xs sm:text-sm text-[#4A4A4F] leading-relaxed">
+                Vous êtes sur le point d'admettre officiellement cette entreprise parmi les lauréats de la <strong className="text-emerald-700 font-bold">Cohorte 1 (Top 20)</strong> :
+              </p>
+
+              {/* Récapitulatif candidat */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Entreprise :</span>
+                  <span className="font-extrabold text-slate-900">{confirmAdmissionModal.app.company?.name || "Entreprise"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Dirigeant(e) :</span>
+                  <span className="font-bold text-slate-800">{confirmAdmissionModal.app.company?.leaderName || "Non spécifié"}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Email destinataire :</span>
+                  <span className="font-mono font-bold text-[#EC663B]">{confirmAdmissionModal.app.company?.email}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-500 font-medium">Score diagnostic :</span>
+                  <span className="font-mono font-bold text-emerald-700">{confirmAdmissionModal.app.diagnosticScore || 0}/100</span>
+                </div>
+              </div>
+
+              {/* Avertissement Email */}
+              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+                <span className="text-base shrink-0">⚠️</span>
+                <div>
+                  <strong>Attention :</strong> La confirmation va déclencher l'envoi d'un <strong>email officiel de félicitations et d'admission</strong> avec le programme et les prochaines étapes ALODO.
+                </div>
+              </div>
+
+              {/* Case à cocher pour envoyer ou non le mail */}
+              <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all select-none">
+                <input
+                  type="checkbox"
+                  checked={confirmAdmissionModal.shouldSendEmail}
+                  onChange={(e) =>
+                    setConfirmAdmissionModal({
+                      ...confirmAdmissionModal,
+                      shouldSendEmail: e.target.checked,
+                    })
+                  }
+                  className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
+                />
+                <span className="text-xs font-semibold text-slate-800">
+                  Envoyer l'email officiel d'admission à l'entreprise
+                </span>
+              </label>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setConfirmAdmissionModal(null)}
+                className="px-4 py-2.5 rounded-xl border border-[#D1D1D6] hover:bg-[#FAFAFA] text-[#0A0A0A] text-xs font-bold transition-all cursor-pointer"
+              >
+                Annuler
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const { app, shouldSendEmail } = confirmAdmissionModal;
+                  setConfirmAdmissionModal(null);
+                  await handleUpdateStatus(app.id, "selected", shouldSendEmail);
+                  if (inspectingApp && inspectingApp.id === app.id) {
+                    setInspectingApp({ ...inspectingApp, status: "selected" });
+                  }
+                }}
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-emerald-600/20 active:scale-95"
+              >
+                <CheckIcon className="w-4 h-4" />
+                <span>Confirmer l'admission</span>
               </button>
             </div>
           </div>
