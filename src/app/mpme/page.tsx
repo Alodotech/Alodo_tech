@@ -69,10 +69,10 @@ export default function MpmeLandingPage() {
                 controls
                 playsInline
                 preload="metadata"
-                poster="/assets/videos/poster-diagnostic.jpg"
+                poster="/assets/videos/poster-diagnostic-new.jpg"
                 style={{ width: "100%", height: "100%", display: "block", objectFit: "cover" }}
               >
-                <source src="/assets/videos/alodo-diagnostic-v11.mp4" type="video/mp4" />
+                <source src="/assets/videos/new_video.mp4" type="video/mp4" />
                 {en ? "Your browser does not support the video tag." : "Votre navigateur ne supporte pas la lecture de vidéos."}
               </video>
             </div>
