@@ -8,7 +8,7 @@ import { MpmeStorage } from "@/lib/mpme/storage";
 import { Application, Cohort, DiagnosticAnswer, DiagnosticReport } from "@/lib/mpme/types";
 import { calculateDiagnosticScore } from "@/lib/mpme/scoring";
 import { createClient } from "@/utils/supabase/client";
-import { isListedAdmin } from "@/utils/supabase/isAdmin";
+import { resolveConsoleSession } from "@/utils/supabase/guardConsole";
 
 // Clean Professional SVG Icons
 function LayersIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -83,6 +83,7 @@ export default function AdminOverviewView() {
   const [statusFeedback, setStatusFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [canGovern, setCanGovern] = useState(false);
   const [pdfModalApp, setPdfModalApp] = useState<Application | null>(null);
   const [rapportMpmeApp, setRapportMpmeApp] = useState<Application | null>(null);
 
@@ -91,21 +92,11 @@ export default function AdminOverviewView() {
 
   useEffect(() => {
     setIsClient(true);
-    const supabase = createClient();
 
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        window.location.href = "/admin/login";
-        return;
-      }
-
-      if (!(await isListedAdmin(supabase, user.email))) {
-        await supabase.auth.signOut();
-        window.location.href = "/admin/login?error=unauthorized";
-        return;
-      }
-
-      setAdminEmail(user.email || "Console Gouverneur ALODO TECH");
+    resolveConsoleSession().then((session) => {
+      if (!session) return;
+      setCanGovern(session.role === "admin");
+      setAdminEmail(session.email || "Console Gouverneur ALODO TECH");
       setIsAuthorized(true);
       refreshData();
     }).catch(() => {
@@ -242,6 +233,7 @@ export default function AdminOverviewView() {
     status: Application["status"], 
     shouldSendEmail: boolean = false
   ) => {
+    if (!canGovern) return;
     const supabase = createClient();
     const { error } = await supabase
       .from("applications")
@@ -505,14 +497,16 @@ export default function AdminOverviewView() {
                           <span className="text-xs text-[#8E8E93]">-</span>
                         )}
 
-                        <button
-                          type="button"
-                          onClick={() => setConfirmReleaseApp(app)}
-                          className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
-                          title="Retirer du Top 20 et replacer en délibération"
-                        >
-                          Libérer place
-                        </button>
+                        {canGovern && (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmReleaseApp(app)}
+                            className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
+                            title="Retirer du Top 20 et replacer en délibération"
+                          >
+                            Libérer place
+                          </button>
+                        )}
                       </div>
                     </div>
                   ) : (

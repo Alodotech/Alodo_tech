@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { isListedAdmin } from "@/utils/supabase/isAdmin";
+import { resolveConsoleSession } from "@/utils/supabase/guardConsole";
 import { Cohort } from "@/lib/mpme/types";
 import DashboardLayout from "@/components/mpme/DashboardLayout";
 
@@ -62,14 +62,10 @@ export default function AdminSettingsPage() {
   const refreshData = async () => {
     const supabase = createClient();
 
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      window.location.href = "/admin/login";
-      return;
-    }
-    if (!(await isListedAdmin(supabase, user.email))) {
-      await supabase.auth.signOut();
-      window.location.href = "/admin/login?error=unauthorized";
+    const session = await resolveConsoleSession();
+    if (!session) return;
+    if (session.role !== "admin") {
+      window.location.href = "/partenaire";
       return;
     }
 

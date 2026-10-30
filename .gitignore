@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# comptes staff enregistrés en local tant que les tables Supabase ne sont pas créées
+/data/console-staff.json

@@ -9,7 +9,7 @@ import { Application, Cohort, DiagnosticAnswer, DiagnosticReport } from "@/lib/m
 import { DIMENSIONS, QUESTIONS_V1 } from "@/lib/mpme/questions";
 import { calculateDiagnosticScore } from "@/lib/mpme/scoring";
 import { createClient } from "@/utils/supabase/client";
-import { isListedAdmin } from "@/utils/supabase/isAdmin";
+import { resolveConsoleSession } from "@/utils/supabase/guardConsole";
 
 // ============================================================================
 // ICONS
@@ -171,6 +171,7 @@ export default function AdminCandidatesDirectoryView() {
   const [statusFeedback, setStatusFeedback] = useState<{ msg: string; type: "success" | "error" } | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
+  const [canGovern, setCanGovern] = useState(false);
   const [pdfModalApp, setPdfModalApp] = useState<Application | null>(null);
   const [rapportMpmeApp, setRapportMpmeApp] = useState<Application | null>(null);
 
@@ -197,21 +198,11 @@ export default function AdminCandidatesDirectoryView() {
 
   useEffect(() => {
     setIsClient(true);
-    const supabase = createClient();
 
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) {
-        window.location.href = "/admin/login";
-        return;
-      }
-
-      if (!(await isListedAdmin(supabase, user.email))) {
-        await supabase.auth.signOut();
-        window.location.href = "/admin/login?error=unauthorized";
-        return;
-      }
-
-      setAdminEmail(user.email || "Console Gouverneur ALODO TECH");
+    resolveConsoleSession().then((session) => {
+      if (!session) return;
+      setCanGovern(session.role === "admin");
+      setAdminEmail(session.email || "Console Gouverneur ALODO TECH");
       setIsAuthorized(true);
       refreshData();
     }).catch(() => {
@@ -354,6 +345,7 @@ export default function AdminCandidatesDirectoryView() {
     status: Application["status"], 
     shouldSendEmail: boolean = true
   ) => {
+    if (!canGovern) return;
     const supabase = createClient();
     const { error } = await supabase
       .from("applications")
@@ -398,6 +390,7 @@ export default function AdminCandidatesDirectoryView() {
 
   // Safe handler that prompts for confirmation before changing status
   const requestStatusChange = (app: Application, targetStatus: Application["status"]) => {
+    if (!canGovern) return;
     if (app.status === "selected" && targetStatus !== "selected") {
       // Libération de place Top 20 -> Demande confirmation
       setConfirmReleaseModal({ app, targetStatus });
@@ -1088,6 +1081,7 @@ export default function AdminCandidatesDirectoryView() {
             </div>
 
             {/* 2. REFINED STATUS ARBITRAGE TOOLBAR */}
+            {canGovern && (
             <div className="px-6 py-2.5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
               <span className="text-xs font-medium text-slate-500">
                 Statut d'arbitrage :
@@ -1134,6 +1128,7 @@ export default function AdminCandidatesDirectoryView() {
                 </button>
               </div>
             </div>
+            )}
 
             {/* 3. MODERN UNIFIED TAB BAR (FIT 100% SANS SCROLLBAR) */}
             <div className="grid grid-cols-4 bg-white border-b border-slate-100 text-center shrink-0">

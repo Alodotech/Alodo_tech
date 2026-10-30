@@ -6,7 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { createClient } from "@/utils/supabase/client";
-import { isListedAdmin } from "@/utils/supabase/isAdmin";
+import { getConsoleRole } from "@/utils/supabase/isAdmin";
 
 function AdminLoginInner() {
   const router = useRouter();
@@ -16,7 +16,7 @@ function AdminLoginInner() {
 
   useEffect(() => {
     if (searchParams.get("error") === "unauthorized") {
-      setErrorMessage("Accès restreint : Votre compte Google n'est pas autorisé en tant qu'administrateur.");
+      setErrorMessage("Accès restreint : ce compte Google n'est pas autorisé.");
     }
   }, [searchParams]);
 
@@ -25,9 +25,9 @@ function AdminLoginInner() {
     const checkSession = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (user && (await isListedAdmin(supabase, user.email))) {
-        router.replace("/admin/candidatures");
-      }
+      const role = user ? await getConsoleRole(supabase, user.email) : null;
+      if (role === "admin") router.replace("/admin/candidatures");
+      if (role === "partenaire") router.replace("/partenaire");
     };
     checkSession();
   }, [router]);

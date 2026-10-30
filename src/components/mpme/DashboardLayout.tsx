@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Application } from "@/lib/mpme/types";
 import { createClient } from "@/utils/supabase/client";
-import { isListedAdmin } from "@/utils/supabase/isAdmin";
+import { getConsoleRole } from "@/utils/supabase/isAdmin";
 
 // ============================================================================
 // CLEAN PROFESSIONAL VECTOR SVG ICONS (NO EMOJIS)
@@ -43,17 +43,6 @@ function DownloadPdfIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-function UsersIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
 function UserIcon({ className = "w-4 h-4" }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -79,6 +68,17 @@ function LogOutIcon({ className = "w-4 h-4" }: { className?: string }) {
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  );
+}
+
+function PartnerIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <line x1="19" y1="8" x2="19" y2="14" />
+      <line x1="22" y1="11" x2="16" y2="11" />
     </svg>
   );
 }
@@ -124,13 +124,13 @@ export default function DashboardLayout({
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        const isAdmin = await isListedAdmin(supabase, user.email);
+        const consoleRole = await getConsoleRole(supabase, user.email);
 
         setUser({
           email: user.email,
           name: user.user_metadata?.full_name || user.email?.split("@")[0],
           provider: "google",
-          role: isAdmin ? "Admin" : "MPME"
+          role: consoleRole === "admin" ? "Admin" : consoleRole === "partenaire" ? "Partenaire" : "MPME"
         });
         
         // Temporarily keeping application logic but removing MpmeStorage dependency for user.
@@ -162,6 +162,17 @@ export default function DashboardLayout({
     ? currentView === "candidature"
     : activeTab === "candidature";
 
+  const isPartner = user?.role === "Partenaire";
+  const isAdminUser = user?.role === "Admin";
+  const showConsoleNav = activeTab === "admin" || isAdminUser || isPartner;
+  const showGovernorNav = isAdminUser;
+
+  useEffect(() => {
+    if (isPartner && pathname.startsWith("/admin")) {
+      router.replace("/partenaire");
+    }
+  }, [isPartner, pathname, router]);
+
   const companyName = application?.company.name || "Mon Entreprise";
   const leaderName = application?.company.leaderName || user?.name || "Dirigeant MPME";
   const userEmail = application?.company.email || user?.email || "";
@@ -187,7 +198,7 @@ export default function DashboardLayout({
                   <span className="text-[#EC663B]">ALODO</span> TECH
                 </div>
                 <span className="text-[10px] font-semibold text-[#8E8E93] tracking-widest uppercase block">
-                  {activeTab === "admin" || user?.role === "Admin" ? "Administration" : "Plateforme MPME"}
+                  {isPartner ? "Espace partenaire" : showConsoleNav ? "Administration" : "Plateforme MPME"}
                 </span>
               </div>
             </div>
@@ -199,7 +210,15 @@ export default function DashboardLayout({
               NAVIGATION: "Vue Générale" & "Paramètres Gouverneur"
               ===================================================================== */}
           <nav className="p-4 space-y-1.5">
-            {activeTab === "admin" || user?.role === "Admin" ? (
+            {isPartner ? (
+              <Link
+                href="/partenaire"
+                className="w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-bold bg-[#EC663B]/10 text-[#EC663B] text-left"
+              >
+                <DashboardIcon className="w-5 h-5 shrink-0 text-[#EC663B]" />
+                <span>Espace partenaire ALODO MPME</span>
+              </Link>
+            ) : showConsoleNav ? (
               <>
                 {/* 1. VUE GÉNÉRALE */}
                 <Link
@@ -235,22 +254,33 @@ export default function DashboardLayout({
                   <span>Candidats & Entreprises</span>
                 </Link>
 
-                {/* 3. PARAMÈTRES GOUVERNEUR */}
-                <Link
-                  href="/admin/settings"
-                  className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
-                    activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings")
-                      ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
-                      : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
-                  }`}
-                >
-                  <SettingsIcon
-                    className={`w-5 h-5 shrink-0 ${
-                      activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings") ? "text-[#EC663B]" : "text-[#6E6E73]"
-                    }`}
-                  />
-                  <span>Paramètres Gouverneur</span>
-                </Link>
+                {showGovernorNav && (
+                  <>
+                    <Link
+                      href="/admin/partenaires"
+                      className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
+                        pathname === "/admin/partenaires"
+                          ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                          : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
+                      }`}
+                    >
+                      <PartnerIcon className={`w-5 h-5 shrink-0 ${pathname === "/admin/partenaires" ? "text-[#EC663B]" : "text-[#6E6E73]"}`} />
+                      <span>Partenaire</span>
+                    </Link>
+
+                    <Link
+                      href="/admin/settings"
+                      className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all text-left cursor-pointer ${
+                        pathname === "/admin/settings"
+                          ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                          : "text-[#6E6E73] hover:text-[#0A0A0A] hover:bg-[#FAFAFA]"
+                      }`}
+                    >
+                      <SettingsIcon className={`w-5 h-5 shrink-0 ${pathname === "/admin/settings" ? "text-[#EC663B]" : "text-[#6E6E73]"}`} />
+                      <span>Paramètres Gouverneur</span>
+                    </Link>
+                  </>
+                )}
               </>
             ) : (
               <>
@@ -385,7 +415,16 @@ export default function DashboardLayout({
 
 
                 <nav className="space-y-1.5">
-                  {activeTab === "admin" || user?.role === "Admin" ? (
+                  {isPartner ? (
+                    <Link
+                      href="/partenaire"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold bg-[#EC663B]/10 text-[#EC663B] text-left"
+                    >
+                      <DashboardIcon className="w-5 h-5 shrink-0 text-[#EC663B]" />
+                      <span>Espace partenaire ALODO MPME</span>
+                    </Link>
+                  ) : showConsoleNav ? (
                     <>
                       {/* 1. VUE GÉNÉRALE */}
                       <Link
@@ -423,23 +462,35 @@ export default function DashboardLayout({
                         <span>Candidats & Entreprises</span>
                       </Link>
 
-                      {/* 3. PARAMÈTRES GOUVERNEUR */}
-                      <Link
-                        href="/admin/settings"
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
-                          activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings")
-                            ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
-                            : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
-                        }`}
-                      >
-                        <SettingsIcon
-                          className={`w-5 h-5 shrink-0 ${
-                            activeTab === "admin" && (adminSubTab === "settings" || pathname === "/admin/settings") ? "text-[#EC663B]" : "text-[#6E6E73]"
-                          }`}
-                        />
-                        <span>Paramètres Gouverneur</span>
-                      </Link>
+                      {showGovernorNav && (
+                        <>
+                          <Link
+                            href="/admin/partenaires"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left cursor-pointer ${
+                              pathname === "/admin/partenaires"
+                                ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                                : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
+                            }`}
+                          >
+                            <PartnerIcon className={`w-5 h-5 shrink-0 ${pathname === "/admin/partenaires" ? "text-[#EC663B]" : "text-[#6E6E73]"}`} />
+                            <span>Partenaire</span>
+                          </Link>
+
+                          <Link
+                            href="/admin/settings"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-medium text-left ${
+                              pathname === "/admin/settings"
+                                ? "bg-[#EC663B]/10 text-[#EC663B] font-bold"
+                                : "text-[#3A3A3C] hover:bg-[#FAFAFA]"
+                            }`}
+                          >
+                            <SettingsIcon className={`w-5 h-5 shrink-0 ${pathname === "/admin/settings" ? "text-[#EC663B]" : "text-[#6E6E73]"}`} />
+                            <span>Paramètres Gouverneur</span>
+                          </Link>
+                        </>
+                      )}
                     </>
                   ) : (
                     <>
