@@ -291,7 +291,7 @@ export default function DossierPdfDocument({
                     {activeReport.fundingReadiness.score}
                     <span className="text-base font-normal text-[#8E8E93]">/100</span>
                   </div>
-                  <span className="text-[10px] text-[#6E6E73] block truncate">
+                  <span className="text-[10px] text-[#6E6E73] block leading-snug">
                     {activeReport.fundingReadiness.analysis}
                   </span>
                 </div>
@@ -344,7 +344,7 @@ export default function DossierPdfDocument({
 
                 <div className="p-3.5 rounded-xl bg-rose-50/60 border border-rose-200">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-rose-800 block mb-2">
-                    Risques Critiques à Adresser
+                    Points à approfondir
                   </span>
                   <ul className="space-y-1">
                     {activeReport.topRisks.map((r, i) => (
@@ -355,6 +355,19 @@ export default function DossierPdfDocument({
                   </ul>
                 </div>
               </div>
+
+              {activeReport.checks && activeReport.checks.length > 0 && (
+                <div className="p-3.5 rounded-xl bg-[#FAFAFA] border border-[#EBEBEB] text-xs mb-3">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#3A3A3C] block mb-2">
+                    À vérifier en entretien
+                  </span>
+                  <ul className="space-y-1">
+                    {activeReport.checks.map((check) => (
+                      <li key={check} className="text-[#0A0A0A]">{check}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
@@ -461,6 +474,12 @@ export default function DossierPdfDocument({
                         </div>
                       )}
                     </div>
+
+                    {activeReport?.dimensionReadings?.find((reading) => reading.dimensionId === dim.id) && (
+                      <p className="text-xs text-[#3A3A3C] leading-relaxed pb-2">
+                        {activeReport.dimensionReadings.find((reading) => reading.dimensionId === dim.id)?.text}
+                      </p>
+                    )}
 
                     {/* Questions in Dimension */}
                     <div className="space-y-2.5">

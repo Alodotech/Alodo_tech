@@ -136,6 +136,15 @@ export interface DimensionScore {
   weight: number;
 }
 
+export interface DimensionReading {
+  dimensionId: DimensionId;
+  title: string;
+  niveau: "solide" | "moyen" | "vigilance" | "a_approfondir";
+  /** Même phrase dans le résumé et dans l'analyse détaillée. */
+  text: string;
+  action: string;
+}
+
 export interface DiagnosticReport {
   id: string;
   diagnosticId: string;
@@ -158,4 +167,9 @@ export interface DiagnosticReport {
   };
   alodoRecommendation: string;
   generatedAt: string;
+  /** Phrase d'ouverture, construite avec les mêmes constats que le détail. */
+  summary?: string;
+  /** Réponses qui se contredisent : à vérifier en entretien, sans trancher. */
+  checks?: string[];
+  dimensionReadings?: DimensionReading[];
 }

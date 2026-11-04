@@ -1353,7 +1353,7 @@ export default function AdminCandidatesDirectoryView() {
                               <li key={idx} className="leading-relaxed">{s}</li>
                             ))
                           ) : (
-                            <li className="italic text-slate-400">Dossier équilibré sans force prédominante déclarée.</li>
+                            <li className="italic text-slate-400">Information à approfondir : aucune force ne se déduit des réponses renseignées.</li>
                           )}
                         </ul>
                       </div>
@@ -1362,7 +1362,7 @@ export default function AdminCandidatesDirectoryView() {
                       <div className="p-4 rounded-2xl bg-rose-50/50 border border-rose-200/80 space-y-2.5">
                         <span className="text-xs font-extrabold text-rose-900 flex items-center gap-1.5">
                           <AlertTriangleIcon className="w-4 h-4 text-rose-600" />
-                          <span>Points de Vigilance & Risques</span>
+                          <span>Points à approfondir</span>
                         </span>
                         <ul className="text-xs text-slate-800 space-y-1.5 list-disc list-inside">
                           {activeInspectionReport.topRisks?.length > 0 ? (
@@ -1370,10 +1370,21 @@ export default function AdminCandidatesDirectoryView() {
                               <li key={idx} className="leading-relaxed">{r}</li>
                             ))
                           ) : (
-                            <li className="italic text-slate-400">Aucun risque critique immédiat repéré.</li>
+                            <li className="italic text-slate-400">Information à approfondir : aucun point faible ne se déduit des réponses renseignées.</li>
                           )}
                         </ul>
                       </div>
+                    </div>
+                  )}
+
+                  {activeInspectionReport?.checks && activeInspectionReport.checks.length > 0 && (
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                      <span className="text-xs font-extrabold text-slate-900">À vérifier en entretien</span>
+                      <ul className="text-xs text-slate-700 space-y-1.5 list-disc list-inside">
+                        {activeInspectionReport.checks.map((check) => (
+                          <li key={check} className="leading-relaxed">{check}</li>
+                        ))}
+                      </ul>
                     </div>
                   )}
 
@@ -1474,6 +1485,12 @@ export default function AdminCandidatesDirectoryView() {
                               </span>
                             )}
                           </div>
+
+                          {activeInspectionReport?.dimensionReadings?.find((reading) => reading.dimensionId === dim.id) && (
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                              {activeInspectionReport.dimensionReadings.find((reading) => reading.dimensionId === dim.id)?.text}
+                            </p>
+                          )}
 
                           <div className="space-y-2.5">
                             {questions.map((q, qIdx) => {
