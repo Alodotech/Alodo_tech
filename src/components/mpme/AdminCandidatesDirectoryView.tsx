@@ -8,6 +8,7 @@ import { MpmeStorage } from "@/lib/mpme/storage";
 import { Application, Cohort, DiagnosticAnswer, DiagnosticReport } from "@/lib/mpme/types";
 import { DIMENSIONS, QUESTIONS_V1 } from "@/lib/mpme/questions";
 import { calculateDiagnosticScore } from "@/lib/mpme/scoring";
+import { defaultAdmissionBody, defaultAdmissionSubject } from "@/lib/mpme/admissionEmail";
 import { createClient } from "@/utils/supabase/client";
 import { resolveConsoleSession } from "@/utils/supabase/guardConsole";
 
@@ -194,6 +195,8 @@ export default function AdminCandidatesDirectoryView() {
   const [confirmAdmissionModal, setConfirmAdmissionModal] = useState<{
     app: Application;
     shouldSendEmail: boolean;
+    subject: string;
+    body: string;
   } | null>(null);
 
   useEffect(() => {
@@ -341,9 +344,10 @@ export default function AdminCandidatesDirectoryView() {
   };
 
   const handleUpdateStatus = async (
-    appId: string, 
-    status: Application["status"], 
-    shouldSendEmail: boolean = true
+    appId: string,
+    status: Application["status"],
+    shouldSendEmail: boolean = true,
+    emailDraft?: { subject: string; body: string }
   ) => {
     if (!canGovern) return;
     const supabase = createClient();
@@ -358,33 +362,55 @@ export default function AdminCandidatesDirectoryView() {
     }
 
     const target = applications.find((a) => a.id === appId);
-    if (shouldSendEmail && target?.company?.email && status === "selected") {
-      fetch("/api/send-dashboard-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          toEmail: target.company.email,
-          companyName: target.company.name,
-          leaderName: target.company.leaderName,
-          action: "accept",
-        }),
-      }).catch((err) => console.error("Erreur envoi notification candidat :", err));
+    let emailNote = "";
+    let emailFailed = false;
+    if (shouldSendEmail && status === "selected") {
+      if (!target?.company?.email) {
+        emailFailed = true;
+        emailNote = "Admis au Top 20 • e-mail non envoyé : adresse absente";
+      } else {
+        try {
+          const response = await fetch("/api/send-dashboard-link", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              toEmail: target.company.email,
+              companyName: target.company.name,
+              leaderName: target.company.leaderName,
+              action: "accept",
+              subject: emailDraft?.subject,
+              body: emailDraft?.body,
+            }),
+          });
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            emailFailed = true;
+            emailNote = `Admis au Top 20 • e-mail non envoyé : ${payload.error || "erreur d'envoi"}`;
+          } else if (payload.warning) {
+            emailFailed = true;
+            emailNote = "Admis au Top 20 • e-mail non envoyé : clé d'envoi absente";
+          } else {
+            emailNote = "Admis au Top 20 • e-mail envoyé";
+          }
+        } catch {
+          emailFailed = true;
+          emailNote = "Admis au Top 20 • e-mail non envoyé";
+        }
+      }
     }
 
     setStatusFeedback({
-      msg: `Statut actualisé : ${
+      msg: emailNote || `Statut actualisé : ${
         status === "selected"
-          ? shouldSendEmail && target?.company?.email
-            ? "Admis au Top 20 • Email officiel envoyé"
-            : "Admis au Top 20 (Cohorte 1)"
+          ? "Admis au Top 20 (Cohorte 1)"
           : status === "under_review"
           ? "Dossier déjà analysé"
           : "Placé en attente"
       }`,
-      type: "success",
+      type: emailFailed ? "error" : "success",
     });
 
-    setTimeout(() => setStatusFeedback(null), 3500);
+    setTimeout(() => setStatusFeedback(null), emailFailed ? 8000 : 3500);
     await refreshData();
   };
 
@@ -396,7 +422,12 @@ export default function AdminCandidatesDirectoryView() {
       setConfirmReleaseModal({ app, targetStatus });
     } else if (targetStatus === "selected" && app.status !== "selected") {
       // Admission au Top 20 -> Demande confirmation avant d'envoyer l'email
-      setConfirmAdmissionModal({ app, shouldSendEmail: true });
+      setConfirmAdmissionModal({
+        app,
+        shouldSendEmail: true,
+        subject: defaultAdmissionSubject(app.company?.name || ""),
+        body: defaultAdmissionBody(app.company?.leaderName || "", app.company?.name || ""),
+      });
     } else {
       // Modification classique sans email (ex: en attente <-> déjà analysé)
       handleUpdateStatus(app.id, targetStatus, false);
@@ -902,7 +933,7 @@ export default function AdminCandidatesDirectoryView() {
           ========================================================================= */}
       {confirmAdmissionModal && (
         <div className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 print:hidden">
-          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-lg w-full shadow-2xl border border-emerald-100 animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-2xl w-full shadow-2xl border border-emerald-100 animate-in fade-in zoom-in-95 duration-150 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shrink-0">
                 <MailIcon className="w-6 h-6" />
@@ -943,14 +974,6 @@ export default function AdminCandidatesDirectoryView() {
               </div>
 
               {/* Avertissement Email */}
-              <div className="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
-                <span className="text-base shrink-0">⚠️</span>
-                <div>
-                  <strong>Attention :</strong> La confirmation va déclencher l'envoi d'un <strong>email officiel de félicitations et d'admission</strong> avec le programme et les prochaines étapes ALODO.
-                </div>
-              </div>
-
-              {/* Case à cocher pour envoyer ou non le mail */}
               <label className="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer transition-all select-none">
                 <input
                   type="checkbox"
@@ -964,9 +987,58 @@ export default function AdminCandidatesDirectoryView() {
                   className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 cursor-pointer"
                 />
                 <span className="text-xs font-semibold text-slate-800">
-                  Envoyer l'email officiel d'admission à l'entreprise
+                  Envoyer l'e-mail d'admission à l'entreprise
                 </span>
               </label>
+
+              {confirmAdmissionModal.shouldSendEmail && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-xs font-bold text-[#0A0A0A]">Message qui sera envoyé</span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setConfirmAdmissionModal({
+                          ...confirmAdmissionModal,
+                          subject: defaultAdmissionSubject(confirmAdmissionModal.app.company?.name || ""),
+                          body: defaultAdmissionBody(
+                            confirmAdmissionModal.app.company?.leaderName || "",
+                            confirmAdmissionModal.app.company?.name || ""
+                          ),
+                        })
+                      }
+                      className="text-[11px] font-bold text-[#EC663B] cursor-pointer"
+                    >
+                      Rétablir le texte d'origine
+                    </button>
+                  </div>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-500">Objet</span>
+                    <input
+                      type="text"
+                      value={confirmAdmissionModal.subject}
+                      onChange={(e) =>
+                        setConfirmAdmissionModal({ ...confirmAdmissionModal, subject: e.target.value })
+                      }
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-[#0A0A0A] focus:outline-none focus:border-[#EC663B]"
+                    />
+                  </label>
+                  <label className="block space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-500">Contenu</span>
+                    <textarea
+                      value={confirmAdmissionModal.body}
+                      onChange={(e) =>
+                        setConfirmAdmissionModal({ ...confirmAdmissionModal, body: e.target.value })
+                      }
+                      rows={14}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm text-[#0A0A0A] leading-relaxed focus:outline-none focus:border-[#EC663B]"
+                    />
+                  </label>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Une ligne qui commence par « - » devient une puce. L'en-tête ALODO, les liens WhatsApp et LinkedIn, et la signature sont ajoutés autour de ce texte.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
@@ -981,9 +1053,9 @@ export default function AdminCandidatesDirectoryView() {
               <button
                 type="button"
                 onClick={async () => {
-                  const { app, shouldSendEmail } = confirmAdmissionModal;
+                  const { app, shouldSendEmail, subject, body } = confirmAdmissionModal;
                   setConfirmAdmissionModal(null);
-                  await handleUpdateStatus(app.id, "selected", shouldSendEmail);
+                  await handleUpdateStatus(app.id, "selected", shouldSendEmail, { subject, body });
                   if (inspectingApp && inspectingApp.id === app.id) {
                     setInspectingApp({ ...inspectingApp, status: "selected" });
                   }
@@ -991,7 +1063,7 @@ export default function AdminCandidatesDirectoryView() {
                 className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-sm shadow-emerald-600/20 active:scale-95"
               >
                 <CheckIcon className="w-4 h-4" />
-                <span>Confirmer l'admission</span>
+                <span>{confirmAdmissionModal.shouldSendEmail ? "Confirmer et envoyer" : "Confirmer sans e-mail"}</span>
               </button>
             </div>
           </div>
